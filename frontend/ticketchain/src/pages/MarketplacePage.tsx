@@ -1,5 +1,13 @@
-import { useState, useMemo } from 'react';
-import { Search, Filter, ShoppingCart, Tag, TrendingUp, Calendar, MapPin } from 'lucide-react';
+import { useState, useMemo } from "react";
+import {
+  Search,
+  Filter,
+  ShoppingCart,
+  Tag,
+  TrendingUp,
+  Calendar,
+  MapPin,
+} from "lucide-react";
 import { useMarketplaceListings, useBuyTicket } from "../hooks/useContracts";
 import { usePushWalletContext } from "@pushchain/ui-kit";
 import { useAccount } from "wagmi";
@@ -31,11 +39,10 @@ function ListingCard({ listing, onBuy, isCurrentUser }: ListingCardProps) {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-bold text-lg">
-              {listing.ticket?.event?.name || `Event #${listing.ticket?.eventId}`}
+              {listing.ticket?.event?.name ||
+                `Event #${listing.ticket?.eventId}`}
             </h3>
-            <p className="text-sm text-gray-600">
-              Ticket #{listing.tokenId}
-            </p>
+            <p className="text-sm text-gray-600">Ticket #{listing.tokenId}</p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-green-600">
@@ -69,7 +76,9 @@ function ListingCard({ listing, onBuy, isCurrentUser }: ListingCardProps) {
         <div className="flex items-center justify-between text-sm">
           <div>
             <span className="text-gray-500">Seller:</span>
-            <span className="ml-2 font-mono">{formatAddress(listing.seller)}</span>
+            <span className="ml-2 font-mono">
+              {formatAddress(listing.seller)}
+            </span>
           </div>
           {isCurrentUser && (
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
@@ -86,8 +95,8 @@ function ListingCard({ listing, onBuy, isCurrentUser }: ListingCardProps) {
             onClick={() => onBuy(listing.listingId)}
             className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-200 ${
               isHovered
-                ? 'bg-green-600 text-white transform scale-105'
-                : 'bg-green-500 text-white hover:bg-green-600'
+                ? "bg-green-600 text-white transform scale-105"
+                : "bg-green-500 text-white hover:bg-green-600"
             }`}
           >
             <ShoppingCart className="w-4 h-4 inline mr-2" />
@@ -146,36 +155,37 @@ export const MarketplacePage = () => {
   const { listings, loading, error, refetch } = useMarketplaceListings();
   const { buyTicket, isPending: isBuying } = useBuyTicket();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [priceRange, setPriceRange] = useState<PriceFilter>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [priceRange, setPriceRange] = useState<PriceFilter>("all");
 
   // Filter and sort listings
   const filteredListings = useMemo<FormattedListing[]>(() => {
     if (!listings.length) return [];
 
-    let formattedListings = listings.map(listing => formatListing(listing));
+    let formattedListings = listings.map((listing) => formatListing(listing));
 
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      formattedListings = formattedListings.filter(listing =>
-        listing.ticket?.event?.name.toLowerCase().includes(query) ||
-        listing.ticket?.event?.venue.toLowerCase().includes(query) ||
-        listing.tokenId.toString().includes(query)
+      formattedListings = formattedListings.filter(
+        (listing) =>
+          listing.ticket?.event?.name.toLowerCase().includes(query) ||
+          listing.ticket?.event?.venue.toLowerCase().includes(query) ||
+          listing.tokenId.toString().includes(query)
       );
     }
 
     // Apply price range filter
-    if (priceRange !== 'all') {
-      formattedListings = formattedListings.filter(listing => {
+    if (priceRange !== "all") {
+      formattedListings = formattedListings.filter((listing) => {
         const pricePC = Number(listing.price) / 1e18;
         switch (priceRange) {
-          case '0-0.1':
+          case "0-0.1":
             return pricePC <= 0.1;
-          case '0.1-0.5':
+          case "0.1-0.5":
             return pricePC > 0.1 && pricePC <= 0.5;
-          case '0.5+':
+          case "0.5+":
             return pricePC > 0.5;
           default:
             return true;
@@ -186,13 +196,13 @@ export const MarketplacePage = () => {
     // Apply sorting
     formattedListings.sort((a, b) => {
       switch (sortBy) {
-        case 'price-low':
+        case "price-low":
           return a.price - b.price;
-        case 'price-high':
+        case "price-high":
           return b.price - a.price;
-        case 'oldest':
+        case "oldest":
           return a.createdAt.getTime() - b.createdAt.getTime();
-        case 'newest':
+        case "newest":
         default:
           return b.createdAt.getTime() - a.createdAt.getTime();
       }
@@ -202,14 +212,14 @@ export const MarketplacePage = () => {
   }, [listings, searchQuery, sortBy, priceRange]);
 
   const handleBuyTicket = async (listingId: number) => {
-    if (connectionStatus !== 'connected') {
-      alert('Please connect your wallet to buy tickets');
+    if (connectionStatus !== "connected") {
+      alert("Please connect your wallet to buy tickets");
       return;
     }
 
-    const raw = listings.find(l => Number(l.listingId) === listingId);
+    const raw = listings.find((l) => Number(l.listingId) === listingId);
     if (!raw) {
-      alert('Listing not found');
+      alert("Listing not found");
       return;
     }
 
@@ -217,8 +227,8 @@ export const MarketplacePage = () => {
       await buyTicket({ listingId: BigInt(listingId), price: raw.price });
       await refetch(); // Refresh listings
     } catch (error) {
-      console.error('Failed to buy ticket:', error);
-      alert('Failed to buy ticket. Please try again.');
+      console.error("Failed to buy ticket:", error);
+      alert("Failed to buy ticket. Please try again.");
     }
   };
 
@@ -228,7 +238,9 @@ export const MarketplacePage = () => {
         <div className="text-center py-12">
           <div className="text-red-600 mb-4">
             <Tag className="w-16 h-16 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Error Loading Marketplace</h3>
+            <h3 className="text-lg font-medium mb-2">
+              Error Loading Marketplace
+            </h3>
             <p>{error}</p>
           </div>
           <button
@@ -248,7 +260,8 @@ export const MarketplacePage = () => {
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Marketplace</h1>
         <p className="text-gray-600">
-          Buy and sell tickets on the secondary market. All transactions are secure and verified on-chain.
+          Buy and sell tickets on the secondary market. All transactions are
+          secure and verified on-chain.
         </p>
       </div>
 
@@ -256,24 +269,30 @@ export const MarketplacePage = () => {
       {!loading && listings.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{listings.length}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {listings.length}
+            </div>
             <div className="text-sm text-gray-600">Active Listings</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-green-600">
               {listings.length > 0
-                ? formatPrice(BigInt(Math.min(...listings.map(l => Number(l.price)))))
-                : '0'
-              } PC
+                ? formatPrice(
+                    BigInt(Math.min(...listings.map((l) => Number(l.price))))
+                  )
+                : "0"}{" "}
+              PC
             </div>
             <div className="text-sm text-gray-600">Lowest Price</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-purple-600">
               {listings.length > 0
-                ? formatPrice(BigInt(Math.max(...listings.map(l => Number(l.price)))))
-                : '0'
-              } PC
+                ? formatPrice(
+                    BigInt(Math.max(...listings.map((l) => Number(l.price))))
+                  )
+                : "0"}{" "}
+              PC
             </div>
             <div className="text-sm text-gray-600">Highest Price</div>
           </div>
@@ -343,7 +362,8 @@ export const MarketplacePage = () => {
       {!loading && (
         <div className="mb-6">
           <p className="text-gray-600">
-            {filteredListings.length} listing{filteredListings.length !== 1 ? 's' : ''} found
+            {filteredListings.length} listing
+            {filteredListings.length !== 1 ? "s" : ""} found
             {searchQuery && ` for "${searchQuery}"`}
           </p>
         </div>
@@ -363,19 +383,22 @@ export const MarketplacePage = () => {
               key={listing.listingId}
               listing={listing}
               onBuy={handleBuyTicket}
-              isCurrentUser={listing.seller.toLowerCase() === address?.toLowerCase()}
+              isCurrentUser={
+                listing.seller.toLowerCase() === address?.toLowerCase()
+              }
             />
           ))}
         </div>
       ) : (
         <div className="text-center py-12">
           <Tag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Listings Found</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No Listings Found
+          </h3>
           <p className="text-gray-600">
             {searchQuery
               ? `No listings found matching "${searchQuery}"`
-              : "There are no tickets listed for sale at the moment."
-            }
+              : "There are no tickets listed for sale at the moment."}
           </p>
         </div>
       )}

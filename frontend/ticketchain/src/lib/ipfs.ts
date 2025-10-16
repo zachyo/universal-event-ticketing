@@ -1,18 +1,18 @@
 // IPFS integration using Pinata
 const PINATA_JWT = import.meta.env.VITE_PINATA_JWT;
-const PINATA_API_URL = 'https://api.pinata.cloud';
-const PINATA_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
+const PINATA_API_URL = "https://api.pinata.cloud";
+const PINATA_GATEWAY = "https://gateway.pinata.cloud/ipfs/";
 
 // Upload a file to IPFS via Pinata
 export async function uploadToIPFS(file: File): Promise<string> {
   if (!PINATA_JWT) {
-    console.warn('PINATA_JWT not configured, using placeholder hash');
+    console.warn("PINATA_JWT not configured, using placeholder hash");
     return `Qm${Math.random().toString(36).substring(2, 15)}`;
   }
 
   try {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     const metadata = JSON.stringify({
       name: file.name,
@@ -21,17 +21,17 @@ export async function uploadToIPFS(file: File): Promise<string> {
         fileType: file.type,
       },
     });
-    formData.append('pinataMetadata', metadata);
+    formData.append("pinataMetadata", metadata);
 
     const options = JSON.stringify({
       cidVersion: 0,
     });
-    formData.append('pinataOptions', options);
+    formData.append("pinataOptions", options);
 
     const response = await fetch(`${PINATA_API_URL}/pinning/pinFileToIPFS`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${PINATA_JWT}`,
+        Authorization: `Bearer ${PINATA_JWT}`,
       },
       body: formData,
     });
@@ -43,8 +43,8 @@ export async function uploadToIPFS(file: File): Promise<string> {
     const result = await response.json();
     return result.IpfsHash;
   } catch (error) {
-    console.error('Error uploading to IPFS:', error);
-    throw new Error('Failed to upload image to IPFS');
+    console.error("Error uploading to IPFS:", error);
+    throw new Error("Failed to upload image to IPFS");
   }
 }
 
@@ -53,24 +53,24 @@ export async function uploadJSONToIPFS(
   json: Record<string, unknown>
 ): Promise<string> {
   if (!PINATA_JWT) {
-    console.warn('PINATA_JWT not configured, using placeholder hash');
+    console.warn("PINATA_JWT not configured, using placeholder hash");
     return `Qm${Math.random().toString(36).substring(2, 15)}`;
   }
 
   try {
     const response = await fetch(`${PINATA_API_URL}/pinning/pinJSONToIPFS`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${PINATA_JWT}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${PINATA_JWT}`,
       },
       body: JSON.stringify({
         pinataContent: json,
         pinataMetadata: {
-          name: 'NFT Metadata',
+          name: "NFT Metadata",
           keyvalues: {
             uploadedAt: new Date().toISOString(),
-            type: 'metadata',
+            type: "metadata",
           },
         },
       }),
@@ -83,18 +83,18 @@ export async function uploadJSONToIPFS(
     const result = await response.json();
     return result.IpfsHash;
   } catch (error) {
-    console.error('Error uploading JSON to IPFS:', error);
-    throw new Error('Failed to upload metadata to IPFS');
+    console.error("Error uploading JSON to IPFS:", error);
+    throw new Error("Failed to upload metadata to IPFS");
   }
 }
 
 // Get IPFS URL from hash
 export function getIPFSUrl(hash: string): string {
-  if (!hash) return '';
-  
+  if (!hash) return "";
+
   // Remove ipfs:// prefix if present
-  const cleanHash = hash.replace('ipfs://', '');
-  
+  const cleanHash = hash.replace("ipfs://", "");
+
   return `${PINATA_GATEWAY}${cleanHash}`;
 }
 
@@ -114,23 +114,23 @@ export async function createTicketMetadata(
     image: `ipfs://${eventImageHash}`,
     attributes: [
       {
-        trait_type: 'Event',
+        trait_type: "Event",
         value: eventName,
       },
       {
-        trait_type: 'Venue',
+        trait_type: "Venue",
         value: venue,
       },
       {
-        trait_type: 'Date',
+        trait_type: "Date",
         value: date,
       },
       {
-        trait_type: 'Ticket Type',
+        trait_type: "Ticket Type",
         value: ticketType,
       },
       {
-        trait_type: 'Token ID',
+        trait_type: "Token ID",
         value: tokenId,
       },
     ],
@@ -144,15 +144,15 @@ export async function fetchFromIPFS<T = unknown>(hash: string): Promise<T> {
   try {
     const url = getIPFSUrl(hash);
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch from IPFS: ${response.statusText}`);
     }
 
     return (await response.json()) as T;
   } catch (error) {
-    console.error('Error fetching from IPFS:', error);
-    throw new Error('Failed to fetch data from IPFS');
+    console.error("Error fetching from IPFS:", error);
+    throw new Error("Failed to fetch data from IPFS");
   }
 }
 
@@ -160,35 +160,48 @@ export async function fetchFromIPFS<T = unknown>(hash: string): Promise<T> {
 export function isValidIPFSHash(hash: string): boolean {
   // Basic validation for IPFS hash (Qm... format)
   const ipfsHashRegex = /^Qm[1-9A-HJ-NP-Za-km-z]{44}$/;
-  return ipfsHashRegex.test(hash.replace('ipfs://', ''));
+  return ipfsHashRegex.test(hash.replace("ipfs://", ""));
 }
 
 // Get file size limit for uploads (5MB default)
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Validate file for IPFS upload
-export function validateFileForUpload(file: File): { valid: boolean; error?: string } {
+export function validateFileForUpload(file: File): {
+  valid: boolean;
+  error?: string;
+} {
   if (!file) {
-    return { valid: false, error: 'No file provided' };
+    return { valid: false, error: "No file provided" };
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    return { valid: false, error: `File size must be less than ${MAX_FILE_SIZE / 1024 / 1024}MB` };
+    return {
+      valid: false,
+      error: `File size must be less than ${MAX_FILE_SIZE / 1024 / 1024}MB`,
+    };
   }
 
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
   if (!allowedTypes.includes(file.type)) {
-    return { valid: false, error: 'File must be an image (JPEG, PNG, GIF, or WebP)' };
+    return {
+      valid: false,
+      error: "File must be an image (JPEG, PNG, GIF, or WebP)",
+    };
   }
 
   return { valid: true };
 }
 
 // Compress image before upload (basic implementation)
-export function compressImage(file: File, maxWidth: number = 800, quality: number = 0.8): Promise<File> {
+export function compressImage(
+  file: File,
+  maxWidth: number = 800,
+  quality: number = 0.8
+): Promise<File> {
   return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     const img = new Image();
 
     img.onload = () => {
@@ -221,23 +234,23 @@ export function compressImage(file: File, maxWidth: number = 800, quality: numbe
 
 // Batch upload multiple files
 export async function batchUploadToIPFS(files: File[]): Promise<string[]> {
-  const uploadPromises = files.map(file => uploadToIPFS(file));
+  const uploadPromises = files.map((file) => uploadToIPFS(file));
   return Promise.all(uploadPromises);
 }
 
 // Pin existing IPFS content (if you have the hash)
 export async function pinToIPFS(hash: string): Promise<boolean> {
   if (!PINATA_JWT) {
-    console.warn('PINATA_JWT not configured');
+    console.warn("PINATA_JWT not configured");
     return false;
   }
 
   try {
     const response = await fetch(`${PINATA_API_URL}/pinning/pinByHash`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${PINATA_JWT}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${PINATA_JWT}`,
       },
       body: JSON.stringify({
         hashToPin: hash,
@@ -249,7 +262,7 @@ export async function pinToIPFS(hash: string): Promise<boolean> {
 
     return response.ok;
   } catch (error) {
-    console.error('Error pinning to IPFS:', error);
+    console.error("Error pinning to IPFS:", error);
     return false;
   }
 }

@@ -131,8 +131,8 @@ export interface UseListingsReturn {
 export interface PurchaseParams {
   eventId: bigint;
   ticketTypeId: bigint;
-  price: bigint;        // amount of native currency to send (price per ticket)
-  quantity?: number;    // number of tickets to purchase (defaults to 1)
+  price: bigint; // amount of native currency to send (price per ticket)
+  quantity?: number; // number of tickets to purchase (defaults to 1)
   chain?: string;
 }
 
@@ -148,7 +148,11 @@ export interface BuyTicketParams {
 }
 
 // Utility types for formatting
-export interface FormattedEvent extends Omit<Event, 'eventId' | 'startTime' | 'endTime' | 'totalSupply' | 'sold'> {
+export interface FormattedEvent
+  extends Omit<
+    Event,
+    "eventId" | "startTime" | "endTime" | "totalSupply" | "sold"
+  > {
   eventId: number;
   startTime: Date;
   endTime: Date;
@@ -157,7 +161,11 @@ export interface FormattedEvent extends Omit<Event, 'eventId' | 'startTime' | 'e
   imageUrl: string;
 }
 
-export interface FormattedTicket extends Omit<TicketNFT, 'tokenId' | 'eventId' | 'ticketTypeId' | 'purchasePrice'> {
+export interface FormattedTicket
+  extends Omit<
+    TicketNFT,
+    "tokenId" | "eventId" | "ticketTypeId" | "purchasePrice"
+  > {
   tokenId: number;
   eventId: number;
   ticketTypeId: number;
@@ -165,7 +173,8 @@ export interface FormattedTicket extends Omit<TicketNFT, 'tokenId' | 'eventId' |
   event?: FormattedEvent;
 }
 
-export interface FormattedListing extends Omit<Listing, 'listingId' | 'tokenId' | 'price' | 'createdAt'> {
+export interface FormattedListing
+  extends Omit<Listing, "listingId" | "tokenId" | "price" | "createdAt"> {
   listingId: number;
   tokenId: number;
   price: number;
@@ -216,7 +225,7 @@ export interface ChainConfig {
 
 // Constants
 export const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-export const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
+export const IPFS_GATEWAY = "https://gateway.pinata.cloud/ipfs/";
 
 // Utility function types
 export type FormatEventFunction = (event: Event) => FormattedEvent;

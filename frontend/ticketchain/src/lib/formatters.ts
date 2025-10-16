@@ -25,7 +25,10 @@ export function formatEvent(event: Event): FormattedEvent {
 }
 
 // Format ticket data from contract to display format
-export function formatTicket(ticket: TicketNFT, event?: FormattedEvent): FormattedTicket {
+export function formatTicket(
+  ticket: TicketNFT,
+  event?: FormattedEvent
+): FormattedTicket {
   return {
     ...ticket,
     tokenId: Number(ticket.tokenId),
@@ -37,7 +40,10 @@ export function formatTicket(ticket: TicketNFT, event?: FormattedEvent): Formatt
 }
 
 // Format listing data from contract to display format
-export function formatListing(listing: Listing, ticket?: FormattedTicket): FormattedListing {
+export function formatListing(
+  listing: Listing,
+  ticket?: FormattedTicket
+): FormattedListing {
   return {
     ...listing,
     listingId: Number(listing.listingId),
@@ -62,8 +68,8 @@ export function formatPrice(
     return wholePart.toString();
   }
 
-  const fractionalStr = fractionalPart.toString().padStart(decimals, '0');
-  const trimmedFractional = fractionalStr.replace(/0+$/, '');
+  const fractionalStr = fractionalPart.toString().padStart(decimals, "0");
+  const trimmedFractional = fractionalStr.replace(/0+$/, "");
 
   return `${wholePart}.${trimmedFractional}`;
 }
@@ -78,7 +84,10 @@ export function formatPriceWithCurrency(
 }
 
 // Convert PC price to display price in user's preferred currency
-export function formatPriceInCurrency(pcPriceWei: bigint, targetCurrency: string): string {
+export function formatPriceInCurrency(
+  pcPriceWei: bigint,
+  targetCurrency: string
+): string {
   const convertedPrice = convertPCToNative(pcPriceWei, targetCurrency);
   return formatPriceWithCurrency(convertedPrice, targetCurrency);
 }
@@ -120,15 +129,15 @@ export function formatNumber(num: number): string {
 export function getTimeUntilEvent(eventDate: Date): string {
   const now = new Date();
   const diff = eventDate.getTime() - now.getTime();
-  
+
   if (diff <= 0) {
-  return "Event has started";
+    return "Event has started";
   }
-  
+
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  
+
   if (days > 0) {
     return `${days} day${days > 1 ? "s" : ""} remaining`;
   } else if (hours > 0) {
@@ -176,11 +185,11 @@ export function getAvailabilityPercentage(sold: number, total: number): number {
 export function formatAvailability(sold: number, total: number): string {
   const available = total - sold;
   const percentage = getAvailabilityPercentage(sold, total);
-  
+
   if (available === 0) {
     return "Sold Out";
   }
-  
+
   return `${available} of ${total} available (${percentage}%)`;
 }
 
@@ -192,7 +201,7 @@ export function generateQRCodeData(tokenId: number, eventId: number): string {
     timestamp: Date.now(),
     signature: hashTicketData(tokenId, eventId),
   };
-  
+
   return JSON.stringify(data);
 }
 
@@ -200,13 +209,13 @@ export function generateQRCodeData(tokenId: number, eventId: number): string {
 function hashTicketData(tokenId: number, eventId: number): string {
   const data = `${tokenId}-${eventId}-${Date.now()}`;
   let hash = 0;
-  
+
   for (let i = 0; i < data.length; i++) {
     const char = data.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
-  
+
   return Math.abs(hash).toString(16);
 }
 
@@ -284,9 +293,10 @@ export function searchEvents(
 }
 
 // Get price range for ticket types
-export function getPriceRange(
-  ticketTypes: TicketType[]
-): { min: number; max: number } {
+export function getPriceRange(ticketTypes: TicketType[]): {
+  min: number;
+  max: number;
+} {
   if (!ticketTypes || ticketTypes.length === 0) {
     return { min: 0, max: 0 };
   }

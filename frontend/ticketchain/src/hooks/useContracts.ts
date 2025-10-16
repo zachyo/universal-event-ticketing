@@ -1,8 +1,4 @@
-import {
-  useReadContract,
-  useReadContracts,
-  useAccount,
-} from "wagmi";
+import { useReadContract, useReadContracts, useAccount } from "wagmi";
 import { useState, useCallback, useMemo } from "react";
 import {
   TicketFactoryABI,

@@ -10,16 +10,20 @@ export function debugTicketType(
   console.log("Raw ticket type:", ticketType);
   console.log("Type of ticketType:", typeof ticketType);
   console.log("Keys:", Object.keys(ticketType || {}));
-  
+
   if (ticketType) {
     console.log("Fields:");
     console.log("  eventId:", ticketType.eventId, typeof ticketType.eventId);
-    console.log("  ticketTypeId:", ticketType.ticketTypeId, typeof ticketType.ticketTypeId);
+    console.log(
+      "  ticketTypeId:",
+      ticketType.ticketTypeId,
+      typeof ticketType.ticketTypeId
+    );
     console.log("  name:", ticketType.name, typeof ticketType.name);
     console.log("  price:", ticketType.price, typeof ticketType.price);
     console.log("  supply:", ticketType.supply, typeof ticketType.supply);
     console.log("  sold:", ticketType.sold, typeof ticketType.sold);
-    
+
     if (ticketType.price !== undefined) {
       console.log("  price.toString():", ticketType.price.toString());
     }
@@ -37,15 +41,19 @@ export function debugPurchaseParams(params: PurchaseParams | null | undefined) {
   console.log("=== Purchase Params Debug ===");
   console.log("Raw params:", params);
   console.log("Type of params:", typeof params);
-  
+
   if (params) {
     console.log("Fields:");
     console.log("  eventId:", params.eventId, typeof params.eventId);
-    console.log("  ticketTypeId:", params.ticketTypeId, typeof params.ticketTypeId);
+    console.log(
+      "  ticketTypeId:",
+      params.ticketTypeId,
+      typeof params.ticketTypeId
+    );
     console.log("  price:", params.price, typeof params.price);
     console.log("  quantity:", params.quantity, typeof params.quantity);
     console.log("  chain:", params.chain, typeof params.chain);
-    
+
     if (params.eventId !== undefined) {
       console.log("  eventId.toString():", params.eventId.toString());
     }
@@ -59,24 +67,28 @@ export function debugPurchaseParams(params: PurchaseParams | null | undefined) {
   console.log("=== End Debug ===");
 }
 
-export function validateTicketType(
-  ticketType: TicketType | null | undefined
-): { valid: boolean; errors: string[] } {
+export function validateTicketType(ticketType: TicketType | null | undefined): {
+  valid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
-  
+
   if (!ticketType) {
     errors.push("Ticket type is null or undefined");
     return { valid: false, errors };
   }
-  
-  if (ticketType.ticketTypeId === undefined || ticketType.ticketTypeId === null) {
+
+  if (
+    ticketType.ticketTypeId === undefined ||
+    ticketType.ticketTypeId === null
+  ) {
     errors.push("Missing ticketTypeId");
   }
-  
-  if (!ticketType.name || typeof ticketType.name !== 'string') {
+
+  if (!ticketType.name || typeof ticketType.name !== "string") {
     errors.push("Missing or invalid name");
   }
-  
+
   if (
     ticketType.price === undefined ||
     ticketType.price === null ||
@@ -84,15 +96,15 @@ export function validateTicketType(
   ) {
     errors.push("Missing or invalid price");
   }
-  
+
   if (ticketType.supply === undefined || ticketType.supply < BigInt(0)) {
     errors.push("Missing or invalid supply");
   }
-  
+
   if (ticketType.sold === undefined || ticketType.sold < BigInt(0)) {
     errors.push("Missing or invalid sold count");
   }
-  
+
   return { valid: errors.length === 0, errors };
 }
 
@@ -100,28 +112,31 @@ export function validatePurchaseParams(
   params: PurchaseParams | null | undefined
 ): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   if (!params) {
     errors.push("Purchase params is null or undefined");
     return { valid: false, errors };
   }
-  
+
   if (params.eventId === undefined || params.eventId === null) {
     errors.push("Missing eventId");
   }
-  
+
   if (params.ticketTypeId === undefined || params.ticketTypeId === null) {
     errors.push("Missing ticketTypeId");
   }
-  
+
   if (params.price === undefined || params.price <= BigInt(0)) {
     errors.push("Missing or invalid price");
   }
-  
-  if (params.quantity !== undefined && (params.quantity <= 0 || params.quantity > 10)) {
+
+  if (
+    params.quantity !== undefined &&
+    (params.quantity <= 0 || params.quantity > 10)
+  ) {
     errors.push("Invalid quantity (must be 1-10)");
   }
-  
+
   return { valid: errors.length === 0, errors };
 }
 
@@ -132,10 +147,10 @@ export function compareBigInt(
 ): boolean {
   try {
     const normalize = (value: bigint | number | string): bigint => {
-      if (typeof value === 'bigint') {
+      if (typeof value === "bigint") {
         return value;
       }
-      if (typeof value === 'number') {
+      if (typeof value === "number") {
         return BigInt(Math.trunc(value));
       }
       return BigInt(value);
@@ -150,7 +165,7 @@ export function compareBigInt(
 
 // Helper to format BigInt for display
 export function formatBigInt(value: bigint | number | string): string {
-  if (typeof value === 'bigint' || typeof value === 'number') {
+  if (typeof value === "bigint" || typeof value === "number") {
     return value.toString();
   }
   return String(value);
