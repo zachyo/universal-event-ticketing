@@ -1,15 +1,41 @@
-import { useState, useMemo } from 'react';
-import { Search, Calendar, MapPin, SlidersHorizontal } from 'lucide-react';
-import { useEvents } from '../hooks/useContracts';
-import { EventCard, EventCardSkeleton, EventGrid, EventsEmptyState } from '../components/EventCard';
-import { formatEvent, sortEventsByDate, filterEventsByStatus, searchEvents } from '../lib/formatters';
+import { useState, useMemo } from "react";
+import {
+  Search,
+  Calendar,
+  MapPin,
+  SlidersHorizontal,
+  RefreshCw,
+} from "lucide-react";
+import { useEvents } from "../hooks/useContracts";
+import {
+  EventCard,
+  EventCardSkeleton,
+  EventGrid,
+  EventsEmptyState,
+} from "../components/EventCard";
+import {
+  formatEvent,
+  sortEventsByDate,
+  filterEventsByStatus,
+  searchEvents,
+} from "../lib/formatters";
+
+type StatusFilter = "all" | "upcoming" | "live" | "ended";
+
+const STATUS_FILTERS: ReadonlyArray<{ key: StatusFilter; label: string }> = [
+  { key: "all", label: "All Events" },
+  { key: "upcoming", label: "Upcoming" },
+  { key: "live", label: "Live" },
+  { key: "ended", label: "Ended" },
+];
 
 const EventsPage = () => {
-  const { events, loading, error } = useEvents();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'live' | 'ended'>('all');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const { events, loading, error, refetch } = useEvents();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [showFilters, setShowFilters] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Format and filter events
   const filteredEvents = useMemo(() => {
@@ -26,7 +52,7 @@ const EventsPage = () => {
     formattedEvents = filterEventsByStatus(formattedEvents, statusFilter);
 
     // Apply sorting
-    formattedEvents = sortEventsByDate(formattedEvents, sortOrder === 'asc');
+    formattedEvents = sortEventsByDate(formattedEvents, sortOrder === "asc");
 
     return formattedEvents;
   }, [events, searchQuery, statusFilter, sortOrder]);
@@ -35,12 +61,22 @@ const EventsPage = () => {
     setSearchQuery(e.target.value);
   };
 
-  const handleStatusFilterChange = (status: 'all' | 'upcoming' | 'live' | 'ended') => {
+  const handleStatusFilterChange = (status: StatusFilter) => {
     setStatusFilter(status);
   };
 
-  const handleSortOrderChange = (order: 'asc' | 'desc') => {
+  const handleSortOrderChange = (order: "asc" | "desc") => {
     setSortOrder(order);
+  };
+
+  const handleRefresh = async () => {
+    if (!refetch) return;
+    try {
+      setIsRefreshing(true);
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   if (error) {
@@ -60,9 +96,23 @@ const EventsPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Events</h1>
-        <p className="text-gray-600">Discover amazing events happening around the world</p>
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Events</h1>
+          <p className="text-gray-600">
+            Discover amazing events happening around the world
+          </p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          disabled={loading || isRefreshing}
+          className="inline-flex items-center gap-2 self-start rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+        >
+          <RefreshCw
+            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+          />
+          {isRefreshing ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       {/* Search and Filters */}
@@ -91,19 +141,14 @@ const EventsPage = () => {
 
           {/* Quick Status Filters */}
           <div className="flex gap-2">
-            {[
-              { key: 'all', label: 'All Events' },
-              { key: 'upcoming', label: 'Upcoming' },
-              { key: 'live', label: 'Live' },
-              { key: 'ended', label: 'Ended' },
-            ].map((filter) => (
+            {STATUS_FILTERS.map((filter) => (
               <button
                 key={filter.key}
-                onClick={() => handleStatusFilterChange(filter.key as any)}
+                onClick={() => handleStatusFilterChange(filter.key)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   statusFilter === filter.key
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 {filter.label}
@@ -114,21 +159,21 @@ const EventsPage = () => {
           {/* Sort Order */}
           <div className="flex gap-2">
             <button
-              onClick={() => handleSortOrderChange('asc')}
+              onClick={() => handleSortOrderChange("asc")}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                sortOrder === 'asc'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                sortOrder === "asc"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               Earliest First
             </button>
             <button
-              onClick={() => handleSortOrderChange('desc')}
+              onClick={() => handleSortOrderChange("desc")}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                sortOrder === 'desc'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                sortOrder === "desc"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               Latest First
@@ -185,7 +230,8 @@ const EventsPage = () => {
       {!loading && (
         <div className="mb-6">
           <p className="text-gray-600">
-            {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
+            {filteredEvents.length} event
+            {filteredEvents.length !== 1 ? "s" : ""} found
             {searchQuery && ` for "${searchQuery}"`}
           </p>
         </div>
@@ -209,7 +255,7 @@ const EventsPage = () => {
           message={
             searchQuery
               ? `No events found matching "${searchQuery}"`
-              : statusFilter !== 'all'
+              : statusFilter !== "all"
               ? `No ${statusFilter} events found`
               : "No events available at the moment"
           }

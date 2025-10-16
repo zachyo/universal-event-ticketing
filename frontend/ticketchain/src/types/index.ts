@@ -110,21 +110,21 @@ export interface UseEventsReturn {
   events: Event[];
   loading: boolean;
   error: string | null;
-  refetch: any
+  refetch: () => Promise<unknown>;
 }
 
 export interface UseTicketsReturn {
   tickets: TicketNFT[];
   loading: boolean;
   error: string | null;
-  refetch: any
+  refetch: () => Promise<unknown>;
 }
 
 export interface UseListingsReturn {
   listings: Listing[];
   loading: boolean;
   error: string | null;
-  refetch: any
+  refetch: () => Promise<unknown>;
 }
 
 // Purchase transaction types
@@ -202,7 +202,7 @@ export interface QRCodeProps {
 export interface ContractError {
   message: string;
   code?: string;
-  data?: any;
+  data?: unknown;
 }
 
 // Chain configuration
@@ -224,4 +224,6 @@ export type FormatTicketFunction = (ticket: TicketNFT) => FormattedTicket;
 export type FormatListingFunction = (listing: Listing) => FormattedListing;
 export type GetIPFSUrlFunction = (hash: string) => string;
 export type UploadToIPFSFunction = (file: File) => Promise<string>;
-export type UploadJSONToIPFSFunction = (json: object) => Promise<string>;
+export type UploadJSONToIPFSFunction = (
+  json: Record<string, unknown>
+) => Promise<string>;

@@ -1,12 +1,18 @@
 import { useState, useMemo } from 'react';
 import { Search, Filter, ShoppingCart, Tag, TrendingUp, Calendar, MapPin } from 'lucide-react';
-import { useMarketplaceListings, useBuyTicket } from '../hooks/useContracts';
-import { usePushWalletContext } from '@pushchain/ui-kit';
-import { useAccount } from 'wagmi';
-import { formatListing, formatPrice, formatDateTime, formatAddress } from '../lib/formatters';
+import { useMarketplaceListings, useBuyTicket } from "../hooks/useContracts";
+import { usePushWalletContext } from "@pushchain/ui-kit";
+import { useAccount } from "wagmi";
+import {
+  formatListing,
+  formatPrice,
+  formatDateTime,
+  formatAddress,
+} from "../lib/formatters";
+import type { FormattedListing } from "../types";
 
 interface ListingCardProps {
-  listing: any; // FormattedListing
+  listing: FormattedListing;
   onBuy: (listingId: number) => void;
   isCurrentUser: boolean;
 }
@@ -131,6 +137,9 @@ function ListingCardSkeleton() {
   );
 }
 
+type SortOption = "price-low" | "price-high" | "newest" | "oldest";
+type PriceFilter = "all" | "0-0.1" | "0.1-0.5" | "0.5+";
+
 export const MarketplacePage = () => {
   const { connectionStatus } = usePushWalletContext();
   const { address } = useAccount();
@@ -138,11 +147,11 @@ export const MarketplacePage = () => {
   const { buyTicket, isPending: isBuying } = useBuyTicket();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'price-low' | 'price-high' | 'newest' | 'oldest'>('newest');
-  const [priceRange, setPriceRange] = useState<'all' | '0-0.1' | '0.1-0.5' | '0.5+'>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [priceRange, setPriceRange] = useState<PriceFilter>('all');
 
   // Filter and sort listings
-  const filteredListings = useMemo(() => {
+  const filteredListings = useMemo<FormattedListing[]>(() => {
     if (!listings.length) return [];
 
     let formattedListings = listings.map(listing => formatListing(listing));
@@ -303,7 +312,7 @@ export const MarketplacePage = () => {
             <span className="text-sm text-gray-600">Sort by:</span>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
               className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="newest">Newest First</option>
@@ -318,7 +327,7 @@ export const MarketplacePage = () => {
             <span className="text-sm text-gray-600">Price:</span>
             <select
               value={priceRange}
-              onChange={(e) => setPriceRange(e.target.value as any)}
+              onChange={(e) => setPriceRange(e.target.value as PriceFilter)}
               className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Prices</option>

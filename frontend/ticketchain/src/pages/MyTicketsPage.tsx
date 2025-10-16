@@ -1,10 +1,15 @@
-import { useState, useMemo } from 'react';
-import { Filter, Search, QrCode, Tag, Calendar, AlertCircle } from 'lucide-react';
-import { useUserTickets } from '../hooks/useContracts';
-import { useListTicket } from '../hooks/useContracts';
-import { TicketCard, TicketCardSkeleton, TicketGrid, TicketsEmptyState } from '../components/TicketCard';
-import { usePushWalletContext } from '@pushchain/ui-kit';
-import { formatTicket } from '../lib/formatters';
+import { useState, useMemo } from "react";
+import { Filter, Search, QrCode, AlertCircle } from "lucide-react";
+import { useUserTickets } from "../hooks/useContracts";
+import { useListTicket } from "../hooks/useContracts";
+import {
+  TicketCard,
+  TicketCardSkeleton,
+  TicketGrid,
+  TicketsEmptyState,
+} from "../components/TicketCard";
+import { usePushWalletContext } from "@pushchain/ui-kit";
+import { formatTicket } from "../lib/formatters";
 
 interface ListTicketModalProps {
   isOpen: boolean;
@@ -13,8 +18,13 @@ interface ListTicketModalProps {
   onList: (tokenId: number, price: string) => void;
 }
 
-function ListTicketModal({ isOpen, onClose, tokenId, onList }: ListTicketModalProps) {
-  const [price, setPrice] = useState('');
+function ListTicketModal({
+  isOpen,
+  onClose,
+  tokenId,
+  onList,
+}: ListTicketModalProps) {
+  const [price, setPrice] = useState("");
   const [isListing, setIsListing] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,9 +35,9 @@ function ListTicketModal({ isOpen, onClose, tokenId, onList }: ListTicketModalPr
     try {
       await onList(tokenId, price);
       onClose();
-      setPrice('');
+      setPrice("");
     } catch (error) {
-      console.error('Failed to list ticket:', error);
+      console.error("Failed to list ticket:", error);
     } finally {
       setIsListing(false);
     }
@@ -68,7 +78,7 @@ function ListTicketModal({ isOpen, onClose, tokenId, onList }: ListTicketModalPr
               disabled={isListing || !price}
               className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
             >
-              {isListing ? 'Listing...' : 'List Ticket'}
+              {isListing ? "Listing..." : "List Ticket"}
             </button>
           </div>
         </form>
@@ -77,13 +87,22 @@ function ListTicketModal({ isOpen, onClose, tokenId, onList }: ListTicketModalPr
   );
 }
 
+type StatusFilter = "all" | "valid" | "used";
+
+const STATUS_FILTERS: Array<{ key: StatusFilter; label: string }> = [
+  { key: "all", label: "All Tickets" },
+  { key: "valid", label: "Valid" },
+  { key: "used", label: "Used" },
+];
+
 const MyTicketsPage = () => {
-  const { connectionStatus, address } = usePushWalletContext();
-  const { tickets, loading, error, refetch } = useUserTickets(address);
+  const { connectionStatus, universalAccount } = usePushWalletContext();
+  const accountAddress = universalAccount?.address;
+  const { tickets, loading, error, refetch } = useUserTickets(accountAddress);
   const { listTicket } = useListTicket();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'valid' | 'used'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [showListModal, setShowListModal] = useState(false);
   const [selectedTokenId, setSelectedTokenId] = useState<number | null>(null);
 
@@ -91,22 +110,23 @@ const MyTicketsPage = () => {
   const filteredTickets = useMemo(() => {
     if (!tickets.length) return [];
 
-    let formattedTickets = tickets.map(ticket => formatTicket(ticket));
+    let formattedTickets = tickets.map((ticket) => formatTicket(ticket));
 
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      formattedTickets = formattedTickets.filter(ticket =>
-        ticket.event?.name.toLowerCase().includes(query) ||
-        ticket.event?.venue.toLowerCase().includes(query) ||
-        ticket.tokenId.toString().includes(query)
+      formattedTickets = formattedTickets.filter(
+        (ticket) =>
+          ticket.event?.name.toLowerCase().includes(query) ||
+          ticket.event?.venue.toLowerCase().includes(query) ||
+          ticket.tokenId.toString().includes(query)
       );
     }
 
     // Apply status filter
-    if (statusFilter !== 'all') {
-      formattedTickets = formattedTickets.filter(ticket =>
-        statusFilter === 'valid' ? !ticket.used : ticket.used
+    if (statusFilter !== "all") {
+      formattedTickets = formattedTickets.filter((ticket) =>
+        statusFilter === "valid" ? !ticket.used : ticket.used
       );
     }
 
@@ -124,12 +144,12 @@ const MyTicketsPage = () => {
       await listTicket({ tokenId: BigInt(tokenId), price: priceWei });
       await refetch(); // Refresh tickets
     } catch (error) {
-      console.error('Failed to list ticket:', error);
+      console.error("Failed to list ticket:", error);
       throw error;
     }
   };
 
-  if (connectionStatus !== 'connected') {
+  if (connectionStatus !== "connected") {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center">
@@ -172,7 +192,8 @@ const MyTicketsPage = () => {
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">My Tickets</h1>
         <p className="text-gray-600">
-          Your NFT ticket collection. Show QR codes at events or list them for sale.
+          Your NFT ticket collection. Show QR codes at events or list them for
+          sale.
         </p>
       </div>
 
@@ -194,25 +215,23 @@ const MyTicketsPage = () => {
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Filter by status:</span>
+            <span className="text-sm font-medium text-gray-700">
+              Filter by status:
+            </span>
           </div>
 
           <div className="flex gap-2">
-            {[
-              { key: 'all', label: 'All Tickets' },
-              { key: 'valid', label: 'Valid' },
-              { key: 'used', label: 'Used' },
-            ].map((filter) => (
+            {STATUS_FILTERS.map(({ key, label }) => (
               <button
-                key={filter.key}
-                onClick={() => setStatusFilter(filter.key as any)}
+                key={key}
+                onClick={() => setStatusFilter(key)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  statusFilter === filter.key
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  statusFilter === key
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                {filter.label}
+                {label}
               </button>
             ))}
           </div>
@@ -223,18 +242,20 @@ const MyTicketsPage = () => {
       {!loading && tickets.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{tickets.length}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {tickets.length}
+            </div>
             <div className="text-sm text-gray-600">Total Tickets</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-green-600">
-              {tickets.filter(t => !t.used).length}
+              {tickets.filter((t) => !t.used).length}
             </div>
             <div className="text-sm text-gray-600">Valid Tickets</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-gray-600">
-              {tickets.filter(t => t.used).length}
+              {tickets.filter((t) => t.used).length}
             </div>
             <div className="text-sm text-gray-600">Used Tickets</div>
           </div>
@@ -245,7 +266,8 @@ const MyTicketsPage = () => {
       {!loading && (
         <div className="mb-6">
           <p className="text-gray-600">
-            {filteredTickets.length} ticket{filteredTickets.length !== 1 ? 's' : ''} found
+            {filteredTickets.length} ticket
+            {filteredTickets.length !== 1 ? "s" : ""} found
             {searchQuery && ` for "${searchQuery}"`}
           </p>
         </div>
@@ -277,7 +299,7 @@ const MyTicketsPage = () => {
               ? "You don't have any tickets yet. Start by purchasing tickets to events!"
               : searchQuery
               ? `No tickets found matching "${searchQuery}"`
-              : statusFilter !== 'all'
+              : statusFilter !== "all"
               ? `No ${statusFilter} tickets found`
               : "No tickets match your current filters"
           }

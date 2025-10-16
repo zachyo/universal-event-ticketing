@@ -12,6 +12,7 @@
   "dependencies": {
     "@pushchain/core": "^2.0.16",
     "@pushchain/ui-kit": "^2.0.9",
+    "@radix-ui/react-dialog": "^1.1.15",
     "@tanstack/react-query": "^5.90.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

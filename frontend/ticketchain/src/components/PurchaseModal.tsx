@@ -4,8 +4,12 @@ import type { FormattedEvent, TicketType } from "../types";
 import { formatPrice, formatDateTime } from "../lib/formatters";
 import { convertPCToNative } from "../lib/contracts";
 import { usePurchaseTicket } from "../hooks/useContracts";
-import { usePushWalletContext } from "@pushchain/ui-kit";
-import { debugTicketType, validateTicketType, validatePurchaseParams } from "../utils/debug";
+import { usePushWalletContext, usePushChainClient } from "@pushchain/ui-kit";
+import {
+  debugTicketType,
+  validateTicketType,
+  validatePurchaseParams,
+} from "../utils/debug";
 import { SUPPORTED_CHAINS, getChainById, DEFAULT_CHAIN } from "../types/chains";
 import { PCTokenExplainer } from "./PCTokenExplainer";
 
@@ -29,6 +33,12 @@ export function PurchaseModal({
 
   const { purchaseTicket, isPending } = usePurchaseTicket();
   const { connectionStatus } = usePushWalletContext();
+  const { pushChainClient } = usePushChainClient();
+
+  const originChain = pushChainClient?.universal.origin.chain;
+  const chainMismatch = Boolean(
+    originChain && selectedChain && originChain !== selectedChain
+  );
 
   // Debug ticket types received
   // console.log("PurchaseModal received ticket types:", ticketTypes);
@@ -36,6 +46,12 @@ export function PurchaseModal({
 
   const handlePurchase = async () => {
     if (!selectedTicketType || connectionStatus !== "connected") return;
+    if (chainMismatch) {
+      alert(
+        "Please switch the Push Universal Wallet to the payment chain you selected before purchasing."
+      );
+      return;
+    }
 
     // Validate ticket type data using debug utility
     const validation = validateTicketType(selectedTicketType);
@@ -57,7 +73,9 @@ export function PurchaseModal({
     const paramValidation = validatePurchaseParams(purchaseParams);
     if (!paramValidation.valid) {
       console.error("Invalid purchase params:", paramValidation.errors);
-      alert(`Invalid purchase parameters: ${paramValidation.errors.join(", ")}`);
+      alert(
+        `Invalid purchase parameters: ${paramValidation.errors.join(", ")}`
+      );
       return;
     }
 
@@ -140,8 +158,15 @@ export function PurchaseModal({
                       // Validate before selecting
                       const validation = validateTicketType(ticketType);
                       if (!validation.valid) {
-                        console.error("Cannot select invalid ticket type:", validation.errors);
-                        alert(`Cannot select this ticket type: ${validation.errors.join(", ")}`);
+                        console.error(
+                          "Cannot select invalid ticket type:",
+                          validation.errors
+                        );
+                        alert(
+                          `Cannot select this ticket type: ${validation.errors.join(
+                            ", "
+                          )}`
+                        );
                         return;
                       }
 
@@ -154,9 +179,18 @@ export function PurchaseModal({
                     <div>
                       <h5 className="font-medium">{ticketType.name}</h5>
                       <div className="text-sm text-gray-600">
-                        <p className="font-medium">{formatPrice(ticketType.price)} PC</p>
+                        <p className="font-medium">
+                          {formatPrice(ticketType.price)} PC
+                        </p>
                         <p className="text-xs">
-                          ≈ {formatPrice(convertPCToNative(ticketType.price, getChainById(selectedChain)?.symbol || 'ETH'))} {getChainById(selectedChain)?.symbol || 'ETH'}
+                          ≈{" "}
+                          {formatPrice(
+                            convertPCToNative(
+                              ticketType.price,
+                              getChainById(selectedChain)?.symbol || "ETH"
+                            )
+                          )}{" "}
+                          {getChainById(selectedChain)?.symbol || "ETH"}
                         </p>
                       </div>
                     </div>
@@ -193,13 +227,17 @@ export function PurchaseModal({
               <button
                 onClick={() => setQuantity(Math.min(5, quantity + 1))} // Max 5 tickets
                 className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                disabled={quantity >= Number(selectedTicketType?.supply ?? event?.totalSupply)}
+                disabled={
+                  quantity >=
+                  Number(selectedTicketType?.supply ?? event?.totalSupply)
+                }
               >
                 +
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Maximum {selectedTicketType?.supply ?? event?.totalSupply} tickets per purchase
+              Maximum {selectedTicketType?.supply ?? event?.totalSupply} tickets
+              per purchase
             </p>
           </div>
         )}
@@ -209,27 +247,32 @@ export function PurchaseModal({
           <div className="p-6 border-b">
             <h4 className="font-medium mb-4">Payment Chain</h4>
             <p className="text-sm text-gray-600 mb-4">
-              Choose which blockchain to pay from. Push Chain will automatically convert your payment to the required amount.
-            </p>           
+              Choose which blockchain to pay from. Push Chain will automatically
+              convert your payment to the required amount.
+            </p>
 
             {/* Testnet Chains */}
             <div>
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Testnet Chains</h5>
+              <h5 className="text-sm font-medium text-gray-700 mb-2">
+                Testnet Chains
+              </h5>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {SUPPORTED_CHAINS.filter(chain => chain.testnet).slice(0, 6).map((chain) => (
-                  <button
-                    key={chain.id}
-                    onClick={() => setSelectedChain(chain.id)}
-                    className={`p-2 rounded border text-left transition-colors text-xs ${
-                      selectedChain === chain.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="font-medium">{chain.name}</div>
-                    <div className="text-gray-600">{chain.symbol}</div>
-                  </button>
-                ))}
+                {SUPPORTED_CHAINS.filter((chain) => chain.testnet)
+                  .slice(0, 6)
+                  .map((chain) => (
+                    <button
+                      key={chain.id}
+                      onClick={() => setSelectedChain(chain.id)}
+                      className={`p-2 rounded border text-left transition-colors text-xs ${
+                        selectedChain === chain.id
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="font-medium">{chain.name}</div>
+                      <div className="text-gray-600">{chain.symbol}</div>
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -238,11 +281,25 @@ export function PurchaseModal({
               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                 <div className="text-sm">
                   <span className="font-medium">Selected: </span>
-                  {getChainById(selectedChain)?.name} ({getChainById(selectedChain)?.symbol})
+                  {getChainById(selectedChain)?.name} (
+                  {getChainById(selectedChain)?.symbol})
                 </div>
                 <div className="text-xs text-gray-600 mt-1">
-                  Push Chain will automatically convert your {getChainById(selectedChain)?.symbol} payment to the required amount.
+                  Push Chain will automatically convert your{" "}
+                  {getChainById(selectedChain)?.symbol} payment to the required
+                  amount.
                 </div>
+                {chainMismatch && originChain && (
+                  <div className="mt-3 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-xs text-yellow-900">
+                    <p className="font-medium">Chain mismatch detected</p>
+                    <p>
+                      Your wallet is currently set to {originChain}. Open the
+                      Push wallet modal and switch to {selectedChain} before
+                      confirming this purchase, otherwise the transaction will
+                      fail.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -262,21 +319,29 @@ export function PurchaseModal({
                 <div className="flex justify-between items-center text-sm text-gray-600">
                   <span>You'll pay approximately:</span>
                   <span className="font-medium">
-                    {formatPrice(convertPCToNative(totalPrice, getChainById(selectedChain)?.symbol || 'ETH'))} {getChainById(selectedChain)?.symbol || 'ETH'}
+                    {formatPrice(
+                      convertPCToNative(
+                        totalPrice,
+                        getChainById(selectedChain)?.symbol || "ETH"
+                      )
+                    )}{" "}
+                    {getChainById(selectedChain)?.symbol || "ETH"}
                   </span>
                 </div>
               </div>
               <PCTokenExplainer
                 pcPrice={totalPrice}
-                selectedChain={selectedChain}
-                estimatedNativePrice={convertPCToNative(totalPrice, getChainById(selectedChain)?.symbol || 'ETH')}
-                nativeCurrency={getChainById(selectedChain)?.symbol || 'ETH'}
+                estimatedNativePrice={convertPCToNative(
+                  totalPrice,
+                  getChainById(selectedChain)?.symbol || "ETH"
+                )}
+                nativeCurrency={getChainById(selectedChain)?.symbol || "ETH"}
               />
 
               {connectionStatus === "connected" ? (
                 <button
                   onClick={handlePurchase}
-                  disabled={isPending}
+                  disabled={isPending || chainMismatch}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   {isPending ? (

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef } from "react";
 import {
   QrCode,
   Camera,
@@ -7,17 +7,18 @@ import {
   AlertCircle,
   Scan,
   Upload,
-  RefreshCw
-} from 'lucide-react';
-import { useTicketDetails, useValidateTicket } from '../hooks/useContracts';
-import { usePushWalletContext } from '@pushchain/ui-kit';
-import { validateQRCodeData, formatDateTime, formatAddress } from '../lib/formatters';
+  RefreshCw,
+} from "lucide-react";
+import { useTicketDetails, useValidateTicket } from "../hooks/useContracts";
+import { usePushWalletContext } from "@pushchain/ui-kit";
+import { validateQRCodeData, formatAddress } from "../lib/formatters";
+import type { TicketNFT } from "../types";
 
 interface TicketValidationResult {
   valid: boolean;
   tokenId?: number;
   eventId?: number;
-  ticket?: any;
+  ticket?: TicketNFT;
   error?: string;
 }
 
@@ -25,8 +26,9 @@ const VerifyPage = () => {
   const { connectionStatus } = usePushWalletContext();
   const { validateTicket, isPending: isValidating } = useValidateTicket();
 
-  const [qrData, setQrData] = useState('');
-  const [validationResult, setValidationResult] = useState<TicketValidationResult | null>(null);
+  const [qrData, setQrData] = useState("");
+  const [validationResult, setValidationResult] =
+    useState<TicketValidationResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [manualInput, setManualInput] = useState(false);
 
@@ -43,7 +45,7 @@ const VerifyPage = () => {
     if (!qrValidation.valid) {
       setValidationResult({
         valid: false,
-        error: qrValidation.error || 'Invalid QR code format'
+        error: qrValidation.error || "Invalid QR code format",
       });
       return;
     }
@@ -52,7 +54,7 @@ const VerifyPage = () => {
     setValidationResult({
       valid: true,
       tokenId: parseInt(tokenId),
-      eventId: parseInt(eventId)
+      eventId: parseInt(eventId),
     });
   };
 
@@ -64,16 +66,28 @@ const VerifyPage = () => {
   };
 
   const handleValidateTicket = async () => {
-    if (!validationResult?.tokenId || connectionStatus !== 'connected') return;
+    if (
+      !validationResult?.tokenId ||
+      validationResult.eventId === undefined ||
+      connectionStatus !== "connected"
+    ) {
+      return;
+    }
 
     try {
-      await validateTicket(validationResult.tokenId);
+      await validateTicket(validationResult.eventId, validationResult.tokenId);
 
       // Refresh validation result
-      setValidationResult(prev => prev ? { ...prev, ticket: { ...ticketDetails, used: true } } : null);
+      setValidationResult((prev) => {
+        if (!prev) return prev;
+        const updatedTicket = ticketDetails
+          ? { ...ticketDetails, used: true }
+          : prev.ticket;
+        return { ...prev, ticket: updatedTicket };
+      });
     } catch (error) {
-      console.error('Failed to validate ticket:', error);
-      alert('Failed to validate ticket. Please try again.');
+      console.error("Failed to validate ticket:", error);
+      alert("Failed to validate ticket. Please try again.");
     }
   };
 
@@ -83,17 +97,19 @@ const VerifyPage = () => {
 
     // In a real implementation, you would use a QR code reader library
     // to extract QR code data from the uploaded image
-    alert('QR code scanning from images is not implemented in this demo. Please use manual input.');
+    alert(
+      "QR code scanning from images is not implemented in this demo. Please use manual input."
+    );
   };
 
   const resetValidation = () => {
     setValidationResult(null);
-    setQrData('');
+    setQrData("");
     setIsScanning(false);
     setManualInput(false);
   };
 
-  if (connectionStatus !== 'connected') {
+  if (connectionStatus !== "connected") {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center">
@@ -115,7 +131,9 @@ const VerifyPage = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Ticket Verification</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Ticket Verification
+          </h1>
           <p className="text-gray-600">
             Scan or enter QR code data to verify and validate event tickets
           </p>
@@ -141,7 +159,9 @@ const VerifyPage = () => {
                 >
                   <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="font-medium mb-2">Camera Scan</h3>
-                  <p className="text-sm text-gray-600">Use your device camera</p>
+                  <p className="text-sm text-gray-600">
+                    Use your device camera
+                  </p>
                 </button>
               </div>
 
@@ -219,7 +239,8 @@ const VerifyPage = () => {
                 <Camera className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="font-medium mb-2">Camera Scanner</h3>
                 <p className="text-gray-600 mb-4">
-                  Camera scanning is not implemented in this demo. Please use manual input instead.
+                  Camera scanning is not implemented in this demo. Please use
+                  manual input instead.
                 </p>
                 <button
                   onClick={() => setIsScanning(false)}
@@ -234,9 +255,11 @@ const VerifyPage = () => {
           /* Validation Result Section */
           <div className="space-y-6">
             {/* Result Header */}
-            <div className={`bg-white rounded-lg shadow-sm p-6 border-l-4 ${
-              validationResult.valid ? 'border-green-500' : 'border-red-500'
-            }`}>
+            <div
+              className={`bg-white rounded-lg shadow-sm p-6 border-l-4 ${
+                validationResult.valid ? "border-green-500" : "border-red-500"
+              }`}
+            >
               <div className="flex items-center">
                 {validationResult.valid ? (
                   <CheckCircle className="w-8 h-8 text-green-500 mr-4" />
@@ -245,13 +268,14 @@ const VerifyPage = () => {
                 )}
                 <div>
                   <h2 className="text-xl font-bold">
-                    {validationResult.valid ? 'Valid QR Code' : 'Invalid QR Code'}
+                    {validationResult.valid
+                      ? "Valid QR Code"
+                      : "Invalid QR Code"}
                   </h2>
                   <p className="text-gray-600">
                     {validationResult.valid
-                      ? 'QR code format is valid. Loading ticket details...'
-                      : validationResult.error
-                    }
+                      ? "QR code format is valid. Loading ticket details..."
+                      : validationResult.error}
                   </p>
                 </div>
               </div>
@@ -272,30 +296,62 @@ const VerifyPage = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Token Information</h4>
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          Token Information
+                        </h4>
                         <div className="space-y-2 text-sm">
-                          <p><span className="text-gray-600">Token ID:</span> {validationResult.tokenId}</p>
-                          <p><span className="text-gray-600">Event ID:</span> {validationResult.eventId}</p>
-                          <p><span className="text-gray-600">Original Owner:</span> {formatAddress(ticketDetails.originalOwner)}</p>
-                          <p><span className="text-gray-600">Current Owner:</span> {formatAddress(ticketDetails.currentOwner)}</p>
+                          <p>
+                            <span className="text-gray-600">Token ID:</span>{" "}
+                            {validationResult.tokenId}
+                          </p>
+                          <p>
+                            <span className="text-gray-600">Event ID:</span>{" "}
+                            {validationResult.eventId}
+                          </p>
+                          <p>
+                            <span className="text-gray-600">
+                              Original Owner:
+                            </span>{" "}
+                            {formatAddress(ticketDetails.originalOwner)}
+                          </p>
+                          <p>
+                            <span className="text-gray-600">
+                              Current Owner:
+                            </span>{" "}
+                            {formatAddress(ticketDetails.currentOwner)}
+                          </p>
                         </div>
                       </div>
 
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Ticket Status</h4>
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          Ticket Status
+                        </h4>
                         <div className="space-y-2 text-sm">
                           <p>
                             <span className="text-gray-600">Status:</span>
-                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
-                              ticketDetails.used
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-green-100 text-green-800'
-                            }`}>
-                              {ticketDetails.used ? 'Used' : 'Valid'}
+                            <span
+                              className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                                ticketDetails.used
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-green-100 text-green-800"
+                              }`}
+                            >
+                              {ticketDetails.used ? "Used" : "Valid"}
                             </span>
                           </p>
-                          <p><span className="text-gray-600">Purchase Price:</span> {Number(ticketDetails.purchasePrice) / 1e18} ETH</p>
-                          <p><span className="text-gray-600">Purchase Chain:</span> {ticketDetails.purchaseChain}</p>
+                          <p>
+                            <span className="text-gray-600">
+                              Purchase Price:
+                            </span>{" "}
+                            {Number(ticketDetails.purchasePrice) / 1e18} ETH
+                          </p>
+                          <p>
+                            <span className="text-gray-600">
+                              Purchase Chain:
+                            </span>{" "}
+                            {ticketDetails.purchaseChain}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -305,9 +361,12 @@ const VerifyPage = () => {
                       <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium text-yellow-800">Ready to Validate</h4>
+                            <h4 className="font-medium text-yellow-800">
+                              Ready to Validate
+                            </h4>
                             <p className="text-sm text-yellow-700">
-                              This ticket is valid and can be marked as used for event entry.
+                              This ticket is valid and can be marked as used for
+                              event entry.
                             </p>
                           </div>
                           <button
@@ -336,9 +395,12 @@ const VerifyPage = () => {
                         <div className="flex items-center">
                           <XCircle className="w-5 h-5 text-red-500 mr-3" />
                           <div>
-                            <h4 className="font-medium text-red-800">Ticket Already Used</h4>
+                            <h4 className="font-medium text-red-800">
+                              Ticket Already Used
+                            </h4>
                             <p className="text-sm text-red-700">
-                              This ticket has already been validated and cannot be used again.
+                              This ticket has already been validated and cannot
+                              be used again.
                             </p>
                           </div>
                         </div>
@@ -348,7 +410,9 @@ const VerifyPage = () => {
                 ) : (
                   <div className="text-center py-8">
                     <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                    <h4 className="font-medium text-red-800 mb-2">Ticket Not Found</h4>
+                    <h4 className="font-medium text-red-800 mb-2">
+                      Ticket Not Found
+                    </h4>
                     <p className="text-red-700">
                       No ticket found with ID {validationResult.tokenId}
                     </p>

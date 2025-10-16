@@ -1,5 +1,9 @@
-import { useReadContract, useReadContracts, useWriteContract, useAccount } from 'wagmi';
-import { useState, useCallback, useMemo } from 'react';
+import {
+  useReadContract,
+  useReadContracts,
+  useAccount,
+} from "wagmi";
+import { useState, useCallback, useMemo } from "react";
 import {
   TicketFactoryABI,
   TicketNFTABI,
@@ -7,8 +11,7 @@ import {
   TICKET_FACTORY_ADDRESS,
   TICKET_NFT_ADDRESS,
   MARKETPLACE_ADDRESS,
-  convertPCToNative
-} from '../lib/contracts';
+} from "../lib/contracts";
 import type {
   Event,
   TicketType,
@@ -21,74 +24,54 @@ import type {
   UseListingsReturn,
   PurchaseParams,
   ListTicketParams,
-  BuyTicketParams
-} from '../types';
-import { usePushChainClient, usePushChain } from '@pushchain/ui-kit';
-import { uploadToIPFS } from '../lib/ipfs';
-
-// Cache utilities
-const CACHE_KEY = 'ticketchain_cache';
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-function getCachedData(key: string, subKey?: string) {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (!cached) return null;
-
-    const cache = JSON.parse(cached);
-    const data = subKey ? cache[key]?.[subKey] : cache[key];
-
-    if (!data || Date.now() - data.timestamp > CACHE_DURATION) {
-      return null;
-    }
-
-    return data.data;
-  } catch {
-    return null;
-  }
-}
-
-function setCachedData(key: string, data: any, subKey?: string) {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    const cache = cached ? JSON.parse(cached) : { events: {}, tickets: {}, listings: {} };
-
-    if (subKey) {
-      if (!cache[key]) cache[key] = {};
-      cache[key][subKey] = { data, timestamp: Date.now() };
-    } else {
-      cache[key] = { data, timestamp: Date.now() };
-    }
-
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-  } catch (error) {
-    console.error('Failed to cache data:', error);
-  }
-}
+  BuyTicketParams,
+} from "../types";
+import { usePushChainClient, usePushChain } from "@pushchain/ui-kit";
+import { uploadToIPFS } from "../lib/ipfs";
 
 // Hook for creating events
 export function useCreateEvent() {
-  const { writeContract, isPending } = useWriteContract();
+  const { pushChainClient } = usePushChainClient();
+  const { PushChain } = usePushChain();
+  const [isPending, setIsPending] = useState(false);
 
   const createEvent = async (eventData: EventInput) => {
+    if (!pushChainClient || !PushChain) {
+      throw new Error("Push Chain client not available");
+    }
+
     // Upload image to IPFS first
     const ipfsHash = await uploadToIPFS(eventData.image);
 
-    return writeContract({
-      address: TICKET_FACTORY_ADDRESS as `0x${string}`,
-      abi: TicketFactoryABI as unknown as any[],
-      functionName: 'createEvent',
-      args: [
-        eventData.name,
-        eventData.description,
-        eventData.startTime,
-        eventData.endTime,
-        eventData.venue,
-        ipfsHash,
-        eventData.totalSupply,
-        eventData.royaltyBps,
-      ],
-    });
+    try {
+      setIsPending(true);
+
+      const tx = await pushChainClient.universal.sendTransaction({
+        to: TICKET_FACTORY_ADDRESS,
+        data: PushChain.utils.helpers.encodeTxData({
+          abi: Array.from(TicketFactoryABI),
+          functionName: "createEvent",
+          args: [
+            eventData.name,
+            eventData.description,
+            eventData.startTime,
+            eventData.endTime,
+            eventData.venue,
+            ipfsHash,
+            eventData.totalSupply,
+            eventData.royaltyBps,
+          ],
+        }),
+      });
+
+      await tx.wait();
+
+      localStorage.removeItem("ticketchain_cache");
+
+      return tx;
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return { createEvent, isPending };
@@ -96,25 +79,33 @@ export function useCreateEvent() {
 
 // Hook for reading event counter
 export function useEventCounter() {
-  const { data: eventCounter, isLoading, error } = useReadContract({
+  const {
+    data: eventCounter,
+    isLoading,
+    error,
+  } = useReadContract({
     address: TICKET_FACTORY_ADDRESS as `0x${string}`,
-    abi: TicketFactoryABI as unknown as any[],
-    functionName: 'eventCounter',
+    abi: TicketFactoryABI,
+    functionName: "eventCounter",
   });
 
   return {
     eventCounter: eventCounter ? Number(eventCounter) : 0,
     isLoading,
-    error
+    error,
   };
 }
 
 // Hook for reading a single event
 export function useEvent(eventId: number) {
-  const { data: event, isLoading, error } = useReadContract({
+  const {
+    data: event,
+    isLoading,
+    error,
+  } = useReadContract({
     address: TICKET_FACTORY_ADDRESS as `0x${string}`,
-    abi: TicketFactoryABI as unknown as any[],
-    functionName: 'events',
+    abi: TicketFactoryABI,
+    functionName: "events",
     args: [BigInt(eventId)],
   });
 
@@ -123,16 +114,21 @@ export function useEvent(eventId: number) {
 
 // Hook for reading a single event by ID
 export function useGetEvent(eventId: number) {
-  const { data: event, isLoading, error, refetch } = useReadContract({
+  const {
+    data: event,
+    isLoading,
+    error,
+    refetch,
+  } = useReadContract({
     address: TICKET_FACTORY_ADDRESS as `0x${string}`,
-    abi: TicketFactoryABI as unknown as any[],
-    functionName: 'getEvent',
+    abi: TicketFactoryABI,
+    functionName: "getEvent",
     args: [BigInt(eventId)],
     query: {
       enabled: eventId > 0, // Only fetch if eventId is valid
     },
   });
-
+  console.log(event);
   return {
     event: event as Event | undefined,
     isLoading,
@@ -150,14 +146,13 @@ export function useEvents(): UseEventsReturn {
     // Create an array of contract calls for eventIds from 1 to eventCounter
     return Array.from({ length: eventCounter }, (_, i) => ({
       address: TICKET_FACTORY_ADDRESS as `0x${string}`,
-      abi: TicketFactoryABI as unknown as any[],
-      functionName: 'getEvent',
+      abi: TicketFactoryABI,
+      functionName: "getEvent",
       args: [BigInt(i + 1)],
     }));
   }, [eventCounter]);
 
   const { data, error, isLoading, refetch } = useReadContracts({
-    // @ts-ignore
     contracts,
     query: {
       enabled: eventCounter > 0,
@@ -168,8 +163,8 @@ export function useEvents(): UseEventsReturn {
     if (!data) return [];
     // Cast with unknown first to satisfy TS and guard against undefined/array results
     return data
-      .map((item) => item.result as unknown as Event)
-      .filter((ev) => !!ev && (ev as any).eventId !== undefined);
+      .map((item) => item.result as Event | undefined)
+      .filter((ev): ev is Event => Boolean(ev && ev.eventId !== undefined));
   }, [data]);
 
   return {
@@ -180,12 +175,17 @@ export function useEvents(): UseEventsReturn {
   };
 }
 
- // Hook for reading ticket types for an event
+// Hook for reading ticket types for an event
 export function useTicketTypes(eventId: number) {
-  const { data: ticketTypes, isLoading, error } = useReadContract({
+  const {
+    data: ticketTypes,
+    isLoading,
+    error,
+    refetch,
+  } = useReadContract({
     address: TICKET_FACTORY_ADDRESS as `0x${string}`,
-    abi: TicketFactoryABI as unknown as any[],
-    functionName: 'getTicketTypes',
+    abi: TicketFactoryABI,
+    functionName: "getTicketTypes",
     args: [BigInt(eventId)],
   });
 
@@ -217,26 +217,50 @@ export function useTicketTypes(eventId: number) {
   return {
     ticketTypes: normalized,
     isLoading,
-    error
+    error,
+    refetch,
   };
 }
 
 // Hook for adding ticket types to an event
 export function useAddTicketType() {
-  const { writeContract, isPending } = useWriteContract();
+  const { pushChainClient } = usePushChainClient();
+  const { PushChain } = usePushChain();
+  const [isPending, setIsPending] = useState(false);
 
-  const addTicketType = async (eventId: number, ticketType: TicketTypeInput) => {
-    return writeContract({
-      address: TICKET_FACTORY_ADDRESS as `0x${string}`,
-      abi: TicketFactoryABI as unknown as any[],
-      functionName: 'addTicketType',
-      args: [
-        BigInt(eventId),
-        ticketType.name,
-        ticketType.price,
-        ticketType.supply,
-      ],
-    });
+  const addTicketType = async (
+    eventId: number,
+    ticketType: TicketTypeInput
+  ) => {
+    if (!pushChainClient || !PushChain) {
+      throw new Error("Push Chain client not available");
+    }
+
+    try {
+      setIsPending(true);
+
+      const tx = await pushChainClient.universal.sendTransaction({
+        to: TICKET_FACTORY_ADDRESS,
+        data: PushChain.utils.helpers.encodeTxData({
+          abi: Array.from(TicketFactoryABI),
+          functionName: "addTicketType",
+          args: [
+            BigInt(eventId),
+            ticketType.name,
+            ticketType.price,
+            ticketType.supply,
+          ],
+        }),
+      });
+
+      await tx.wait();
+
+      localStorage.removeItem("ticketchain_cache");
+
+      return tx;
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return { addTicketType, isPending };
@@ -246,22 +270,23 @@ export function useAddTicketType() {
 export function usePurchaseTicket() {
   const { pushChainClient } = usePushChainClient();
   const { PushChain } = usePushChain();
-  const { chain } = useAccount();
   const [isPending, setIsPending] = useState(false);
 
   const purchaseTicket = async (params: PurchaseParams) => {
     if (!pushChainClient || !PushChain) {
-      throw new Error('Push Chain client not available');
+      throw new Error("Push Chain client not available");
     }
     if (params.price === undefined || params.price === null) {
-      throw new Error('Ticket price is required to purchase');
+      throw new Error("Ticket price is required to purchase");
     }
 
     try {
       setIsPending(true);
 
-      const quantity = params.quantity && params.quantity > 0 ? params.quantity : 1;
-      const totalPrice = params.price * BigInt(quantity);
+      const quantity =
+        params.quantity && params.quantity > 0 ? params.quantity : 1;
+      const quantityBigInt = BigInt(quantity);
+      const totalPrice = params.price * quantityBigInt;
 
       // Enhanced debugging
       console.log("Purchase parameters:", {
@@ -275,9 +300,9 @@ export function usePurchaseTicket() {
       });
 
       const txData = PushChain.utils.helpers.encodeTxData({
-        abi: TicketFactoryABI as unknown as any[],
-        functionName: 'purchaseTickets',
-        args: [params.eventId, params.ticketTypeId, quantity],
+        abi: Array.from(TicketFactoryABI),
+        functionName: "purchaseTickets",
+        args: [params.eventId, params.ticketTypeId, quantityBigInt],
       });
 
       // Value must be specified in destination chain native token (PC on PushChain)
@@ -287,9 +312,13 @@ export function usePurchaseTicket() {
         to: TICKET_FACTORY_ADDRESS,
         data: txData,
         value: valuePC.toString(),
-        args: [params.eventId.toString(), params.ticketTypeId.toString(), quantity.toString()],
+        args: [
+          params.eventId.toString(),
+          params.ticketTypeId.toString(),
+          quantity.toString(),
+        ],
         chain: params.chain,
-        note: "Value specified in destination chain native token (PC). Universal accounts handle cross-chain conversion from user's origin chain."
+        note: "Value specified in destination chain native token (PC). Universal accounts handle cross-chain conversion from user's origin chain.",
       });
 
       if (totalPrice <= 0n) {
@@ -307,7 +336,7 @@ export function usePurchaseTicket() {
       console.log("Transaction confirmed:", tx.hash);
 
       // Clear cache to refresh data
-      localStorage.removeItem(CACHE_KEY);
+      localStorage.removeItem("ticketchain_cache");
 
       return tx;
     } catch (error) {
@@ -319,26 +348,32 @@ export function usePurchaseTicket() {
         console.error("Error stack:", error.stack);
 
         // Check for specific Push Chain error codes
-        if (error.message.includes('0xdc210b1a')) {
-          throw new Error('Invalid payment payload. This could be due to:\n' +
-            '• Incorrect payment amount\n' +
-            '• Invalid ticket type ID\n' +
-            '• Contract authorization issues\n' +
-            '• Network congestion\n\n' +
-            'Please try again or contact support if the issue persists.');
+        if (error.message.includes("0xdc210b1a")) {
+          throw new Error(
+            "Invalid payment payload. This could be due to:\n" +
+              "• Incorrect payment amount\n" +
+              "• Invalid ticket type ID\n" +
+              "• Contract authorization issues\n" +
+              "• Network congestion\n\n" +
+              "Please try again or contact support if the issue persists."
+          );
         }
 
-        if (error.message.includes('executePayload')) {
-          throw new Error('Cross-chain transaction failed. This could be due to:\n' +
-            '• Insufficient gas fees\n' +
-            '• Network connectivity issues\n' +
-            '• Invalid transaction parameters\n\n' +
-            'Please check your wallet balance and try again.');
+        if (error.message.includes("executePayload")) {
+          throw new Error(
+            "Cross-chain transaction failed. This could be due to:\n" +
+              "• Insufficient gas fees\n" +
+              "• Network connectivity issues\n" +
+              "• Invalid transaction parameters\n\n" +
+              "Please check your wallet balance and try again."
+          );
         }
 
-        if (error.message.includes('IncorrectPayment')) {
-          throw new Error('Payment amount mismatch. The amount sent does not match the ticket price.\n' +
-            'Please refresh the page and try again.');
+        if (error.message.includes("IncorrectPayment")) {
+          throw new Error(
+            "Payment amount mismatch. The amount sent does not match the ticket price.\n" +
+              "Please refresh the page and try again."
+          );
         }
 
         throw new Error(`Purchase failed: ${error.message}`);
@@ -358,10 +393,14 @@ export function useUserTickets(address?: string): UseTicketsReturn {
   const userAddress = address || connectedAddress;
 
   // 1. Fetch the array of token IDs owned by the user
-  const { data: tokenIds, isLoading: isLoadingTokenIds, refetch: refetchTokenIds } = useReadContract({
+  const {
+    data: tokenIds,
+    isLoading: isLoadingTokenIds,
+    refetch: refetchTokenIds,
+  } = useReadContract({
     address: TICKET_NFT_ADDRESS as `0x${string}`,
     abi: TicketNFTABI,
-    functionName: 'getUserTickets',
+    functionName: "getUserTickets",
     args: userAddress ? [userAddress] : undefined,
     query: { enabled: !!userAddress },
   });
@@ -369,25 +408,32 @@ export function useUserTickets(address?: string): UseTicketsReturn {
   // 2. Prepare contract calls to get details for each token ID
   const ticketDetailContracts = useMemo(() => {
     if (!tokenIds || (tokenIds as bigint[]).length === 0) return [];
-    return (tokenIds as bigint[]).map(tokenId => ({
+    return (tokenIds as bigint[]).map((tokenId) => ({
       address: TICKET_NFT_ADDRESS as `0x${string}`,
       abi: TicketNFTABI,
-      functionName: 'ticketDetails',
+      functionName: "ticketDetails",
       args: [tokenId],
     }));
   }, [tokenIds]);
 
   // 3. Fetch all ticket details in a batch
-  const { data: ticketDetailsData, isLoading: isLoadingTicketDetails, error, refetch: refetchDetails } = useReadContracts({
+  const {
+    data: ticketDetailsData,
+    isLoading: isLoadingTicketDetails,
+    error,
+    refetch: refetchDetails,
+  } = useReadContracts({
     contracts: ticketDetailContracts,
-    query: { enabled: !!ticketDetailContracts && ticketDetailContracts.length > 0 },
+    query: {
+      enabled: !!ticketDetailContracts && ticketDetailContracts.length > 0,
+    },
   });
 
   // 4. Format the results
   const tickets = useMemo(() => {
     if (!ticketDetailsData) return [];
     return ticketDetailsData
-      .map(item => item.result as TicketNFT)
+      .map((item) => item.result as TicketNFT)
       .filter(Boolean);
   }, [ticketDetailsData]);
 
@@ -408,8 +454,8 @@ export function useUserTickets(address?: string): UseTicketsReturn {
 export function useMarketplaceListings(): UseListingsReturn {
   const { data, isLoading, error, refetch } = useReadContract({
     address: MARKETPLACE_ADDRESS as `0x${string}`,
-    abi: TicketMarketplaceABI as unknown as any[],
-    functionName: 'getActiveListings',
+    abi: TicketMarketplaceABI,
+    functionName: "getActiveListings",
   });
 
   const listings = useMemo(() => (data as Listing[] | undefined) || [], [data]);
@@ -424,24 +470,47 @@ export function useMarketplaceListings(): UseListingsReturn {
 
 // Hook for listing a ticket on the marketplace
 export function useListTicket() {
-  const { writeContract, isPending } = useWriteContract();
+  const { pushChainClient } = usePushChainClient();
+  const { PushChain } = usePushChain();
+  const [isPending, setIsPending] = useState(false);
 
   const listTicket = async (params: ListTicketParams) => {
-    // Ensure marketplace can transfer the NFT into escrow
-    await writeContract({
-      address: TICKET_NFT_ADDRESS as `0x${string}`,
-      abi: TicketNFTABI,
-      functionName: 'approve',
-      args: [MARKETPLACE_ADDRESS, params.tokenId],
-    });
+    if (!pushChainClient || !PushChain) {
+      throw new Error("Push Chain client not available");
+    }
 
-    // Create listing on marketplace (escrow transfer happens inside)
-    return writeContract({
-      address: MARKETPLACE_ADDRESS as `0x${string}`,
-      abi: TicketMarketplaceABI as unknown as any[],
-      functionName: 'listTicket',
-      args: [params.tokenId, params.price],
-    });
+    try {
+      setIsPending(true);
+
+      // Ensure marketplace can transfer the NFT into escrow
+      const approvalTx = await pushChainClient.universal.sendTransaction({
+        to: TICKET_NFT_ADDRESS,
+        data: PushChain.utils.helpers.encodeTxData({
+          abi: Array.from(TicketNFTABI),
+          functionName: "approve",
+          args: [MARKETPLACE_ADDRESS, params.tokenId],
+        }),
+      });
+      await approvalTx.wait();
+
+      // Create listing on marketplace (escrow transfer happens inside)
+      const listTx = await pushChainClient.universal.sendTransaction({
+        to: MARKETPLACE_ADDRESS,
+        data: PushChain.utils.helpers.encodeTxData({
+          abi: Array.from(TicketMarketplaceABI),
+          functionName: "listTicket",
+          args: [params.tokenId, params.price],
+        }),
+      });
+
+      await listTx.wait();
+
+      localStorage.removeItem("ticketchain_cache");
+
+      return listTx;
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return { listTicket, isPending };
@@ -455,7 +524,7 @@ export function useBuyTicket() {
 
   const buyTicket = async (params: BuyTicketParams & { price: bigint }) => {
     if (!pushChainClient || !PushChain) {
-      throw new Error('Push Chain client not available');
+      throw new Error("Push Chain client not available");
     }
 
     try {
@@ -464,8 +533,8 @@ export function useBuyTicket() {
       const tx = await pushChainClient.universal.sendTransaction({
         to: MARKETPLACE_ADDRESS,
         data: PushChain.utils.helpers.encodeTxData({
-          abi: TicketMarketplaceABI as unknown as any[],
-          functionName: 'buyTicket',
+          abi: Array.from(TicketMarketplaceABI),
+          functionName: "buyTicket",
           args: [params.listingId],
         }),
         // Must send destination chain native amount equal to listing price
@@ -475,7 +544,7 @@ export function useBuyTicket() {
       await tx.wait();
 
       // Clear cache to refresh data
-      localStorage.removeItem(CACHE_KEY);
+      localStorage.removeItem("ticketchain_cache");
 
       return tx;
     } finally {
@@ -488,15 +557,35 @@ export function useBuyTicket() {
 
 // Hook for canceling a marketplace listing
 export function useCancelListing() {
-  const { writeContract, isPending } = useWriteContract();
+  const { pushChainClient } = usePushChainClient();
+  const { PushChain } = usePushChain();
+  const [isPending, setIsPending] = useState(false);
 
   const cancelListing = async (listingId: number) => {
-    return writeContract({
-      address: MARKETPLACE_ADDRESS as `0x${string}`,
-      abi: TicketMarketplaceABI as unknown as any[],
-      functionName: 'cancelListing',
-      args: [BigInt(listingId)],
-    });
+    if (!pushChainClient || !PushChain) {
+      throw new Error("Push Chain client not available");
+    }
+
+    try {
+      setIsPending(true);
+
+      const tx = await pushChainClient.universal.sendTransaction({
+        to: MARKETPLACE_ADDRESS,
+        data: PushChain.utils.helpers.encodeTxData({
+          abi: Array.from(TicketMarketplaceABI),
+          functionName: "cancelListing",
+          args: [BigInt(listingId)],
+        }),
+      });
+
+      await tx.wait();
+
+      localStorage.removeItem("ticketchain_cache");
+
+      return tx;
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return { cancelListing, isPending };
@@ -504,15 +593,35 @@ export function useCancelListing() {
 
 // Hook for validating a ticket (marking as used)
 export function useValidateTicket() {
-  const { writeContract, isPending } = useWriteContract();
+  const { pushChainClient } = usePushChainClient();
+  const { PushChain } = usePushChain();
+  const [isPending, setIsPending] = useState(false);
 
   const validateTicket = async (eventId: number, tokenId: number) => {
-    return writeContract({
-      address: TICKET_FACTORY_ADDRESS as `0x${string}`,
-      abi: TicketFactoryABI as unknown as any[],
-      functionName: 'validateTicket',
-      args: [BigInt(eventId), BigInt(tokenId)],
-    });
+    if (!pushChainClient || !PushChain) {
+      throw new Error("Push Chain client not available");
+    }
+
+    try {
+      setIsPending(true);
+
+      const tx = await pushChainClient.universal.sendTransaction({
+        to: TICKET_FACTORY_ADDRESS,
+        data: PushChain.utils.helpers.encodeTxData({
+          abi: Array.from(TicketFactoryABI),
+          functionName: "validateTicket",
+          args: [BigInt(eventId), BigInt(tokenId)],
+        }),
+      });
+
+      await tx.wait();
+
+      localStorage.removeItem("ticketchain_cache");
+
+      return tx;
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return { validateTicket, isPending };
@@ -520,32 +629,40 @@ export function useValidateTicket() {
 
 // Hook for reading ticket details
 export function useTicketDetails(tokenId: number) {
-  const { data: ticketDetails, isLoading, error } = useReadContract({
+  const {
+    data: ticketDetails,
+    isLoading,
+    error,
+  } = useReadContract({
     address: TICKET_NFT_ADDRESS as `0x${string}`,
     abi: TicketNFTABI,
-    functionName: 'ticketDetails',
+    functionName: "ticketDetails",
     args: [BigInt(tokenId)],
   });
 
   return {
     ticketDetails: ticketDetails as TicketNFT | undefined,
     isLoading,
-    error
+    error,
   };
 }
 
 // Hook for reading organizer events
 export function useOrganizerEvents(organizer: string) {
-  const { data: eventIds, isLoading, error } = useReadContract({
+  const {
+    data: eventIds,
+    isLoading,
+    error,
+  } = useReadContract({
     address: TICKET_FACTORY_ADDRESS as `0x${string}`,
-    abi: TicketFactoryABI as unknown as any[],
-    functionName: 'getOrganizerEvents',
+    abi: TicketFactoryABI,
+    functionName: "getOrganizerEvents",
     args: [organizer],
   });
 
   return {
     eventIds: eventIds as bigint[] | undefined,
     isLoading,
-    error
+    error,
   };
 }

@@ -49,7 +49,9 @@ export async function uploadToIPFS(file: File): Promise<string> {
 }
 
 // Upload JSON metadata to IPFS via Pinata
-export async function uploadJSONToIPFS(json: object): Promise<string> {
+export async function uploadJSONToIPFS(
+  json: Record<string, unknown>
+): Promise<string> {
   if (!PINATA_JWT) {
     console.warn('PINATA_JWT not configured, using placeholder hash');
     return `Qm${Math.random().toString(36).substring(2, 15)}`;
@@ -138,7 +140,7 @@ export async function createTicketMetadata(
 }
 
 // Fetch JSON data from IPFS
-export async function fetchFromIPFS(hash: string): Promise<any> {
+export async function fetchFromIPFS<T = unknown>(hash: string): Promise<T> {
   try {
     const url = getIPFSUrl(hash);
     const response = await fetch(url);
@@ -147,7 +149,7 @@ export async function fetchFromIPFS(hash: string): Promise<any> {
       throw new Error(`Failed to fetch from IPFS: ${response.statusText}`);
     }
 
-    return await response.json();
+    return (await response.json()) as T;
   } catch (error) {
     console.error('Error fetching from IPFS:', error);
     throw new Error('Failed to fetch data from IPFS');

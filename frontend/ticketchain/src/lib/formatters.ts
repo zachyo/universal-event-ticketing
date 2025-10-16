@@ -1,12 +1,15 @@
-import type { 
-  Event, 
-  TicketNFT, 
-  Listing, 
-  FormattedEvent, 
-  FormattedTicket, 
-  FormattedListing 
-} from '../types';
-import { getIPFSUrl } from './ipfs';
+import type {
+  Event,
+  TicketNFT,
+  Listing,
+  FormattedEvent,
+  FormattedTicket,
+  FormattedListing,
+  TicketType,
+  QRCodeData,
+} from "../types";
+import { getIPFSUrl } from "./ipfs";
+import { convertPCToNative } from "./contracts";
 
 // Format event data from contract to display format
 export function formatEvent(event: Event): FormattedEvent {
@@ -46,8 +49,11 @@ export function formatListing(listing: Listing, ticket?: FormattedTicket): Forma
 }
 
 // Format price in wei to PC with proper decimals
-export function formatPrice(priceWei: bigint | number, decimals: number = 18): string {
-  const price = typeof priceWei === 'bigint' ? priceWei : BigInt(priceWei);
+export function formatPrice(
+  priceWei: bigint | number,
+  decimals: number = 18
+): string {
+  const price = typeof priceWei === "bigint" ? priceWei : BigInt(priceWei);
   const divisor = BigInt(10 ** decimals);
   const wholePart = price / divisor;
   const fractionalPart = price % divisor;
@@ -63,32 +69,34 @@ export function formatPrice(priceWei: bigint | number, decimals: number = 18): s
 }
 
 // Format price with currency symbol
-export function formatPriceWithCurrency(priceWei: bigint | number, currency: string = 'PC', decimals: number = 18): string {
+export function formatPriceWithCurrency(
+  priceWei: bigint | number,
+  currency: string = "PC",
+  decimals: number = 18
+): string {
   return `${formatPrice(priceWei, decimals)} ${currency}`;
 }
 
 // Convert PC price to display price in user's preferred currency
 export function formatPriceInCurrency(pcPriceWei: bigint, targetCurrency: string): string {
-  // Import here to avoid circular dependency
-  const { convertPCToNative } = require('./contracts');
   const convertedPrice = convertPCToNative(pcPriceWei, targetCurrency);
   return formatPriceWithCurrency(convertedPrice, targetCurrency);
 }
 
 // Format date for display
 export function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 }
 
 // Format time for display
 export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -99,7 +107,7 @@ export function formatDateTime(date: Date): string {
 
 // Format address for display (truncate middle)
 export function formatAddress(address: string): string {
-  if (!address) return '';
+  if (!address) return "";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
@@ -114,7 +122,7 @@ export function getTimeUntilEvent(eventDate: Date): string {
   const diff = eventDate.getTime() - now.getTime();
   
   if (diff <= 0) {
-    return 'Event has started';
+  return "Event has started";
   }
   
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -122,11 +130,11 @@ export function getTimeUntilEvent(eventDate: Date): string {
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
   
   if (days > 0) {
-    return `${days} day${days > 1 ? 's' : ''} remaining`;
+    return `${days} day${days > 1 ? "s" : ""} remaining`;
   } else if (hours > 0) {
-    return `${hours} hour${hours > 1 ? 's' : ''} remaining`;
+    return `${hours} hour${hours > 1 ? "s" : ""} remaining`;
   } else {
-    return `${minutes} minute${minutes > 1 ? 's' : ''} remaining`;
+    return `${minutes} minute${minutes > 1 ? "s" : ""} remaining`;
   }
 }
 
@@ -149,11 +157,13 @@ export function isEventLive(event: FormattedEvent): boolean {
 }
 
 // Get event status
-export function getEventStatus(event: FormattedEvent): 'upcoming' | 'live' | 'ended' | 'inactive' {
-  if (!event.active) return 'inactive';
-  if (isEventEnded(event)) return 'ended';
-  if (isEventLive(event)) return 'live';
-  return 'upcoming';
+export function getEventStatus(
+  event: FormattedEvent
+): "upcoming" | "live" | "ended" | "inactive" {
+  if (!event.active) return "inactive";
+  if (isEventEnded(event)) return "ended";
+  if (isEventLive(event)) return "live";
+  return "upcoming";
 }
 
 // Calculate availability percentage
@@ -168,7 +178,7 @@ export function formatAvailability(sold: number, total: number): string {
   const percentage = getAvailabilityPercentage(sold, total);
   
   if (available === 0) {
-    return 'Sold Out';
+    return "Sold Out";
   }
   
   return `${available} of ${total} available (${percentage}%)`;
@@ -201,28 +211,46 @@ function hashTicketData(tokenId: number, eventId: number): string {
 }
 
 // Validate QR code data
-export function validateQRCodeData(qrData: string): { valid: boolean; data?: any; error?: string } {
+export type QRCodeValidationResult =
+  | { valid: true; data: QRCodeData }
+  | { valid: false; error: string };
+
+export function validateQRCodeData(qrData: string): QRCodeValidationResult {
   try {
-    const data = JSON.parse(qrData);
-    
+    const data = JSON.parse(qrData) as Partial<QRCodeData> & {
+      timestamp?: number;
+      signature?: string;
+    };
+
     if (!data.tokenId || !data.eventId || !data.timestamp || !data.signature) {
-      return { valid: false, error: 'Invalid QR code format' };
+      return { valid: false, error: "Invalid QR code format" };
     }
-    
+
     // Check if QR code is not too old (24 hours)
     const maxAge = 24 * 60 * 60 * 1000; // 24 hours
     if (Date.now() - data.timestamp > maxAge) {
-      return { valid: false, error: 'QR code has expired' };
+      return { valid: false, error: "QR code has expired" };
     }
-    
-    return { valid: true, data };
+
+    return {
+      valid: true,
+      data: {
+        tokenId: data.tokenId,
+        eventId: data.eventId,
+        timestamp: data.timestamp,
+        signature: data.signature,
+      },
+    };
   } catch {
-    return { valid: false, error: 'Invalid QR code data' };
+    return { valid: false, error: "Invalid QR code data" };
   }
 }
 
 // Sort events by date
-export function sortEventsByDate(events: FormattedEvent[], ascending: boolean = true): FormattedEvent[] {
+export function sortEventsByDate(
+  events: FormattedEvent[],
+  ascending: boolean = true
+): FormattedEvent[] {
   return [...events].sort((a, b) => {
     const diff = a.startTime.getTime() - b.startTime.getTime();
     return ascending ? diff : -diff;
@@ -231,33 +259,39 @@ export function sortEventsByDate(events: FormattedEvent[], ascending: boolean = 
 
 // Filter events by status
 export function filterEventsByStatus(
-  events: FormattedEvent[], 
-  status: 'upcoming' | 'live' | 'ended' | 'all' = 'all'
+  events: FormattedEvent[],
+  status: "upcoming" | "live" | "ended" | "all" = "all"
 ): FormattedEvent[] {
-  if (status === 'all') return events;
-  
-  return events.filter(event => getEventStatus(event) === status);
+  if (status === "all") return events;
+
+  return events.filter((event) => getEventStatus(event) === status);
 }
 
 // Search events by name or venue
-export function searchEvents(events: FormattedEvent[], query: string): FormattedEvent[] {
+export function searchEvents(
+  events: FormattedEvent[],
+  query: string
+): FormattedEvent[] {
   if (!query.trim()) return events;
-  
+
   const lowercaseQuery = query.toLowerCase();
-  return events.filter(event => 
-    event.name.toLowerCase().includes(lowercaseQuery) ||
-    event.venue.toLowerCase().includes(lowercaseQuery) ||
-    event.description.toLowerCase().includes(lowercaseQuery)
+  return events.filter(
+    (event) =>
+      event.name.toLowerCase().includes(lowercaseQuery) ||
+      event.venue.toLowerCase().includes(lowercaseQuery) ||
+      event.description.toLowerCase().includes(lowercaseQuery)
   );
 }
 
 // Get price range for ticket types
-export function getPriceRange(ticketTypes: any[]): { min: number; max: number } {
+export function getPriceRange(
+  ticketTypes: TicketType[]
+): { min: number; max: number } {
   if (!ticketTypes || ticketTypes.length === 0) {
     return { min: 0, max: 0 };
   }
-  
-  const prices = ticketTypes.map(type => Number(type.price));
+
+  const prices = ticketTypes.map((type) => Number(type.price));
   return {
     min: Math.min(...prices),
     max: Math.max(...prices),

@@ -1,6 +1,11 @@
 // Debug utilities for troubleshooting purchase issues
 
-export function debugTicketType(ticketType: any, index: number) {
+import type { TicketType, PurchaseParams } from "../types";
+
+export function debugTicketType(
+  ticketType: TicketType | null | undefined,
+  index: number
+) {
   console.log(`=== Ticket Type ${index} Debug ===`);
   console.log("Raw ticket type:", ticketType);
   console.log("Type of ticketType:", typeof ticketType);
@@ -15,17 +20,20 @@ export function debugTicketType(ticketType: any, index: number) {
     console.log("  supply:", ticketType.supply, typeof ticketType.supply);
     console.log("  sold:", ticketType.sold, typeof ticketType.sold);
     
-    if (ticketType.price) {
+    if (ticketType.price !== undefined) {
       console.log("  price.toString():", ticketType.price.toString());
     }
-    if (ticketType.ticketTypeId) {
-      console.log("  ticketTypeId.toString():", ticketType.ticketTypeId.toString());
+    if (ticketType.ticketTypeId !== undefined) {
+      console.log(
+        "  ticketTypeId.toString():",
+        ticketType.ticketTypeId.toString()
+      );
     }
   }
   console.log("=== End Debug ===");
 }
 
-export function debugPurchaseParams(params: any) {
+export function debugPurchaseParams(params: PurchaseParams | null | undefined) {
   console.log("=== Purchase Params Debug ===");
   console.log("Raw params:", params);
   console.log("Type of params:", typeof params);
@@ -38,20 +46,22 @@ export function debugPurchaseParams(params: any) {
     console.log("  quantity:", params.quantity, typeof params.quantity);
     console.log("  chain:", params.chain, typeof params.chain);
     
-    if (params.eventId) {
+    if (params.eventId !== undefined) {
       console.log("  eventId.toString():", params.eventId.toString());
     }
-    if (params.ticketTypeId) {
+    if (params.ticketTypeId !== undefined) {
       console.log("  ticketTypeId.toString():", params.ticketTypeId.toString());
     }
-    if (params.price) {
+    if (params.price !== undefined) {
       console.log("  price.toString():", params.price.toString());
     }
   }
   console.log("=== End Debug ===");
 }
 
-export function validateTicketType(ticketType: any): { valid: boolean; errors: string[] } {
+export function validateTicketType(
+  ticketType: TicketType | null | undefined
+): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   if (!ticketType) {
@@ -67,22 +77,28 @@ export function validateTicketType(ticketType: any): { valid: boolean; errors: s
     errors.push("Missing or invalid name");
   }
   
-  if (!ticketType.price || ticketType.price <= 0) {
+  if (
+    ticketType.price === undefined ||
+    ticketType.price === null ||
+    ticketType.price <= BigInt(0)
+  ) {
     errors.push("Missing or invalid price");
   }
   
-  if (ticketType.supply === undefined || ticketType.supply < 0) {
+  if (ticketType.supply === undefined || ticketType.supply < BigInt(0)) {
     errors.push("Missing or invalid supply");
   }
   
-  if (ticketType.sold === undefined || ticketType.sold < 0) {
+  if (ticketType.sold === undefined || ticketType.sold < BigInt(0)) {
     errors.push("Missing or invalid sold count");
   }
   
   return { valid: errors.length === 0, errors };
 }
 
-export function validatePurchaseParams(params: any): { valid: boolean; errors: string[] } {
+export function validatePurchaseParams(
+  params: PurchaseParams | null | undefined
+): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   if (!params) {
@@ -98,7 +114,7 @@ export function validatePurchaseParams(params: any): { valid: boolean; errors: s
     errors.push("Missing ticketTypeId");
   }
   
-  if (!params.price || params.price <= 0) {
+  if (params.price === undefined || params.price <= BigInt(0)) {
     errors.push("Missing or invalid price");
   }
   
@@ -110,18 +126,22 @@ export function validatePurchaseParams(params: any): { valid: boolean; errors: s
 }
 
 // Helper to compare BigInt values safely
-export function compareBigInt(a: any, b: any): boolean {
+export function compareBigInt(
+  a: bigint | number | string,
+  b: bigint | number | string
+): boolean {
   try {
-    if (typeof a === 'bigint' && typeof b === 'bigint') {
-      return a === b;
-    }
-    if (typeof a === 'number' && typeof b === 'bigint') {
-      return BigInt(a) === b;
-    }
-    if (typeof a === 'bigint' && typeof b === 'number') {
-      return a === BigInt(b);
-    }
-    return a === b;
+    const normalize = (value: bigint | number | string): bigint => {
+      if (typeof value === 'bigint') {
+        return value;
+      }
+      if (typeof value === 'number') {
+        return BigInt(Math.trunc(value));
+      }
+      return BigInt(value);
+    };
+
+    return normalize(a) === normalize(b);
   } catch (error) {
     console.error("Error comparing values:", error);
     return false;
@@ -129,11 +149,8 @@ export function compareBigInt(a: any, b: any): boolean {
 }
 
 // Helper to format BigInt for display
-export function formatBigInt(value: any): string {
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  if (typeof value === 'number') {
+export function formatBigInt(value: bigint | number | string): string {
+  if (typeof value === 'bigint' || typeof value === 'number') {
     return value.toString();
   }
   return String(value);
