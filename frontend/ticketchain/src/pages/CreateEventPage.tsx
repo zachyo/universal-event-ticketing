@@ -10,11 +10,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
-import {
-  useCreateEvent,
-  useAddTicketType,
-  useEventCounter,
-} from "../hooks/useContracts";
+import { useCreateEvent } from "../hooks/useContracts";
 import { usePushWalletContext } from "@pushchain/ui-kit";
 import { validateFileForUpload, compressImage } from "../lib/ipfs";
 import type { TicketTypeInput } from "../types";
@@ -40,8 +36,6 @@ export const CreateEventPage = () => {
   const navigate = useNavigate();
   const { connectionStatus } = usePushWalletContext();
   const { createEvent, isPending: isCreatingEvent } = useCreateEvent();
-  const { addTicketType, isPending: isAddingTicketType } = useAddTicketType();
-  const { eventCounter } = useEventCounter();
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -221,7 +215,7 @@ export const CreateEventPage = () => {
         )
       );
 
-      // Create event
+      // Create event with initial ticket types in a single transaction
       const eventData = {
         name: formData.name,
         description: formData.description,
@@ -231,25 +225,18 @@ export const CreateEventPage = () => {
         image: formData.image,
         totalSupply: BigInt(formData.totalSupply),
         royaltyBps: BigInt(formData.royaltyBps),
+        initialTicketTypes: ticketTypes, // Include ticket types in the event creation
       };
 
       await createEvent(eventData);
 
-      // Determine new event ID based on current event counter
-      const newEventId = (eventCounter || 0) + 1;
-
-      // Add all defined ticket types to the newly created event
-      for (const tt of ticketTypes) {
-        await addTicketType(newEventId, tt);
-      }
+      // Success - navigate to events page
+      navigate("/events");
     } catch (error) {
       console.error("Failed to create event:", error);
       alert("Failed to create event. Please try again.");
     } finally {
       setIsSubmitting(false);
-
-      // Navigate to events page on success
-      navigate("/events");
     }
   };
 
@@ -713,10 +700,10 @@ export const CreateEventPage = () => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || isCreatingEvent || isAddingTicketType}
+              disabled={isSubmitting || isCreatingEvent}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
             >
-              {isSubmitting || isCreatingEvent || isAddingTicketType ? (
+              {isSubmitting || isCreatingEvent ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Creating Event...

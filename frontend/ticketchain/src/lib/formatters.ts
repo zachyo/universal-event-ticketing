@@ -10,6 +10,7 @@ import type {
 } from "../types";
 import { getIPFSUrl } from "./ipfs";
 import { convertPCToNative } from "./contracts";
+import { getChainById } from "../types/chains";
 
 // Format event data from contract to display format
 export function formatEvent(event: Event): FormattedEvent {
@@ -29,14 +30,86 @@ export function formatTicket(
   ticket: TicketNFT,
   event?: FormattedEvent
 ): FormattedTicket {
-  return {
-    ...ticket,
-    tokenId: Number(ticket.tokenId),
-    eventId: Number(ticket.eventId),
-    ticketTypeId: Number(ticket.ticketTypeId),
-    purchasePrice: Number(ticket.purchasePrice),
-    event,
+  const toNumber = (value: unknown): number => {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === "bigint") {
+      return Number(value);
+    }
+
+    if (typeof value === "string" && value.trim() !== "") {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    return 0;
   };
+
+  const toBigInt = (value: unknown): bigint => {
+    if (typeof value === "bigint") {
+      return value;
+    }
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return BigInt(Math.floor(value));
+    }
+
+    if (typeof value === "string" && value.trim() !== "") {
+      try {
+        return BigInt(value);
+      } catch (error) {
+        console.warn("Unable to parse purchasePrice to BigInt", {
+          value,
+          error,
+        });
+      }
+    }
+
+    return 0n;
+  };
+
+  const purchaseChainMeta = getChainById(ticket.purchaseChain);
+
+  const rawPurchaseChain = (ticket as { purchaseChain?: unknown })
+    .purchaseChain;
+  const purchaseChain =
+    typeof rawPurchaseChain === "string" && rawPurchaseChain.trim().length > 0
+      ? rawPurchaseChain
+      : "";
+
+  const normalizedOriginalOwner =
+    typeof ticket.originalOwner === "string"
+      ? ticket.originalOwner.toLowerCase()
+      : "";
+
+  const normalizedCurrentOwner =
+    typeof ticket.currentOwner === "string"
+      ? ticket.currentOwner.toLowerCase()
+      : "";
+
+  const isOriginalOwner =
+    normalizedOriginalOwner === "" ||
+    normalizedCurrentOwner === "" ||
+    normalizedOriginalOwner === normalizedCurrentOwner;
+
+  const formattedTicket: FormattedTicket = {
+    ...ticket,
+    tokenId: toNumber((ticket as { tokenId?: unknown }).tokenId),
+    eventId: toNumber((ticket as { eventId?: unknown }).eventId),
+    ticketTypeId: toNumber((ticket as { ticketTypeId?: unknown }).ticketTypeId),
+    purchasePrice: toBigInt(
+      (ticket as { purchasePrice?: unknown }).purchasePrice
+    ),
+    purchaseChain,
+    event,
+    purchaseChainMeta,
+    isOriginalOwner,
+    ticketStatus: ticket.used ? "used" : "valid",
+  };
+
+  return formattedTicket;
 }
 
 // Format listing data from contract to display format
@@ -56,11 +129,23 @@ export function formatListing(
 
 // Format price in wei to PC with proper decimals
 export function formatPrice(
-  priceWei: bigint | number,
+  priceWei: bigint | number | string,
   decimals: number = 18
 ): string {
-  const price = typeof priceWei === "bigint" ? priceWei : BigInt(priceWei);
-  const divisor = BigInt(10 ** decimals);
+  let price: bigint;
+
+  if (typeof priceWei === "bigint") {
+    price = priceWei;
+  } else if (typeof priceWei === "number") {
+    price = BigInt(Math.trunc(priceWei));
+  } else if (typeof priceWei === "string") {
+    price = BigInt(priceWei);
+  } else {
+    price = BigInt(0);
+  }
+  const decimalsBigInt = BigInt(decimals);
+  const divisor =
+    decimalsBigInt === BigInt(0) ? BigInt(1) : BigInt(10) ** decimalsBigInt;
   const wholePart = price / divisor;
   const fractionalPart = price % divisor;
 
@@ -76,7 +161,7 @@ export function formatPrice(
 
 // Format price with currency symbol
 export function formatPriceWithCurrency(
-  priceWei: bigint | number,
+  priceWei: bigint | number | string,
   currency: string = "PC",
   decimals: number = 18
 ): string {

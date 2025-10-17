@@ -1,5 +1,5 @@
 import { useReadContract, useReadContracts, useAccount } from "wagmi";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   TicketFactoryABI,
   TicketNFTABI,
@@ -42,6 +42,15 @@ export function useCreateEvent() {
     try {
       setIsPending(true);
 
+      // Prepare initial ticket types array (empty if not provided)
+      const initialTicketTypes = (eventData.initialTicketTypes || []).map(
+        (tt) => ({
+          name: tt.name,
+          price: tt.price,
+          supply: tt.supply,
+        })
+      );
+
       const tx = await pushChainClient.universal.sendTransaction({
         to: TICKET_FACTORY_ADDRESS,
         data: PushChain.utils.helpers.encodeTxData({
@@ -56,6 +65,7 @@ export function useCreateEvent() {
             ipfsHash,
             eventData.totalSupply,
             eventData.royaltyBps,
+            initialTicketTypes,
           ],
         }),
       });
@@ -109,7 +119,13 @@ export function useEvent(eventId: number) {
 }
 
 // Hook for reading a single event by ID
-export function useGetEvent(eventId: number) {
+export function useGetEvent(
+  eventId: number,
+  options?: {
+    enabled?: boolean;
+  }
+) {
+  const enabled = options?.enabled ?? true;
   const {
     data: event,
     isLoading,
@@ -121,15 +137,14 @@ export function useGetEvent(eventId: number) {
     functionName: "getEvent",
     args: [BigInt(eventId)],
     query: {
-      enabled: eventId > 0, // Only fetch if eventId is valid
+      enabled: enabled && eventId > 0, // Only fetch if eventId is valid and enabled
     },
   });
-  console.log(event);
   return {
     event: event as Event | undefined,
     isLoading,
     error,
-    refetch,
+    refetch: refetch as unknown as () => Promise<unknown>,
   };
 }
 
@@ -172,7 +187,13 @@ export function useEvents(): UseEventsReturn {
 }
 
 // Hook for reading ticket types for an event
-export function useTicketTypes(eventId: number) {
+export function useTicketTypes(
+  eventId: number,
+  options?: {
+    enabled?: boolean;
+  }
+) {
+  const enabled = options?.enabled ?? true;
   const {
     data: ticketTypes,
     isLoading,
@@ -183,6 +204,9 @@ export function useTicketTypes(eventId: number) {
     abi: TicketFactoryABI,
     functionName: "getTicketTypes",
     args: [BigInt(eventId)],
+    query: {
+      enabled: enabled && eventId > 0,
+    },
   });
 
   // Normalize to include ticketTypeId (index in returned array)
@@ -193,20 +217,9 @@ export function useTicketTypes(eventId: number) {
 
     const result = arr.map((tt, index) => {
       const normalized = { ...tt, ticketTypeId: BigInt(index) };
-
-      // Debug logging for ticket types
-      console.log(`Ticket type ${index}:`, {
-        name: normalized.name,
-        price: normalized.price.toString(),
-        supply: normalized.supply.toString(),
-        sold: normalized.sold.toString(),
-        ticketTypeId: normalized.ticketTypeId.toString(),
-      });
-
       return normalized;
     });
 
-    console.log("All normalized ticket types:", result);
     return result;
   }, [ticketTypes]);
 
@@ -388,61 +401,43 @@ export function useUserTickets(address?: string): UseTicketsReturn {
   const { address: connectedAddress } = useAccount();
   const userAddress = address || connectedAddress;
 
-  // 1. Fetch the array of token IDs owned by the user
+  // Use the new optimized batch function that returns full ticket details
   const {
-    data: tokenIds,
-    isLoading: isLoadingTokenIds,
-    refetch: refetchTokenIds,
+    data: batchData,
+    isLoading,
+    error,
+    refetch,
   } = useReadContract({
     address: TICKET_NFT_ADDRESS as `0x${string}`,
     abi: TicketNFTABI,
-    functionName: "getUserTickets",
+    functionName: "getUserTicketsWithDetails",
     args: userAddress ? [userAddress] : undefined,
     query: { enabled: !!userAddress },
   });
 
-  // 2. Prepare contract calls to get details for each token ID
-  const ticketDetailContracts = useMemo(() => {
-    if (!tokenIds || (tokenIds as bigint[]).length === 0) return [];
-    return (tokenIds as bigint[]).map((tokenId) => ({
-      address: TICKET_NFT_ADDRESS as `0x${string}`,
-      abi: TicketNFTABI,
-      functionName: "ticketDetails",
-      args: [tokenId],
-    }));
-  }, [tokenIds]);
-
-  // 3. Fetch all ticket details in a batch
-  const {
-    data: ticketDetailsData,
-    isLoading: isLoadingTicketDetails,
-    error,
-    refetch: refetchDetails,
-  } = useReadContracts({
-    contracts: ticketDetailContracts,
-    query: {
-      enabled: !!ticketDetailContracts && ticketDetailContracts.length > 0,
-    },
-  });
-
-  // 4. Format the results
+  // Format the results - batchData is a tuple: [TicketMetadata[], uint256[]]
   const tickets = useMemo(() => {
-    if (!ticketDetailsData) return [];
-    return ticketDetailsData
-      .map((item) => item.result as TicketNFT)
-      .filter(Boolean);
-  }, [ticketDetailsData]);
+    if (!batchData) return [];
 
-  const refetch = useCallback(() => {
-    refetchTokenIds();
-    refetchDetails();
-  }, [refetchTokenIds, refetchDetails]);
+    const [ticketMetadataArray, tokenIds] = batchData as [
+      TicketNFT[],
+      bigint[]
+    ];
+
+    if (!ticketMetadataArray || !tokenIds) return [];
+
+    // Combine metadata with token IDs
+    return ticketMetadataArray.map((metadata, index) => ({
+      ...metadata,
+      tokenId: tokenIds[index],
+    }));
+  }, [batchData]);
 
   return {
     tickets,
-    loading: isLoadingTokenIds || isLoadingTicketDetails,
+    loading: isLoading,
     error: error ? error.message : null,
-    refetch,
+    refetch: refetch as unknown as () => Promise<unknown>,
   };
 }
 
@@ -624,22 +619,33 @@ export function useValidateTicket() {
 }
 
 // Hook for reading ticket details
-export function useTicketDetails(tokenId: number) {
+export function useTicketDetails(
+  tokenId: number,
+  options?: {
+    enabled?: boolean;
+  }
+) {
+  const enabled = options?.enabled ?? true;
   const {
     data: ticketDetails,
     isLoading,
     error,
+    refetch,
   } = useReadContract({
     address: TICKET_NFT_ADDRESS as `0x${string}`,
     abi: TicketNFTABI,
     functionName: "ticketDetails",
     args: [BigInt(tokenId)],
+    query: {
+      enabled: enabled && tokenId > 0,
+    },
   });
 
   return {
     ticketDetails: ticketDetails as TicketNFT | undefined,
     isLoading,
     error,
+    refetch: refetch as unknown as () => Promise<unknown>,
   };
 }
 
@@ -661,4 +667,68 @@ export function useOrganizerEvents(organizer: string) {
     isLoading,
     error,
   };
+}
+
+// Hook for fetching multiple events at once
+export function useEventsBatch(eventIds: number[]) {
+  const { data, isLoading, error, refetch } = useReadContract({
+    address: TICKET_FACTORY_ADDRESS as `0x${string}`,
+    abi: TicketFactoryABI,
+    functionName: "getEventsBatch",
+    args: [eventIds.map((id) => BigInt(id))],
+    query: {
+      enabled: eventIds.length > 0,
+    },
+  });
+
+  const events = useMemo(() => {
+    if (!data) return [];
+    const [eventsData, validFlags] = data as [Event[], boolean[]];
+
+    // Filter out invalid events
+    return eventsData.filter((_, index) => validFlags[index]);
+  }, [data]);
+
+  return {
+    events,
+    isLoading,
+    error,
+    refetch: refetch as unknown as () => Promise<unknown>,
+  };
+}
+
+// Hook for setting ticket URI (metadata)
+export function useSetTicketURI() {
+  const { pushChainClient } = usePushChainClient();
+  const { PushChain } = usePushChain();
+  const [isPending, setIsPending] = useState(false);
+
+  const setTicketURI = async (tokenId: number, tokenURI: string) => {
+    if (!pushChainClient || !PushChain) {
+      throw new Error("Push Chain client not available");
+    }
+
+    try {
+      setIsPending(true);
+
+      const tx = await pushChainClient.universal.sendTransaction({
+        to: TICKET_FACTORY_ADDRESS,
+        data: PushChain.utils.helpers.encodeTxData({
+          abi: Array.from(TicketFactoryABI),
+          functionName: "setTicketURI",
+          args: [BigInt(tokenId), tokenURI],
+        }),
+      });
+
+      await tx.wait();
+
+      localStorage.removeItem("ticketchain_cache");
+
+      return tx;
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return { setTicketURI, isPending };
 }

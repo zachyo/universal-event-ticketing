@@ -57,6 +57,7 @@ export interface EventInput {
   image: File;
   totalSupply: bigint;
   royaltyBps: bigint;
+  initialTicketTypes?: TicketTypeInput[]; // Optional array of ticket types to add during creation
 }
 
 // Form input types for creating ticket types
@@ -161,6 +162,8 @@ export interface FormattedEvent
   imageUrl: string;
 }
 
+import type { SupportedChain } from "./chains";
+
 export interface FormattedTicket
   extends Omit<
     TicketNFT,
@@ -169,8 +172,11 @@ export interface FormattedTicket
   tokenId: number;
   eventId: number;
   ticketTypeId: number;
-  purchasePrice: number;
+  purchasePrice: bigint;
   event?: FormattedEvent;
+  purchaseChainMeta?: SupportedChain | ChainConfig | null;
+  isOriginalOwner: boolean;
+  ticketStatus: "valid" | "used";
 }
 
 export interface FormattedListing
@@ -229,7 +235,10 @@ export const IPFS_GATEWAY = "https://gateway.pinata.cloud/ipfs/";
 
 // Utility function types
 export type FormatEventFunction = (event: Event) => FormattedEvent;
-export type FormatTicketFunction = (ticket: TicketNFT) => FormattedTicket;
+export type FormatTicketFunction = (
+  ticket: TicketNFT,
+  event?: FormattedEvent
+) => FormattedTicket;
 export type FormatListingFunction = (listing: Listing) => FormattedListing;
 export type GetIPFSUrlFunction = (hash: string) => string;
 export type UploadToIPFSFunction = (file: File) => Promise<string>;

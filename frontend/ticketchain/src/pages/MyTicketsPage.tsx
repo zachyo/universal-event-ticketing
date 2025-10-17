@@ -1,21 +1,33 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useAccount } from "wagmi";
+import { parseUnits } from "viem";
 import { Filter, Search, QrCode, AlertCircle } from "lucide-react";
-import { useUserTickets } from "../hooks/useContracts";
-import { useListTicket } from "../hooks/useContracts";
+import {
+  useUserTickets,
+  useListTicket,
+  useEvents,
+} from "../hooks/useContracts";
 import {
   TicketCard,
   TicketCardSkeleton,
   TicketGrid,
   TicketsEmptyState,
 } from "../components/TicketCard";
-import { usePushWalletContext } from "@pushchain/ui-kit";
-import { formatTicket } from "../lib/formatters";
+import { usePushWalletContext, PushUI, usePushChain } from "@pushchain/ui-kit";
+import {
+  formatTicket,
+  formatEvent,
+  formatPriceWithCurrency,
+  formatPriceInCurrency,
+} from "../lib/formatters";
+import { PC_TOKEN } from "../lib/contracts";
+import type { FormattedEvent } from "../types";
 
 interface ListTicketModalProps {
   isOpen: boolean;
   onClose: () => void;
   tokenId: number;
-  onList: (tokenId: number, price: string) => void;
+  onList: (tokenId: number, price: string) => Promise<void>;
 }
 
 function ListTicketModal({
@@ -26,18 +38,34 @@ function ListTicketModal({
 }: ListTicketModalProps) {
   const [price, setPrice] = useState("");
   const [isListing, setIsListing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const pcSymbol = PC_TOKEN.symbol;
+
+  useEffect(() => {
+    if (!isOpen) {
+      setErrorMessage(null);
+      setPrice("");
+      setIsListing(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!price || parseFloat(price) <= 0) return;
 
     setIsListing(true);
+    setErrorMessage(null);
     try {
       await onList(tokenId, price);
       onClose();
       setPrice("");
     } catch (error) {
       console.error("Failed to list ticket:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to list ticket. Please try again.";
+      setErrorMessage(message);
     } finally {
       setIsListing(false);
     }
@@ -52,7 +80,7 @@ function ListTicketModal({
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Price (ETH)
+              Price ({pcSymbol})
             </label>
             <input
               type="number"
@@ -61,9 +89,16 @@ function ListTicketModal({
               min="0"
               step="0.001"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="0.1"
+              placeholder="100"
               required
             />
+            <p className="text-xs text-gray-500 mt-2">
+              Set your asking price in PC tokens. Push Chain will convert the
+              buyer's payment from their origin chain automatically.
+            </p>
+            {errorMessage && (
+              <p className="text-sm text-red-600 mt-2">{errorMessage}</p>
+            )}
           </div>
           <div className="flex gap-3">
             <button
@@ -96,42 +131,170 @@ const STATUS_FILTERS: Array<{ key: StatusFilter; label: string }> = [
 ];
 
 const MyTicketsPage = () => {
-  const { connectionStatus, universalAccount } = usePushWalletContext();
-  const accountAddress = universalAccount?.address;
-  const { tickets, loading, error, refetch } = useUserTickets(accountAddress);
+  const { connectionStatus, universalAccount, handleConnectToPushWallet } =
+    usePushWalletContext();
+  const { PushChain } = usePushChain();
+  const { address: evmAddress, isConnected: isEvmConnected } = useAccount();
+  const pushConnected =
+    connectionStatus === PushUI.CONSTANTS.CONNECTION.STATUS.CONNECTED;
+  const isConnected =
+    pushConnected || isEvmConnected || !!universalAccount || !!evmAddress;
+
+  const [pushAccountAddress, setPushAccountAddress] = useState<
+    string | undefined
+  >(undefined);
+  const [isResolvingPushAccount, setIsResolvingPushAccount] = useState(false);
+  const [addressResolutionError, setAddressResolutionError] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function resolvePushAccount() {
+      if (!PushChain) {
+        return;
+      }
+
+      if (!universalAccount) {
+        if (!cancelled) {
+          setPushAccountAddress(undefined);
+          setIsResolvingPushAccount(false);
+          setAddressResolutionError(null);
+        }
+        return;
+      }
+
+      setIsResolvingPushAccount(true);
+      setAddressResolutionError(null);
+
+      try {
+        const { address } =
+          await PushChain.utils.account.convertOriginToExecutor(
+            universalAccount,
+            { onlyCompute: true }
+          );
+
+        if (!cancelled) {
+          setPushAccountAddress(address);
+        }
+      } catch (conversionError) {
+        console.error(
+          "Failed to resolve Push executor address:",
+          conversionError
+        );
+        if (!cancelled) {
+          setPushAccountAddress(undefined);
+          setAddressResolutionError(
+            "We couldn't map your wallet to Push Chain. Please reconnect and try again."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsResolvingPushAccount(false);
+        }
+      }
+    }
+
+    resolvePushAccount();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [PushChain, universalAccount, evmAddress]);
+
+  console.log("origin account:", universalAccount?.address ?? evmAddress);
+  console.log("resolved push account:", pushAccountAddress);
+
+  const { tickets, loading, error, refetch } =
+    useUserTickets(pushAccountAddress);
   const { listTicket } = useListTicket();
+  const { events, loading: eventsLoading } = useEvents();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [showListModal, setShowListModal] = useState(false);
   const [selectedTokenId, setSelectedTokenId] = useState<number | null>(null);
 
-  // Filter and search tickets
-  const filteredTickets = useMemo(() => {
+  const formattedEvents = useMemo(() => events.map(formatEvent), [events]);
+
+  const eventsById = useMemo<Map<number, FormattedEvent>>(() => {
+    const map = new Map<number, FormattedEvent>();
+    formattedEvents.forEach((event) => map.set(event.eventId, event));
+    return map;
+  }, [formattedEvents]);
+
+  const formattedTickets = useMemo(() => {
     if (!tickets.length) return [];
 
-    let formattedTickets = tickets.map((ticket) => formatTicket(ticket));
+    return tickets.map((ticket) =>
+      formatTicket(ticket, eventsById.get(Number(ticket.eventId)))
+    );
+  }, [tickets, eventsById]);
+
+  const ticketStats = useMemo(() => {
+    let valid = 0;
+    let used = 0;
+    let totalPurchaseValue = 0n;
+
+    formattedTickets.forEach((ticket) => {
+      if (ticket.ticketStatus === "used") {
+        used += 1;
+      } else {
+        valid += 1;
+      }
+
+      totalPurchaseValue += ticket.purchasePrice;
+    });
+
+    return {
+      total: formattedTickets.length,
+      valid,
+      used,
+      totalPurchaseValue,
+    };
+  }, [formattedTickets]);
+
+  const totalValuePC =
+    ticketStats.totalPurchaseValue > 0n
+      ? formatPriceWithCurrency(ticketStats.totalPurchaseValue)
+      : `0 ${PC_TOKEN.symbol}`;
+
+  const totalValueInEth =
+    ticketStats.totalPurchaseValue > 0n
+      ? formatPriceInCurrency(ticketStats.totalPurchaseValue, "ETH")
+      : "0 ETH";
+
+  const isLoading = loading || eventsLoading || isResolvingPushAccount;
+
+  // Filter and search tickets
+  const filteredTickets = useMemo(() => {
+    if (!formattedTickets.length) return [];
+
+    let visibleTickets = [...formattedTickets];
 
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      formattedTickets = formattedTickets.filter(
+      visibleTickets = visibleTickets.filter(
         (ticket) =>
-          ticket.event?.name.toLowerCase().includes(query) ||
-          ticket.event?.venue.toLowerCase().includes(query) ||
+          ticket.event?.name?.toLowerCase().includes(query) ||
+          ticket.event?.venue?.toLowerCase().includes(query) ||
           ticket.tokenId.toString().includes(query)
       );
     }
 
     // Apply status filter
     if (statusFilter !== "all") {
-      formattedTickets = formattedTickets.filter((ticket) =>
-        statusFilter === "valid" ? !ticket.used : ticket.used
+      visibleTickets = visibleTickets.filter((ticket) =>
+        statusFilter === "valid"
+          ? ticket.ticketStatus !== "used"
+          : ticket.ticketStatus === "used"
       );
     }
 
-    return formattedTickets;
-  }, [tickets, searchQuery, statusFilter]);
+    return visibleTickets;
+  }, [formattedTickets, searchQuery, statusFilter]);
 
   const handleListTicket = (tokenId: number) => {
     setSelectedTokenId(tokenId);
@@ -140,26 +303,71 @@ const MyTicketsPage = () => {
 
   const handleConfirmList = async (tokenId: number, price: string) => {
     try {
-      const priceWei = BigInt(Math.floor(parseFloat(price) * 1e18));
+      const priceWei = parseUnits(price, 18);
+      if (priceWei <= 0n) {
+        throw new Error("Listing price must be greater than zero");
+      }
       await listTicket({ tokenId: BigInt(tokenId), price: priceWei });
       await refetch(); // Refresh tickets
     } catch (error) {
       console.error("Failed to list ticket:", error);
-      throw error;
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Failed to list ticket. Please try again.");
     }
   };
 
-  if (connectionStatus !== "connected") {
+  if (!isConnected) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center">
           <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-4">Connect Your Wallet</h1>
           <p className="text-gray-600 mb-6">
-            You need to connect your wallet to view your tickets.
+            Connect a Push universal wallet or any supported EVM wallet to see
+            your tickets.
           </p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+            onClick={handleConnectToPushWallet}
+          >
             Connect Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isResolvingPushAccount) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-4">Preparing Your Tickets</h1>
+          <p className="text-gray-600">
+            Mapping your wallet to its Push Chain executor address...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!pushAccountAddress) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center">
+          <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-4">Address Not Ready</h1>
+          <p className="text-gray-600 mb-6">
+            {addressResolutionError ??
+              "We're still syncing your universal account on Push Chain."}
+          </p>
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+            onClick={handleConnectToPushWallet}
+          >
+            Retry Connection
           </button>
         </div>
       </div>
@@ -239,31 +447,38 @@ const MyTicketsPage = () => {
       </div>
 
       {/* Stats */}
-      {!loading && tickets.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      {!isLoading && ticketStats.total > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {tickets.length}
+              {ticketStats.total}
             </div>
             <div className="text-sm text-gray-600">Total Tickets</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-green-600">
-              {tickets.filter((t) => !t.used).length}
+              {ticketStats.valid}
             </div>
             <div className="text-sm text-gray-600">Valid Tickets</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-gray-600">
-              {tickets.filter((t) => t.used).length}
+              {ticketStats.used}
             </div>
             <div className="text-sm text-gray-600">Used Tickets</div>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm p-4 text-center">
+            <div className="text-2xl font-bold text-purple-600">
+              {totalValuePC}
+            </div>
+            <div className="text-xs text-gray-500">≈ {totalValueInEth}</div>
+            <div className="text-sm text-gray-600">Total Purchased Value</div>
           </div>
         </div>
       )}
 
       {/* Results Count */}
-      {!loading && (
+      {!isLoading && (
         <div className="mb-6">
           <p className="text-gray-600">
             {filteredTickets.length} ticket
@@ -274,7 +489,7 @@ const MyTicketsPage = () => {
       )}
 
       {/* Tickets Grid */}
-      {loading ? (
+      {isLoading ? (
         <TicketGrid>
           {Array.from({ length: 6 }).map((_, index) => (
             <TicketCardSkeleton key={index} />
@@ -287,7 +502,7 @@ const MyTicketsPage = () => {
               key={ticket.tokenId}
               ticket={ticket}
               showQR={true}
-              showListButton={!ticket.used}
+              showListButton={ticket.ticketStatus !== "used"}
               onList={handleListTicket}
             />
           ))}
@@ -295,7 +510,7 @@ const MyTicketsPage = () => {
       ) : (
         <TicketsEmptyState
           message={
-            tickets.length === 0
+            formattedTickets.length === 0
               ? "You don't have any tickets yet. Start by purchasing tickets to events!"
               : searchQuery
               ? `No tickets found matching "${searchQuery}"`

@@ -11,6 +11,7 @@ import {
   Ticket,
 } from "lucide-react";
 import { useGetEvent, useTicketTypes } from "../hooks/useContracts";
+import { useAutoMetadata } from "../hooks/useAutoMetadata";
 import {
   formatEvent,
   formatDateTime,
@@ -55,6 +56,7 @@ const EventDetailPage = () => {
   const eventId = id ? parseInt(id) : 0;
 
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -78,6 +80,7 @@ const EventDetailPage = () => {
   const { connectionStatus, handleConnectToPushWallet } =
     usePushWalletContext();
   const { PushChain } = usePushChain();
+  const { generateAndUploadMetadata } = useAutoMetadata();
 
   const ticketTypeOptions = useMemo<TicketTypeOption[]>(() => {
     if (!ticketTypes) return [];
@@ -229,6 +232,11 @@ const EventDetailPage = () => {
       return "error";
     }
 
+    if (!event) {
+      setPurchaseError("Event data not loaded.");
+      return "error";
+    }
+
     try {
       setIsPurchasing(true);
 
@@ -245,8 +253,55 @@ const EventDetailPage = () => {
         value: selectedTicketType.price,
       });
 
-      await tx.wait();
+      const receipt = await tx.wait();
       setTxHash(tx.hash);
+
+      // Extract tokenId from TicketMinted event in the receipt
+      let mintedTokenId: bigint | null = null;
+
+      if (receipt && receipt.logs) {
+        // TicketMinted event signature: TicketMinted(uint256 indexed tokenId, address indexed buyer, uint256 eventId, uint256 ticketTypeId)
+        const ticketMintedTopic =
+          "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f";
+
+        for (const log of receipt.logs) {
+          if (
+            log.topics &&
+            log.topics[0] === ticketMintedTopic &&
+            log.topics[1]
+          ) {
+            // First indexed parameter (tokenId) is in topics[1]
+            mintedTokenId = BigInt(log.topics[1]);
+            break;
+          }
+        }
+      }
+
+      // Generate and upload metadata if tokenId was found
+      if (mintedTokenId !== null) {
+        try {
+          setIsGeneratingMetadata(true);
+
+          const formattedEvent = formatEvent(event);
+          // Get chain information - Push Chain uses universal chain abstraction
+          const purchaseChain = "Push Chain Universal";
+
+          await generateAndUploadMetadata({
+            tokenId: Number(mintedTokenId),
+            event: formattedEvent,
+            ticketTypeName: selectedTicketType.name,
+            purchasePrice: selectedTicketType.price,
+            purchaseChain,
+          });
+        } catch (metadataError) {
+          console.error("Failed to generate metadata:", metadataError);
+          // Don't fail the entire purchase if metadata generation fails
+          // The ticket is already purchased, metadata can be added later
+        } finally {
+          setIsGeneratingMetadata(false);
+        }
+      }
+
       localStorage.removeItem("ticketchain_cache");
       await refetchEvent();
       await refetchTicketTypes();
@@ -261,6 +316,7 @@ const EventDetailPage = () => {
       return "error";
     } finally {
       setIsPurchasing(false);
+      setIsGeneratingMetadata(false);
     }
   };
 
@@ -552,11 +608,15 @@ const EventDetailPage = () => {
                 <>
                   <button
                     onClick={() => setShowConfirmModal(true)}
-                    disabled={isPurchasing || !canPurchase}
+                    disabled={
+                      isPurchasing || isGeneratingMetadata || !canPurchase
+                    }
                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-medium transition-colors mb-3"
                   >
                     {isPurchasing
-                      ? "Processing..."
+                      ? "Processing purchase..."
+                      : isGeneratingMetadata
+                      ? "Preparing your ticket..."
                       : selectedTicketType
                       ? `Buy ${selectedTicketType.name}`
                       : "Buy Ticket"}
@@ -566,7 +626,11 @@ const EventDetailPage = () => {
                   )}
                   {txHash && pushChainClient && (
                     <div className="text-sm text-green-600">
-                      <p className="font-medium">Purchase submitted!</p>
+                      <p className="font-medium">
+                        {isGeneratingMetadata
+                          ? "Purchase complete! Generating ticket metadata..."
+                          : "Purchase successful!"}
+                      </p>
                       <a
                         className="underline"
                         href={pushChainClient.explorer.getTransactionUrl(
@@ -577,6 +641,13 @@ const EventDetailPage = () => {
                       >
                         View on Explorer
                       </a>
+                      {!isGeneratingMetadata && (
+                        <p className="mt-1">
+                          <Link to="/tickets" className="underline font-medium">
+                            View in My Tickets →
+                          </Link>
+                        </p>
+                      )}
                     </div>
                   )}
                 </>
@@ -650,7 +721,7 @@ const EventDetailPage = () => {
             <DialogTitle>Confirm ticket purchase</DialogTitle>
             <DialogDescription>
               {selectedTicketType
-                ? `You’re about to buy 1 ${
+                ? `You're about to buy 1 ${
                     selectedTicketType.name
                   } ticket for ${formatPrice(selectedTicketType.price)} PC.`
                 : "No tickets are currently available for this event."}
@@ -664,8 +735,18 @@ const EventDetailPage = () => {
             {connectionStatus !==
               PushUI.CONSTANTS.CONNECTION.STATUS.CONNECTED && (
               <p className="text-amber-600">
-                We’ll prompt you to connect your Push Wallet before completing
+                We'll prompt you to connect your Push Wallet before completing
                 the purchase.
+              </p>
+            )}
+            {isPurchasing && (
+              <p className="text-blue-600 font-medium">
+                Processing your purchase...
+              </p>
+            )}
+            {isGeneratingMetadata && (
+              <p className="text-blue-600 font-medium">
+                Generating your ticket metadata and uploading to IPFS...
               </p>
             )}
             {purchaseError && <p className="text-red-600">{purchaseError}</p>}
@@ -674,7 +755,8 @@ const EventDetailPage = () => {
             <DialogClose asChild>
               <button
                 type="button"
-                className="w-full sm:w-auto rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                disabled={isPurchasing || isGeneratingMetadata}
+                className="w-full sm:w-auto rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -682,10 +764,14 @@ const EventDetailPage = () => {
             <button
               type="button"
               onClick={handleConfirmQuickPurchase}
-              disabled={isPurchasing || !canPurchase}
+              disabled={isPurchasing || isGeneratingMetadata || !canPurchase}
               className="w-full sm:w-auto rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600"
             >
-              {isPurchasing ? "Processing..." : "Confirm & Buy"}
+              {isPurchasing
+                ? "Processing..."
+                : isGeneratingMetadata
+                ? "Preparing ticket..."
+                : "Confirm & Buy"}
             </button>
           </DialogFooter>
         </DialogContent>

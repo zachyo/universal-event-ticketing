@@ -204,6 +204,41 @@ contract TicketNFT is ERC721, Ownable, ERC2981 {
         }
     }
 
+    /**
+     * @notice Get all ticket details (with metadata) owned by a given address in one call
+     * @dev Optimized for frontend: single call replaces getUserTickets + N * ticketDetails calls
+     * @param owner Address to query
+     * @return tickets Array of ticket metadata with embedded token IDs
+     * @return tokenIds Array of corresponding token IDs (same order as tickets)
+     */
+    function getUserTicketsWithDetails(address owner) 
+        external 
+        view 
+        returns (TicketMetadata[] memory tickets, uint256[] memory tokenIds) 
+    {
+        // First pass: count tickets
+        uint256 count;
+        for (uint256 i = 1; i <= tokenCounter; i++) {
+            if (_ownerOf(i) == owner) {
+                unchecked { ++count; }
+            }
+        }
+
+        // Allocate arrays
+        tickets = new TicketMetadata[](count);
+        tokenIds = new uint256[](count);
+
+        // Second pass: collect ticket details
+        uint256 idx;
+        for (uint256 i = 1; i <= tokenCounter; i++) {
+            if (_ownerOf(i) == owner) {
+                tokenIds[idx] = i;
+                tickets[idx] = ticketDetails[i];
+                unchecked { ++idx; }
+            }
+        }
+    }
+
     // ========= Views =========
 
     /**
