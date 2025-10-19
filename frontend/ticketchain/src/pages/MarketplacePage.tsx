@@ -1,44 +1,29 @@
 import { useState, useMemo } from "react";
-import { Search, Filter, Tag, TrendingUp } from "lucide-react";
+import { Search, Filter, Tag, TrendingUp, ExternalLink } from "lucide-react";
 import { useMarketplaceListings, useBuyTicket } from "../hooks/useContracts";
 import { usePushWalletContext } from "@pushchain/ui-kit";
 import { useAccount } from "wagmi";
 import { formatListing, formatPrice } from "../lib/formatters";
 import type { FormattedListing } from "../types";
 import {
-  ListingCard,
   ListingCardSkeleton,
-  MakeOfferModal,
-  OfferHistoryModal,
-  MyOffersPanel,
 } from "../components/marketplace";
 import { ErrorDisplay } from "../components/ErrorDisplay";
+import { TicketDetailsModal } from "../components/TicketDetailsModal";
 
 type SortOption = "price-low" | "price-high" | "newest" | "oldest";
 type PriceFilter = "all" | "0-0.1" | "0.1-0.5" | "0.5+";
-type MarketplaceTab = "listings" | "my-offers";
 
 export const MarketplacePage = () => {
   const { connectionStatus } = usePushWalletContext();
   const { address } = useAccount();
   const { listings, loading, error, refetch } = useMarketplaceListings();
-  const { buyTicket, isPending: isBuying } = useBuyTicket();
+  const { buyTicket } = useBuyTicket();
 
-  const [activeTab, setActiveTab] = useState<MarketplaceTab>("listings");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [priceRange, setPriceRange] = useState<PriceFilter>("all");
-  const [showMakeOfferModal, setShowMakeOfferModal] = useState(false);
-  const [showOfferHistoryModal, setShowOfferHistoryModal] = useState(false);
-  const [selectedListing, setSelectedListing] =
-    useState<FormattedListing | null>(null);
-
-  // Get offer counts for all listings (simplified - in real app would batch this)
-  const listingOfferCounts = useMemo(() => {
-    const counts = new Map<number, number>();
-    // For now, return empty counts - can be enhanced later
-    return counts;
-  }, []);
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
 
   // Filter and sort listings
   const filteredListings = useMemo<FormattedListing[]>(() => {
@@ -113,22 +98,6 @@ export const MarketplacePage = () => {
     }
   };
 
-  const handleMakeOffer = (listing: FormattedListing) => {
-    setSelectedListing(listing);
-    setShowMakeOfferModal(true);
-  };
-
-  const handleViewOffers = (listing: FormattedListing) => {
-    setSelectedListing(listing);
-    setShowOfferHistoryModal(true);
-  };
-
-  const handleOfferSuccess = () => {
-    setShowMakeOfferModal(false);
-    setShowOfferHistoryModal(false);
-    refetch();
-  };
-
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -152,38 +121,7 @@ export const MarketplacePage = () => {
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6 md:mb-8 overflow-x-auto">
-        <div className="flex gap-2 md:gap-4 min-w-max">
-          <button
-            onClick={() => setActiveTab("listings")}
-            className={`px-3 md:px-4 py-2.5 md:py-2 font-medium transition-colors relative text-sm md:text-base touch-manipulation ${
-              activeTab === "listings"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            All Listings
-          </button>
-          <button
-            onClick={() => setActiveTab("my-offers")}
-            className={`px-3 md:px-4 py-2.5 md:py-2 font-medium transition-colors relative text-sm md:text-base touch-manipulation ${
-              activeTab === "my-offers"
-                ? "text-purple-600 border-b-2 border-purple-600"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            My Offers
-          </button>
-        </div>
-      </div>
-
-      {/* Content based on active tab */}
-      {activeTab === "my-offers" ? (
-        <MyOffersPanel />
-      ) : (
-        <>
-          {/* Stats */}
+      {/* Stats */}
           {!loading && listings.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
               <div className="bg-white rounded-lg shadow-sm p-3 md:p-4 text-center">
@@ -306,21 +244,87 @@ export const MarketplacePage = () => {
               ))}
             </div>
           ) : filteredListings.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredListings.map((listing) => (
-                <ListingCard
+                <div
                   key={listing.listingId}
-                  listing={listing}
-                  onBuy={handleBuyTicket}
-                  onMakeOffer={handleMakeOffer}
-                  onViewOffers={handleViewOffers}
-                  isCurrentUser={
-                    listing.seller.toLowerCase() === address?.toLowerCase()
-                  }
-                  offerCount={
-                    listingOfferCounts.get(Number(listing.tokenId)) || 0
-                  }
-                />
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                >
+                  {/* Listing Header */}
+                  <div className="p-4 border-b">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg line-clamp-1">
+                          Ticket #{listing.tokenId}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Listing #{listing.listingId}
+                        </p>
+                        {listing.ticket?.event?.name && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                            {listing.ticket.event.name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right ml-3">
+                        <div className="text-2xl font-bold text-green-600">
+                          {formatPrice(BigInt(listing.price))} PC
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Listed {listing.createdAt.toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Seller Info */}
+                  <div className="p-4 border-b">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex-1 min-w-0">
+                        <span className="text-gray-500">Seller:</span>
+                        <span className="ml-2 font-mono text-xs">
+                          {listing.seller.substring(0, 6)}...
+                          {listing.seller.substring(38)}
+                        </span>
+                      </div>
+                      {listing.seller.toLowerCase() ===
+                        address?.toLowerCase() && (
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium ml-2 flex-shrink-0">
+                          Your Listing
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="p-4 space-y-2">
+                    {/* View Ticket Details Button */}
+                    <button
+                      onClick={() => setSelectedTicketId(listing.tokenId)}
+                      className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View Ticket Details
+                    </button>
+
+                    {/* Buy/Your Listing Button */}
+                    {listing.seller.toLowerCase() !== address?.toLowerCase() ? (
+                      <button
+                        onClick={() => handleBuyTicket(listing.listingId)}
+                        className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                      >
+                        Buy Now
+                      </button>
+                    ) : (
+                      <button
+                        className="w-full py-2 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium"
+                        disabled
+                      >
+                        Your Listing
+                      </button>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
@@ -336,49 +340,13 @@ export const MarketplacePage = () => {
               </p>
             </div>
           )}
-        </>
-      )}
 
-      {/* Modals */}
-      {selectedListing && (
-        <>
-          <MakeOfferModal
-            isOpen={showMakeOfferModal}
-            onClose={() => {
-              setShowMakeOfferModal(false);
-              setSelectedListing(null);
-            }}
-            tokenId={BigInt(selectedListing.tokenId)}
-            ticketInfo={{
-              eventName:
-                selectedListing.ticket?.event?.name ||
-                `Event #${selectedListing.ticket?.eventId}`,
-              ticketTypeName: `Ticket #${selectedListing.tokenId}`,
-              currentPrice: BigInt(selectedListing.price),
-            }}
-            onSuccess={handleOfferSuccess}
-          />
-
-          <OfferHistoryModal
-            isOpen={showOfferHistoryModal}
-            onClose={() => {
-              setShowOfferHistoryModal(false);
-              setSelectedListing(null);
-            }}
-            listing={selectedListing}
-            onOfferAccepted={handleOfferSuccess}
-          />
-        </>
-      )}
-
-      {/* Loading Overlay */}
-      {isBuying && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-700">Processing purchase...</p>
-          </div>
-        </div>
+      {/* Ticket Details Modal */}
+      {selectedTicketId !== null && (
+        <TicketDetailsModal
+          tokenId={selectedTicketId}
+          onClose={() => setSelectedTicketId(null)}
+        />
       )}
     </div>
   );
