@@ -46,6 +46,7 @@ contract TicketFactory is Ownable, ReentrancyGuard {
         uint256 price;   // In native currency for MVP
         uint256 supply;  // Max supply for this ticket type
         uint256 sold;    // Number sold for this ticket type
+        string imageIpfsHash; // IPFS hash for tier-specific NFT image
     }
 
     /**
@@ -56,6 +57,7 @@ contract TicketFactory is Ownable, ReentrancyGuard {
         string name;
         uint256 price;
         uint256 supply;
+        string imageIpfsHash; // IPFS hash for tier-specific NFT image
     }
 
     // ========= Storage =========
@@ -220,7 +222,7 @@ contract TicketFactory is Ownable, ReentrancyGuard {
         // Add initial ticket types if provided
         for (uint256 i = 0; i < initialTicketTypes_.length; i++) {
             TicketTypeInput memory input = initialTicketTypes_[i];
-            if (bytes(input.name).length == 0 || input.price == 0 || input.supply == 0) {
+            if (bytes(input.name).length == 0 || input.price == 0 || input.supply == 0 || bytes(input.imageIpfsHash).length == 0) {
                 revert InvalidInput();
             }
 
@@ -229,7 +231,8 @@ contract TicketFactory is Ownable, ReentrancyGuard {
                 name: input.name,
                 price: input.price,
                 supply: input.supply,
-                sold: 0
+                sold: 0,
+                imageIpfsHash: input.imageIpfsHash
             });
 
             _ticketTypes[eventId].push(tt);
@@ -244,21 +247,24 @@ contract TicketFactory is Ownable, ReentrancyGuard {
      * @param name_ Ticket type name
      * @param price_ Price in native currency
      * @param supply_ Supply cap for this ticket type
+     * @param imageIpfsHash_ IPFS hash for tier-specific NFT image
      * @return ticketTypeId Index of the newly created ticket type
      */
     function addTicketType(
         uint256 eventId,
         string memory name_,
         uint256 price_,
-        uint256 supply_
+        uint256 supply_,
+        string memory imageIpfsHash_
     ) external validEvent(eventId) onlyOrganizer(eventId) returns (uint256 ticketTypeId) {
-        if (bytes(name_).length == 0 || price_ == 0 || supply_ == 0) revert InvalidInput();
+        if (bytes(name_).length == 0 || price_ == 0 || supply_ == 0 || bytes(imageIpfsHash_).length == 0) revert InvalidInput();
         TicketType memory tt = TicketType({
             eventId: eventId,
             name: name_,
             price: price_,
             supply: supply_,
-            sold: 0
+            sold: 0,
+            imageIpfsHash: imageIpfsHash_
         });
 
         _ticketTypes[eventId].push(tt);

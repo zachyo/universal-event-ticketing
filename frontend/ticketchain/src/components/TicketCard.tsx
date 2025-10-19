@@ -38,7 +38,8 @@ import {
   DialogTrigger,
   DialogClose,
 } from "./ui/dialog";
-import { useGetEvent } from "../hooks/useContracts";
+import { useGetEvent, useTicketTypes } from "../hooks/useContracts";
+import { getTierImageUrl } from "../lib/tierImageUtils";
 
 interface TicketCardProps {
   ticket: FormattedTicket;
@@ -71,6 +72,11 @@ export function TicketCard({
     enabled: isDetailsOpen && hasValidEventId,
   });
 
+  // Fetch ticket types to get tier-specific image
+  const { ticketTypes } = useTicketTypes(ticket.eventId, {
+    enabled: hasValidEventId,
+  });
+
   useEffect(() => {
     if (isDetailsOpen && hasValidEventId) {
       void refetchDialogEvent();
@@ -97,6 +103,26 @@ export function TicketCard({
     if (!primaryEvent) return null;
     return getEventStatus(primaryEvent);
   }, [primaryEvent]);
+
+  // Get tier-specific image
+  const tierImage = useMemo(() => {
+    const tierType = ticketTypes?.find(
+      (tt) => tt.ticketTypeId === BigInt(ticket.ticketTypeId)
+    );
+    return getTierImageUrl(
+      tierType?.imageIpfsHash,
+      primaryEvent?.imageIpfsHash,
+      primaryEvent?.imageUrl
+    );
+  }, [ticketTypes, ticket.ticketTypeId, primaryEvent]);
+
+  // Get tier name
+  const tierName = useMemo(() => {
+    const tierType = ticketTypes?.find(
+      (tt) => tt.ticketTypeId === BigInt(ticket.ticketTypeId)
+    );
+    return tierType?.name || `Tier #${ticket.ticketTypeId}`;
+  }, [ticketTypes, ticket.ticketTypeId]);
 
   const statusStyles: Record<
     NonNullable<typeof eventStatus>,
@@ -150,6 +176,29 @@ export function TicketCard({
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      {/* Tier Image Banner */}
+      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+        <img
+          src={tierImage}
+          alt={tierName}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = primaryEvent?.imageUrl || "/placeholder-event.jpg";
+          }}
+        />
+        {/* Gradient overlay for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/20 to-transparent"></div>
+
+        {/* Tier badge */}
+        <div className="absolute top-3 left-3">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/90 text-slate-900 backdrop-blur-sm shadow-sm">
+            <Ticket className="h-3.5 w-3.5" />
+            {tierName}
+          </span>
+        </div>
+      </div>
+
       <CardHeader className="gap-2 bg-slate-900 p-4 text-white">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
@@ -328,7 +377,7 @@ export function TicketCard({
                       Tier
                     </span>
                     <span className="font-medium text-slate-900">
-                      #{ticket.ticketTypeId}
+                      {tierName}
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-md bg-white/60 px-3 py-2">

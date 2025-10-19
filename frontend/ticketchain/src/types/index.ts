@@ -21,6 +21,7 @@ export interface TicketType {
   price: bigint;
   supply: bigint;
   sold: bigint;
+  imageIpfsHash?: string; // Tier-specific image (optional for backward compatibility)
 }
 
 // NFT ticket metadata structure
@@ -65,6 +66,8 @@ export interface TicketTypeInput {
   name: string;
   price: bigint;
   supply: bigint;
+  image: File | null; // Tier-specific image file
+  imagePreview?: string; // Preview URL for UI (data URL or blob URL)
 }
 
 // IPFS metadata structure for NFTs

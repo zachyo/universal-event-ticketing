@@ -49,6 +49,7 @@ type TicketTypeOption = {
   sold: number;
   available: number;
   soldOut: boolean;
+  imageIpfsHash?: string;
 };
 
 const EventDetailPage = () => {
@@ -100,6 +101,7 @@ const EventDetailPage = () => {
         sold,
         available,
         soldOut: available === 0,
+        imageIpfsHash: ticketType.imageIpfsHash,
       };
     });
   }, [ticketTypes]);
@@ -490,13 +492,29 @@ const EventDetailPage = () => {
                     const available =
                       Number(ticketType.supply) - Number(ticketType.sold);
                     const soldOut = available === 0;
+                    const tierImageUrl = ticketType.imageIpfsHash
+                      ? `https://gateway.pinata.cloud/ipfs/${ticketType.imageIpfsHash}`
+                      : formattedEvent.imageUrl || "/placeholder-event.jpg";
 
                     return (
                       <div
                         key={ticketType.ticketTypeId?.toString()}
-                        className="border border-gray-200 rounded-lg p-4"
+                        className="border border-gray-200 rounded-lg p-4 flex gap-4"
                       >
-                        <div className="flex justify-between items-start">
+                        {/* Tier Image */}
+                        <img
+                          src={tierImageUrl}
+                          alt={ticketType.name}
+                          className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src =
+                              formattedEvent.imageUrl ||
+                              "/placeholder-event.jpg";
+                          }}
+                        />
+
+                        <div className="flex-1 flex justify-between items-start">
                           <div>
                             <h4 className="font-medium text-lg">
                               {ticketType.name}
@@ -555,6 +573,10 @@ const EventDetailPage = () => {
                     {ticketTypeOptions.map((option) => {
                       const isSelected = option.id === selectedTicketTypeId;
                       const disabled = option.soldOut;
+                      const tierImageUrl = option.imageIpfsHash
+                        ? `https://gateway.pinata.cloud/ipfs/${option.imageIpfsHash}`
+                        : formattedEvent.imageUrl || "/placeholder-event.jpg";
+
                       return (
                         <button
                           type="button"
@@ -573,24 +595,40 @@ const EventDetailPage = () => {
                               : ""
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {option.name}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                {option.available} of {option.supply} available
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold text-blue-600">
-                                {formatPrice(option.price)} PC
-                              </p>
-                              {disabled && (
-                                <p className="text-xs font-medium text-red-600">
-                                  Sold Out
+                          <div className="flex items-start gap-3">
+                            {/* Tier Image Thumbnail */}
+                            <img
+                              src={tierImageUrl}
+                              alt={option.name}
+                              className="w-12 h-12 object-cover rounded flex-shrink-0"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src =
+                                  formattedEvent.imageUrl ||
+                                  "/placeholder-event.jpg";
+                              }}
+                            />
+
+                            <div className="flex-1 flex items-start justify-between gap-3">
+                              <div>
+                                <p className="font-medium text-gray-900">
+                                  {option.name}
                                 </p>
-                              )}
+                                <p className="text-sm text-gray-600">
+                                  {option.available} of {option.supply}{" "}
+                                  available
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold text-blue-600">
+                                  {formatPrice(option.price)} PC
+                                </p>
+                                {disabled && (
+                                  <p className="text-xs font-medium text-red-600">
+                                    Sold Out
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </button>

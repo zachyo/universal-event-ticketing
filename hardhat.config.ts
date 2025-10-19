@@ -1,6 +1,6 @@
+require("dotenv").config();
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-verify");
-require("dotenv").config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -17,12 +17,12 @@ module.exports = {
     push_testnet: {
       url: "https://evm.rpc-testnet-donut-node1.push.org/",
       chainId: 42101,
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
     push_testnet_alt: {
       url: "https://evm.rpc-testnet-donut-node2.push.org/",
       chainId: 42101,
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
   etherscan: {

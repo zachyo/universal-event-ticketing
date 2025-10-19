@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -9,10 +9,14 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle,
+  DollarSign,
+  Copy,
 } from "lucide-react";
 import { useCreateEvent } from "../hooks/useContracts";
 import { usePushWalletContext } from "@pushchain/ui-kit";
 import { validateFileForUpload, compressImage } from "../lib/ipfs";
+import { formatPriceInCurrency } from "../lib/formatters";
+import { ImageUpload } from "../components/ImageUpload";
 import type { TicketTypeInput } from "../types";
 
 interface FormData {
@@ -51,12 +55,53 @@ export const CreateEventPage = () => {
   });
 
   const [ticketTypes, setTicketTypes] = useState<TicketTypeInput[]>([
-    { name: "General Admission", price: BigInt(0), supply: BigInt(0) },
+    {
+      name: "General Admission",
+      price: BigInt(0),
+      supply: BigInt(0),
+      image: null,
+      imagePreview: "",
+    },
   ]);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasDraft, setHasDraft] = useState(false);
+
+  // Calculate estimated revenue
+  const estimatedRevenue = useMemo(() => {
+    return ticketTypes.reduce((sum, type) => {
+      return sum + Number(type.price) * Number(type.supply);
+    }, 0);
+  }, [ticketTypes]);
+
+  // Auto-calculate end time (3 hours after start)
+  useEffect(() => {
+    if (formData.startTime && formData.startDate && !formData.endTime) {
+      const [hours, minutes] = formData.startTime.split(":");
+      const startHour = parseInt(hours);
+      const endHour = (startHour + 3) % 24;
+      const suggestedEndTime = `${endHour
+        .toString()
+        .padStart(2, "0")}:${minutes}`;
+
+      // Set end date same as start date, unless end time wraps to next day
+      const suggestedEndDate =
+        endHour < startHour
+          ? new Date(new Date(formData.startDate).getTime() + 86400000)
+              .toISOString()
+              .split("T")[0]
+          : formData.startDate;
+
+      setFormData((prev) => ({
+        ...prev,
+        endTime: suggestedEndTime,
+        endDate: suggestedEndDate || prev.endDate,
+      }));
+    }
+  }, [formData.startTime, formData.startDate, formData.endTime]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -123,7 +168,13 @@ export const CreateEventPage = () => {
   const addTicketTypeField = () => {
     setTicketTypes((prev) => [
       ...prev,
-      { name: "", price: BigInt(0), supply: BigInt(0) },
+      {
+        name: "",
+        price: BigInt(0),
+        supply: BigInt(0),
+        image: null,
+        imagePreview: "",
+      },
     ]);
   };
 
@@ -132,6 +183,151 @@ export const CreateEventPage = () => {
       setTicketTypes((prev) => prev.filter((_, i) => i !== index));
     }
   };
+
+  const duplicateTicketType = (index: number) => {
+    const typeToDupe = ticketTypes[index];
+    setTicketTypes((prev) => [
+      ...prev,
+      {
+        ...typeToDupe,
+        name: `${typeToDupe.name} (Copy)`,
+        image: null, // Don't copy image - require new upload
+        imagePreview: "",
+      },
+    ]);
+  };
+
+  // Handle ticket type image upload
+  const handleTicketTypeImageChange = async (index: number, file: File) => {
+    const validation = validateFileForUpload(file);
+    if (!validation.valid) {
+      setErrors((prev) => ({
+        ...prev,
+        [`ticketType${index}Image`]: validation.error || "Invalid file",
+      }));
+      return;
+    }
+
+    try {
+      // Compress image
+      const compressedFile = await compressImage(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setTicketTypes((prev) =>
+          prev.map((type, i) =>
+            i === index
+              ? {
+                  ...type,
+                  image: compressedFile,
+                  imagePreview: e.target?.result as string,
+                }
+              : type
+          )
+        );
+      };
+      reader.readAsDataURL(compressedFile);
+
+      // Clear error
+      setErrors((prev) => ({
+        ...prev,
+        [`ticketType${index}Image`]: "",
+      }));
+    } catch {
+      setErrors((prev) => ({
+        ...prev,
+        [`ticketType${index}Image`]: "Failed to process image",
+      }));
+    }
+  };
+
+  // Handle ticket type image removal
+  const handleTicketTypeImageRemove = (index: number) => {
+    setTicketTypes((prev) =>
+      prev.map((type, i) =>
+        i === index ? { ...type, image: null, imagePreview: "" } : type
+      )
+    );
+  };
+
+  // Draft save/load functionality
+  const saveDraft = () => {
+    const draft = {
+      timestamp: Date.now(),
+      formData: { ...formData, image: null }, // Don't save File object
+      ticketTypes: ticketTypes.map((tt) => ({
+        name: tt.name,
+        price: tt.price.toString(),
+        supply: tt.supply.toString(),
+        image: null, // Don't save File object
+        imagePreview: tt.imagePreview || "", // Save preview as data URL
+      })),
+      imageDataUrl: imagePreview,
+    };
+    localStorage.setItem("ticketchain_draft_event", JSON.stringify(draft));
+    setLastSaved(new Date());
+  };
+
+  const loadDraft = () => {
+    const draftStr = localStorage.getItem("ticketchain_draft_event");
+    if (!draftStr) return;
+
+    try {
+      const draft = JSON.parse(draftStr);
+      setFormData(draft.formData);
+      setTicketTypes(
+        draft.ticketTypes.map(
+          (tt: {
+            name: string;
+            price: string;
+            supply: string;
+            image: null;
+            imagePreview?: string;
+          }) => ({
+            name: tt.name,
+            price: BigInt(tt.price),
+            supply: BigInt(tt.supply),
+            image: null, // File objects can't be restored
+            imagePreview: tt.imagePreview || "", // Restore preview
+          })
+        )
+      );
+      if (draft.imageDataUrl) {
+        setImagePreview(draft.imageDataUrl);
+      }
+      setHasDraft(false);
+      setLastSaved(new Date(draft.timestamp));
+    } catch (error) {
+      console.error("Failed to load draft:", error);
+    }
+  };
+
+  const clearDraft = () => {
+    localStorage.removeItem("ticketchain_draft_event");
+    setHasDraft(false);
+    setLastSaved(null);
+  };
+
+  // Check for existing draft on mount
+  useEffect(() => {
+    const draftStr = localStorage.getItem("ticketchain_draft_event");
+    if (draftStr) {
+      setHasDraft(true);
+    }
+  }, []);
+
+  // Auto-save draft every 30 seconds
+  useEffect(() => {
+    if (formData.name || formData.description || formData.venue) {
+      const interval = setInterval(() => {
+        saveDraft();
+      }, 30000); // 30 seconds
+
+      return () => clearInterval(interval);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData, ticketTypes, imagePreview]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -184,6 +380,9 @@ export const CreateEventPage = () => {
       if (Number(type.supply) <= 0) {
         newErrors[`ticketType${index}Supply`] = "Supply must be greater than 0";
       }
+      if (!type.image) {
+        newErrors[`ticketType${index}Image`] = "Ticket tier image is required";
+      }
     });
 
     setErrors(newErrors);
@@ -230,6 +429,9 @@ export const CreateEventPage = () => {
 
       await createEvent(eventData);
 
+      // Clear draft on success
+      clearDraft();
+
       // Success - navigate to events page
       navigate("/events");
     } catch (error) {
@@ -270,6 +472,49 @@ export const CreateEventPage = () => {
           </p>
         </div>
 
+        {/* Draft Banner */}
+        {hasDraft && (
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-lg">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center">
+                <AlertCircle className="w-5 h-5 text-blue-500 mr-3 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-blue-900">
+                    Continue from draft?
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    You have an unsaved event draft
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={loadDraft}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Load Draft
+                </button>
+                <button
+                  type="button"
+                  onClick={clearDraft}
+                  className="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Auto-save Indicator */}
+        {lastSaved && !hasDraft && (
+          <div className="flex items-center justify-end text-sm text-gray-500 mb-4">
+            <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
+            Draft saved at {lastSaved.toLocaleTimeString()}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -304,16 +549,26 @@ export const CreateEventPage = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
+                  maxLength={2000}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.description ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="Describe your event"
                 />
-                {errors.description && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.description}
+                <div className="flex items-center justify-between mt-1">
+                  {errors.description && (
+                    <p className="text-red-500 text-sm">{errors.description}</p>
+                  )}
+                  <p
+                    className={`text-sm ml-auto ${
+                      formData.description.length > 1800
+                        ? "text-yellow-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {formData.description.length} / 2000 characters
                   </p>
-                )}
+                </div>
               </div>
 
               <div className="md:col-span-2">
@@ -555,6 +810,28 @@ export const CreateEventPage = () => {
                 </div>
               </div>
 
+              {/* Revenue Estimate */}
+              {estimatedRevenue > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="w-5 h-5 text-green-600" />
+                      <div>
+                        <h4 className="font-medium text-green-900">
+                          Estimated Revenue
+                        </h4>
+                        <p className="text-sm text-green-700">
+                          If all tickets are sold
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-2xl font-bold text-green-900">
+                      {formatPriceInCurrency(BigInt(estimatedRevenue), "PC")}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Ticket Types */}
               <div>
                 <div className="flex items-center justify-between mb-4">
@@ -577,15 +854,27 @@ export const CreateEventPage = () => {
                     >
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-medium">Ticket Type {index + 1}</h4>
-                        {ticketTypes.length > 1 && (
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => removeTicketType(index)}
-                            className="text-red-600 hover:text-red-800"
+                            onClick={() => duplicateTicketType(index)}
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                            title="Duplicate this ticket type"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Copy className="w-4 h-4" />
+                            <span className="hidden sm:inline">Duplicate</span>
                           </button>
-                        )}
+                          {ticketTypes.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeTicketType(index)}
+                              className="text-red-600 hover:text-red-800"
+                              title="Remove this ticket type"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -681,6 +970,23 @@ export const CreateEventPage = () => {
                             </p>
                           )}
                         </div>
+                      </div>
+
+                      {/* Ticket Tier Image Upload */}
+                      <div className="mt-4 md:col-span-3">
+                        <ImageUpload
+                          label="Ticket Tier Image"
+                          imagePreview={ticketType.imagePreview}
+                          onImageChange={(file) =>
+                            handleTicketTypeImageChange(index, file)
+                          }
+                          onImageRemove={() =>
+                            handleTicketTypeImageRemove(index)
+                          }
+                          error={errors[`ticketType${index}Image`]}
+                          required
+                          helpText="Upload a unique image for this ticket tier. This will be the NFT image for purchasers. PNG, JPG, GIF up to 5MB"
+                        />
                       </div>
                     </div>
                   ))}

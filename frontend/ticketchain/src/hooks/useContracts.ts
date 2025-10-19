@@ -36,20 +36,48 @@ export function useCreateEvent() {
       throw new Error("Push Chain client not available");
     }
 
-    // Upload image to IPFS first
-    const ipfsHash = await uploadToIPFS(eventData.image);
-
     try {
       setIsPending(true);
 
-      // Prepare initial ticket types array (empty if not provided)
-      const initialTicketTypes = (eventData.initialTicketTypes || []).map(
-        (tt) => ({
-          name: tt.name,
-          price: tt.price,
-          supply: tt.supply,
+      // Upload event image to IPFS
+      const eventIpfsHash = await uploadToIPFS(eventData.image);
+
+      // Upload all ticket type images to IPFS in parallel
+      const initialTicketTypes = eventData.initialTicketTypes || [];
+
+      if (initialTicketTypes.length === 0) {
+        throw new Error("At least one ticket type is required");
+      }
+
+      // Validate all ticket types have images
+      for (const tt of initialTicketTypes) {
+        if (!tt.image) {
+          throw new Error(`Image required for ticket type: ${tt.name}`);
+        }
+      }
+
+      // Upload all tier images in parallel
+      console.log(
+        `Uploading ${initialTicketTypes.length} tier images to IPFS...`
+      );
+      const tierImageHashes = await Promise.all(
+        initialTicketTypes.map(async (tt, index) => {
+          console.log(`Uploading tier ${index + 1}: ${tt.name}`);
+          const hash = await uploadToIPFS(tt.image!);
+          console.log(`Tier ${index + 1} uploaded: ${hash}`);
+          return hash;
         })
       );
+
+      // Prepare ticket types with IPFS hashes
+      const ticketTypesForContract = initialTicketTypes.map((tt, index) => ({
+        name: tt.name,
+        price: tt.price,
+        supply: tt.supply,
+        imageIpfsHash: tierImageHashes[index],
+      }));
+
+      console.log("Creating event with ticket types:", ticketTypesForContract);
 
       const tx = await pushChainClient.universal.sendTransaction({
         to: TICKET_FACTORY_ADDRESS,
@@ -62,19 +90,26 @@ export function useCreateEvent() {
             eventData.startTime,
             eventData.endTime,
             eventData.venue,
-            ipfsHash,
+            eventIpfsHash,
             eventData.totalSupply,
             eventData.royaltyBps,
-            initialTicketTypes,
+            ticketTypesForContract,
           ],
         }),
       });
 
       await tx.wait();
 
+      // Clear draft and cache after successful creation
+      localStorage.removeItem("ticketchain_draft_event");
       localStorage.removeItem("ticketchain_cache");
 
+      console.log("Event created successfully!");
+
       return tx;
+    } catch (error) {
+      console.error("Failed to create event:", error);
+      throw error;
     } finally {
       setIsPending(false);
     }
@@ -245,8 +280,17 @@ export function useAddTicketType() {
       throw new Error("Push Chain client not available");
     }
 
+    if (!ticketType.image) {
+      throw new Error("Image is required for ticket type");
+    }
+
     try {
       setIsPending(true);
+
+      // Upload tier image to IPFS
+      console.log(`Uploading tier image for: ${ticketType.name}`);
+      const imageIpfsHash = await uploadToIPFS(ticketType.image);
+      console.log(`Tier image uploaded: ${imageIpfsHash}`);
 
       const tx = await pushChainClient.universal.sendTransaction({
         to: TICKET_FACTORY_ADDRESS,
@@ -258,6 +302,7 @@ export function useAddTicketType() {
             ticketType.name,
             ticketType.price,
             ticketType.supply,
+            imageIpfsHash,
           ],
         }),
       });
