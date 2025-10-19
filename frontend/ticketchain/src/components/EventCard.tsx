@@ -1,14 +1,22 @@
-import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Users, Clock, TrendingUp, AlertCircle, Ticket } from 'lucide-react';
-import type { FormattedEvent } from '../types';
-import type { EventWithTicketTypes } from '../hooks/useEventsWithTicketTypes';
+import { Link } from "react-router-dom";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Clock,
+  TrendingUp,
+  AlertCircle,
+  Ticket,
+} from "lucide-react";
+import type { FormattedEvent } from "../types";
+import type { EventWithTicketTypes } from "../hooks/useEventsWithTicketTypes";
 import {
   formatDateTime,
   formatAvailability,
   getTimeUntilEvent,
   getEventStatus,
-  formatPriceInCurrency
-} from '../lib/formatters';
+  formatPriceInCurrency,
+} from "../lib/formatters";
 
 interface EventCardProps {
   event: FormattedEvent | EventWithTicketTypes;
@@ -16,34 +24,39 @@ interface EventCardProps {
 }
 
 // Type guard to check if event has ticket types
-function hasTicketTypes(event: FormattedEvent | EventWithTicketTypes): event is EventWithTicketTypes {
-  return 'ticketTypes' in event && 'minPrice' in event;
+function hasTicketTypes(
+  event: FormattedEvent | EventWithTicketTypes
+): event is EventWithTicketTypes {
+  return "ticketTypes" in event && "minPrice" in event;
 }
 
-export function EventCard({ event, showPurchaseButton = true }: EventCardProps) {
+export function EventCard({
+  event,
+  showPurchaseButton = true,
+}: EventCardProps) {
   const status = getEventStatus(event);
   const timeUntil = getTimeUntilEvent(event.startTime);
   const availability = formatAvailability(event.sold, event.totalSupply);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'live':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'upcoming':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'ended':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'inactive':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case "live":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "upcoming":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "ended":
+        return "bg-gray-100 text-gray-800 border-gray-200";
+      case "inactive":
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const isSoldOut = event.sold >= event.totalSupply;
   const isAlmostSoldOut = event.sold > event.totalSupply * 0.8 && !isSoldOut;
   const isPopular = event.sold > 50;
-  
+
   // Extract ticket type info if available
   const eventWithTypes = hasTicketTypes(event) ? event : null;
   const minPrice = eventWithTypes?.minPrice;
@@ -55,17 +68,21 @@ export function EventCard({ event, showPurchaseButton = true }: EventCardProps) 
       {/* Event Image */}
       <div className="relative h-48 overflow-hidden">
         <img
-          src={event.imageUrl || '/placeholder-event.jpg'}
+          src={event.imageUrl || "/placeholder-event.jpg"}
           alt={event.name}
           className="w-full h-full object-cover"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = '/placeholder-event.jpg';
+            target.src = "/placeholder-event.jpg";
           }}
         />
-        
+
         {/* Status Badge */}
-        <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(status)}`}>
+        <div
+          className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+            status
+          )}`}
+        >
           {status.charAt(0).toUpperCase() + status.slice(1)}
         </div>
 
@@ -82,7 +99,7 @@ export function EventCard({ event, showPurchaseButton = true }: EventCardProps) 
         <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
           {event.name}
         </h3>
-        
+
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
           {event.description}
         </p>
@@ -93,18 +110,18 @@ export function EventCard({ event, showPurchaseButton = true }: EventCardProps) 
             <Calendar className="w-4 h-4 mr-2 text-gray-400" />
             <span>{formatDateTime(event.startTime)}</span>
           </div>
-          
+
           <div className="flex items-center text-sm text-gray-600">
             <MapPin className="w-4 h-4 mr-2 text-gray-400" />
             <span className="truncate">{event.venue}</span>
           </div>
-          
+
           <div className="flex items-center text-sm text-gray-600">
             <Users className="w-4 h-4 mr-2 text-gray-400" />
             <span>{availability}</span>
           </div>
 
-          {status === 'upcoming' && (
+          {status === "upcoming" && (
             <div className="flex items-center text-sm text-blue-600">
               <Clock className="w-4 h-4 mr-2 text-blue-400" />
               <span>{timeUntil}</span>
@@ -119,7 +136,7 @@ export function EventCard({ event, showPurchaseButton = true }: EventCardProps) 
               <div>
                 <p className="text-xs text-gray-500 mb-1">Starting from</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatPriceInCurrency(BigInt(minPrice), 'PC')}
+                  {formatPriceInCurrency(BigInt(minPrice), "PC")}
                 </p>
               </div>
               {hasMultipleTiers && ticketTypeCount > 1 && (
@@ -152,7 +169,8 @@ export function EventCard({ event, showPurchaseButton = true }: EventCardProps) 
 
         {/* Organizer */}
         <div className="text-xs text-gray-500 mb-4">
-          Organized by {event.organizer.slice(0, 6)}...{event.organizer.slice(-4)}
+          Organized by {event.organizer.slice(0, 6)}...
+          {event.organizer.slice(-4)}
         </div>
 
         {/* Action Buttons */}
@@ -164,7 +182,7 @@ export function EventCard({ event, showPurchaseButton = true }: EventCardProps) 
             View Details →
           </Link>
 
-          {showPurchaseButton && status === 'upcoming' && !isSoldOut && (
+          {showPurchaseButton && status === "upcoming" && !isSoldOut && (
             <Link
               to={`/events/${event.eventId}`}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -174,12 +192,10 @@ export function EventCard({ event, showPurchaseButton = true }: EventCardProps) 
           )}
 
           {isSoldOut && (
-            <span className="text-red-600 font-medium text-sm">
-              Sold Out
-            </span>
+            <span className="text-red-600 font-medium text-sm">Sold Out</span>
           )}
 
-          {status === 'ended' && (
+          {status === "ended" && (
             <span className="text-gray-500 font-medium text-sm">
               Event Ended
             </span>
@@ -223,7 +239,11 @@ export function EventGrid({ children }: { children: React.ReactNode }) {
 }
 
 // Empty state for when no events are found
-export function EventsEmptyState({ message = "No events found" }: { message?: string }) {
+export function EventsEmptyState({
+  message = "No events found",
+}: {
+  message?: string;
+}) {
   return (
     <div className="text-center py-12">
       <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />

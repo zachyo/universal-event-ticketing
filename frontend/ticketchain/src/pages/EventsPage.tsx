@@ -12,7 +12,12 @@ import { SearchBar } from "../components/search/SearchBar";
 import { FilterPanel } from "../components/search/FilterPanel";
 
 const EventsPage = () => {
-  const { events: formattedEvents, loading, error, refetch } = useEventsWithTicketTypes();
+  const {
+    events: formattedEvents,
+    loading,
+    error,
+    refetch,
+  } = useEventsWithTicketTypes();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Use search hook

@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
-import { useReadContract } from 'wagmi';
-import { useEvents } from './useContracts';
-import { TICKET_FACTORY_ADDRESS, TicketFactoryABI } from '../lib/contracts';
-import { formatEvent } from '../lib/formatters';
-import type { FormattedEvent } from '../types';
+import { useMemo } from "react";
+import { useReadContract } from "wagmi";
+import { useEvents } from "./useContracts";
+import { TICKET_FACTORY_ADDRESS, TicketFactoryABI } from "../lib/contracts";
+import { formatEvent } from "../lib/formatters";
+import type { FormattedEvent } from "../types";
 
 export interface TicketType {
   eventId: bigint;
@@ -26,8 +26,13 @@ export interface EventWithTicketTypes extends FormattedEvent {
  * Uses getTicketTypesBatch() for efficient data fetching
  */
 export function useEventsWithTicketTypes() {
-  const { events: rawEvents, loading: eventsLoading, error: eventsError, refetch } = useEvents();
-  
+  const {
+    events: rawEvents,
+    loading: eventsLoading,
+    error: eventsError,
+    refetch,
+  } = useEvents();
+
   // Format events
   const events = useMemo(() => rawEvents.map(formatEvent), [rawEvents]);
 
@@ -45,7 +50,7 @@ export function useEventsWithTicketTypes() {
   } = useReadContract({
     address: TICKET_FACTORY_ADDRESS as `0x${string}`,
     abi: TicketFactoryABI,
-    functionName: 'getTicketTypesBatch',
+    functionName: "getTicketTypesBatch",
     args: [eventIds],
     query: {
       enabled: eventIds.length > 0,
@@ -68,10 +73,10 @@ export function useEventsWithTicketTypes() {
     }
 
     const batchArray = ticketTypesBatch as TicketType[][];
-    
+
     return events.map((event, index) => {
       const ticketTypes = batchArray[index] || [];
-      
+
       // Calculate price info
       const prices = ticketTypes.map((t) => Number(t.price));
       const minPrice = prices.length > 0 ? Math.min(...prices) : null;

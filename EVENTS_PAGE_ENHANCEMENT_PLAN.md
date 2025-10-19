@@ -9,6 +9,7 @@
 ## 📊 Current State Analysis
 
 ### What's Working ✅
+
 1. **Event Listing** - Displays all active events with cards
 2. **Search & Filter** - SearchBar and FilterPanel components
 3. **Event Cards** - Show name, description, date, venue, availability
@@ -17,7 +18,9 @@
 6. **Responsive Grid** - Works on mobile and desktop
 
 ### What's Available in Smart Contracts 🔧
+
 The `TicketFactory.sol` contract provides:
+
 - ✅ Event details (EventData struct)
 - ✅ Ticket types/tiers (TicketType struct)
 - ✅ Organizer information
@@ -31,14 +34,17 @@ The `TicketFactory.sol` contract provides:
 ## 🎯 Missing Features & Enhancements
 
 ### 1. **Ticket Price Information** ⭐ HIGH PRIORITY
+
 **Issue**: Event cards don't show ticket prices
 
 **What's Missing**:
+
 - No "Starting from $X" display
 - Users must click into event to see pricing
 - Poor UX for price comparison
 
 **Smart Contract Data Available**:
+
 ```solidity
 struct TicketType {
     uint256 eventId;
@@ -50,11 +56,12 @@ struct TicketType {
 ```
 
 **Solution**:
+
 ```typescript
 // Add to EventCard component
 interface EventCardProps {
   event: FormattedEvent;
-  ticketTypes?: TicketType[];  // NEW
+  ticketTypes?: TicketType[]; // NEW
   showPurchaseButton?: boolean;
 }
 
@@ -64,6 +71,7 @@ interface EventCardProps {
 ```
 
 **Implementation**:
+
 - Fetch ticket types for all events using `getTicketTypesBatch()`
 - Display minimum price on event card
 - Show "Multiple tiers available" badge if >1 type
@@ -71,14 +79,17 @@ interface EventCardProps {
 ---
 
 ### 2. **Ticket Categories/Tiers Display** ⭐ HIGH PRIORITY
+
 **Issue**: No indication of ticket variety
 
 **What's Missing**:
+
 - Users don't know if VIP/GA options exist
 - Can't see tier availability
 - No "Selling Fast" indicators
 
 **Solution**:
+
 ```tsx
 // Show on event card:
 <div className="flex gap-2">
@@ -91,48 +102,57 @@ interface EventCardProps {
 ---
 
 ### 3. **Revenue/Popularity Indicators** ⭐ MEDIUM PRIORITY
+
 **Issue**: No social proof or popularity metrics
 
 **What's Missing**:
+
 - How many tickets sold
 - Selling velocity ("50 sold in last hour")
 - Trending events
 - "Almost sold out" warnings
 
 **Smart Contract Data Available**:
+
 ```solidity
 event.sold        // Total tickets sold
 event.totalSupply // Total capacity
 ```
 
 **Solution**:
+
 ```tsx
 // Popularity indicators:
-{event.sold > event.totalSupply * 0.8 && (
-  <div className="badge-warning">
-    🔥 Almost Sold Out - {event.totalSupply - event.sold} left
-  </div>
-)}
+{
+  event.sold > event.totalSupply * 0.8 && (
+    <div className="badge-warning">
+      🔥 Almost Sold Out - {event.totalSupply - event.sold} left
+    </div>
+  );
+}
 
-{event.sold > 100 && (
-  <div className="badge-success">
-    ⭐ Popular - {event.sold} tickets sold
-  </div>
-)}
+{
+  event.sold > 100 && (
+    <div className="badge-success">⭐ Popular - {event.sold} tickets sold</div>
+  );
+}
 ```
 
 ---
 
 ### 4. **Quick Actions** ⭐ MEDIUM PRIORITY
+
 **Issue**: Users must navigate to detail page for all actions
 
 **What's Missing**:
+
 - Quick "Add to Watchlist" button
 - Share event button
 - Quick purchase (bypass detail page)
 - Favorite/bookmark functionality
 
 **Solution**:
+
 ```tsx
 <div className="flex gap-2">
   <button className="icon-btn" title="Add to Watchlist">
@@ -150,13 +170,16 @@ event.totalSupply // Total capacity
 ---
 
 ### 5. **Advanced Filters** ⭐ MEDIUM PRIORITY
+
 **Issue**: Limited filtering options
 
 **What's Currently Available**:
+
 - Status filter (upcoming/live/ended)
 - Sort options
 
 **What's Missing**:
+
 - **Price range filter**: "$0-$10", "$10-$50", "$50+"
 - **Date range filter**: "This week", "This month", "Custom range"
 - **Venue/Location filter**: Filter by venue or location
@@ -164,12 +187,13 @@ event.totalSupply // Total capacity
 - **Category/Genre**: Music, Sports, Conference, etc. (requires contract update)
 
 **Implementation**:
+
 ```typescript
 interface EventFilters {
-  status: 'all' | 'upcoming' | 'live' | 'ended';
-  priceRange: 'all' | '0-0.01' | '0.01-0.1' | '0.1+';
-  dateRange: 'all' | 'today' | 'this-week' | 'this-month' | 'custom';
-  availability: 'all' | 'available' | 'limited' | 'sold-out';
+  status: "all" | "upcoming" | "live" | "ended";
+  priceRange: "all" | "0-0.01" | "0.01-0.1" | "0.1+";
+  dateRange: "all" | "today" | "this-week" | "this-month" | "custom";
+  availability: "all" | "available" | "limited" | "sold-out";
   venue?: string;
   startDate?: Date;
   endDate?: Date;
@@ -179,16 +203,17 @@ interface EventFilters {
 ---
 
 ### 6. **Event Organizer Info** ⭐ LOW PRIORITY
+
 **Issue**: Limited organizer information
 
 **Current Display**:
+
 ```tsx
-<div className="text-xs text-gray-500 mb-4">
-  Organized by 0xBD15...a0d9
-</div>
+<div className="text-xs text-gray-500 mb-4">Organized by 0xBD15...a0d9</div>
 ```
 
 **Enhancement Opportunities**:
+
 - Organizer reputation badge ("Verified Organizer")
 - Past events count
 - Average rating
@@ -197,6 +222,7 @@ interface EventFilters {
 - Push Chain Profile integration
 
 **Solution**:
+
 ```tsx
 <div className="flex items-center gap-2">
   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -204,9 +230,7 @@ interface EventFilters {
   </div>
   <div>
     <p className="text-sm font-medium">0xBD15...a0d9</p>
-    <p className="text-xs text-gray-500">
-      ✓ Verified • 12 events hosted
-    </p>
+    <p className="text-xs text-gray-500">✓ Verified • 12 events hosted</p>
   </div>
 </div>
 ```
@@ -214,20 +238,23 @@ interface EventFilters {
 ---
 
 ### 7. **Countdown Timers** ⭐ LOW PRIORITY
+
 **Issue**: Static "Starts in X days" display
 
 **Enhancement**:
+
 - Live countdown timer for upcoming events
 - "Event starting soon" alerts
 - Time zones support
 
 **Solution**:
+
 ```tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 function CountdownTimer({ targetDate }: { targetDate: Date }) {
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
-  
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(targetDate));
@@ -249,15 +276,18 @@ function CountdownTimer({ targetDate }: { targetDate: Date }) {
 ---
 
 ### 8. **Map View** ⭐ WISHLIST
+
 **Issue**: No geographical visualization
 
 **Enhancement**:
+
 - Toggle between grid and map view
 - Show events on interactive map
 - Filter by location/radius
 - Requires geocoding venue addresses
 
 **Dependencies**:
+
 - Venue must be geocoded (lat/lng)
 - Map library (Leaflet, Google Maps)
 - Contract update to store coordinates
@@ -265,14 +295,17 @@ function CountdownTimer({ targetDate }: { targetDate: Date }) {
 ---
 
 ### 9. **Royalty Information** ⭐ WISHLIST
+
 **Issue**: No secondary market info
 
 **Smart Contract Data Available**:
+
 ```solidity
 uint96 royaltyBps;  // Royalty basis points (e.g., 250 = 2.5%)
 ```
 
 **Enhancement**:
+
 - Show "2.5% creator fee on resale"
 - Help users understand secondary market
 - Display on event card or detail page
@@ -280,19 +313,22 @@ uint96 royaltyBps;  // Royalty basis points (e.g., 250 = 2.5%)
 ---
 
 ### 10. **Batch Loading Optimization** ⭐ TECHNICAL
+
 **Issue**: Potential performance issues with many events
 
 **Current State**:
+
 - Events loaded individually or in one large batch
 - Ticket types not loaded on events page
 
 **Enhancement**:
+
 ```typescript
 // Use contract's batch functions:
 const { data: ticketTypesBatch } = useReadContract({
   address: TICKET_FACTORY_ADDRESS,
   abi: TicketFactoryABI,
-  functionName: 'getTicketTypesBatch',
+  functionName: "getTicketTypesBatch",
   args: [eventIds], // Array of all visible event IDs
 });
 
@@ -307,22 +343,26 @@ const { data: ticketTypesBatch } = useReadContract({
 ## 🚀 Implementation Priority
 
 ### Phase 1: Critical UX Improvements (1-2 days)
+
 1. ✅ **Add ticket pricing display** - Show "From 0.01 PC" on cards
 2. ✅ **Add ticket type count** - "3 ticket types available"
 3. ✅ **Implement getTicketTypesBatch** - Fetch all ticket types efficiently
 4. ✅ **Add popularity indicators** - "Almost sold out", "Popular"
 
 ### Phase 2: Enhanced Filtering (1 day)
+
 1. ✅ **Price range filter** - Filter events by ticket price
 2. ✅ **Date range filter** - Filter by event date
 3. ✅ **Availability filter** - Show only available events
 
 ### Phase 3: Polish & Extras (1-2 days)
+
 1. ✅ **Quick actions** - Watchlist, share, calendar
 2. ✅ **Organizer badges** - Verified status, event count
 3. ✅ **Live countdowns** - Real-time timers for upcoming events
 
 ### Phase 4: Advanced Features (Future)
+
 1. 🔮 **Map view** - Geographical event browsing
 2. 🔮 **Categories/genres** - Requires contract update
 3. 🔮 **Recommendations** - ML-based suggestions
@@ -340,11 +380,15 @@ interface EventCardProps {
   showPurchaseButton?: boolean;
 }
 
-export function EventCard({ event, ticketTypes = [], showPurchaseButton = true }: EventCardProps) {
+export function EventCard({
+  event,
+  ticketTypes = [],
+  showPurchaseButton = true,
+}: EventCardProps) {
   // Get minimum price from ticket types
   const minPrice = useMemo(() => {
     if (!ticketTypes.length) return null;
-    return Math.min(...ticketTypes.map(t => Number(t.price)));
+    return Math.min(...ticketTypes.map((t) => Number(t.price)));
   }, [ticketTypes]);
 
   const ticketTypeCount = ticketTypes.length;
@@ -353,7 +397,7 @@ export function EventCard({ event, ticketTypes = [], showPurchaseButton = true }
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* ...existing code... */}
-      
+
       {/* NEW: Pricing Section */}
       <div className="px-6 pb-4">
         {minPrice !== null && (
@@ -402,35 +446,36 @@ export function EventCard({ event, ticketTypes = [], showPurchaseButton = true }
 // In EventsPage.tsx or a new hook
 export function useEventsWithTicketTypes() {
   const { events, loading: eventsLoading } = useEvents();
-  
+
   // Get all event IDs
   const eventIds = useMemo(
-    () => events.map(e => BigInt(e.eventId)),
+    () => events.map((e) => BigInt(e.eventId)),
     [events]
   );
 
   // Batch fetch all ticket types
-  const { data: ticketTypesBatch, isLoading: ticketTypesLoading } = useReadContract({
-    address: TICKET_FACTORY_ADDRESS,
-    abi: TicketFactoryABI,
-    functionName: 'getTicketTypesBatch',
-    args: [eventIds],
-    query: { enabled: eventIds.length > 0 }
-  });
+  const { data: ticketTypesBatch, isLoading: ticketTypesLoading } =
+    useReadContract({
+      address: TICKET_FACTORY_ADDRESS,
+      abi: TicketFactoryABI,
+      functionName: "getTicketTypesBatch",
+      args: [eventIds],
+      query: { enabled: eventIds.length > 0 },
+    });
 
   // Combine events with their ticket types
   const eventsWithTicketTypes = useMemo(() => {
     if (!ticketTypesBatch || !events.length) return [];
-    
+
     return events.map((event, index) => ({
       ...event,
-      ticketTypes: ticketTypesBatch[index] || []
+      ticketTypes: ticketTypesBatch[index] || [],
     }));
   }, [events, ticketTypesBatch]);
 
   return {
     events: eventsWithTicketTypes,
-    loading: eventsLoading || ticketTypesLoading
+    loading: eventsLoading || ticketTypesLoading,
   };
 }
 ```
@@ -507,6 +552,7 @@ export function EnhancedFilterPanel({ filters, onChange }: Props) {
 ## 🎨 UI/UX Considerations
 
 ### Visual Hierarchy
+
 1. **Event image** - Primary visual anchor
 2. **Price** - Most important info for decision-making
 3. **Status badges** - Quick status indication
@@ -514,6 +560,7 @@ export function EnhancedFilterPanel({ filters, onChange }: Props) {
 5. **Details button** - Secondary action
 
 ### Color Psychology
+
 - 🟢 **Green** - Available, Popular, Success
 - 🔴 **Red** - Sold Out, Almost Gone, Urgent
 - 🔵 **Blue** - Upcoming, Information, Neutral
@@ -521,6 +568,7 @@ export function EnhancedFilterPanel({ filters, onChange }: Props) {
 - ⚫ **Gray** - Inactive, Ended, Disabled
 
 ### Mobile Optimization
+
 - Stack information vertically on small screens
 - Larger tap targets for buttons
 - Swipe gestures for filtering
@@ -531,18 +579,21 @@ export function EnhancedFilterPanel({ filters, onChange }: Props) {
 ## 🔧 Technical Considerations
 
 ### Performance
+
 - ✅ Use `getTicketTypesBatch()` for efficient data fetching
 - ✅ Implement virtual scrolling for 100+ events
 - ✅ Cache event data in localStorage
 - ✅ Lazy load event images
 
 ### Accessibility
+
 - ✅ Proper ARIA labels
 - ✅ Keyboard navigation
 - ✅ Screen reader support
 - ✅ Color contrast compliance
 
 ### Error Handling
+
 - ✅ Loading skeletons
 - ✅ Empty states
 - ✅ Error boundaries
@@ -553,12 +604,14 @@ export function EnhancedFilterPanel({ filters, onChange }: Props) {
 ## 📊 Success Metrics
 
 ### User Engagement
+
 - Time spent on events page
 - Click-through rate to event details
 - Filter usage statistics
 - Purchase conversion rate
 
 ### Technical Metrics
+
 - Page load time < 2s
 - API calls reduced by 50% with batch fetching
 - Zero layout shifts (CLS)
@@ -569,6 +622,7 @@ export function EnhancedFilterPanel({ filters, onChange }: Props) {
 ## 🎯 Summary
 
 **Highest Priority Enhancements:**
+
 1. ⭐⭐⭐ **Ticket pricing display** - Show "From X PC" on every card
 2. ⭐⭐⭐ **Ticket types indicator** - Show how many tiers available
 3. ⭐⭐ **Price range filter** - Let users filter by budget
@@ -576,6 +630,7 @@ export function EnhancedFilterPanel({ filters, onChange }: Props) {
 5. ⭐ **Quick actions** - Wishlist, share, calendar
 
 **Quick Wins (< 1 hour each):**
+
 - Display minimum ticket price from ticketTypes array
 - Add "X ticket types" badge
 - Show "Almost sold out" when >80% sold
