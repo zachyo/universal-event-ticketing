@@ -1,26 +1,19 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Calendar, RefreshCw } from "lucide-react";
-import { useEvents } from "../hooks/useContracts";
+import { useEventsWithTicketTypes } from "../hooks/useEventsWithTicketTypes";
 import {
   EventCard,
   EventCardSkeleton,
   EventGrid,
   EventsEmptyState,
 } from "../components/EventCard";
-import { formatEvent } from "../lib/formatters";
 import { useEventSearch } from "../hooks/useEventSearch";
 import { SearchBar } from "../components/search/SearchBar";
 import { FilterPanel } from "../components/search/FilterPanel";
 
 const EventsPage = () => {
-  const { events, loading, error, refetch } = useEvents();
+  const { events: formattedEvents, loading, error, refetch } = useEventsWithTicketTypes();
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Format events
-  const formattedEvents = useMemo(() => {
-    if (!events.length) return [];
-    return events.map(formatEvent);
-  }, [events]);
 
   // Use search hook
   const {

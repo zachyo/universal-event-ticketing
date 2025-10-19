@@ -1,16 +1,23 @@
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Users, Clock } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, TrendingUp, AlertCircle, Ticket } from 'lucide-react';
 import type { FormattedEvent } from '../types';
+import type { EventWithTicketTypes } from '../hooks/useEventsWithTicketTypes';
 import {
   formatDateTime,
   formatAvailability,
   getTimeUntilEvent,
-  getEventStatus
+  getEventStatus,
+  formatPriceInCurrency
 } from '../lib/formatters';
 
 interface EventCardProps {
-  event: FormattedEvent;
+  event: FormattedEvent | EventWithTicketTypes;
   showPurchaseButton?: boolean;
+}
+
+// Type guard to check if event has ticket types
+function hasTicketTypes(event: FormattedEvent | EventWithTicketTypes): event is EventWithTicketTypes {
+  return 'ticketTypes' in event && 'minPrice' in event;
 }
 
 export function EventCard({ event, showPurchaseButton = true }: EventCardProps) {
@@ -34,6 +41,14 @@ export function EventCard({ event, showPurchaseButton = true }: EventCardProps) 
   };
 
   const isSoldOut = event.sold >= event.totalSupply;
+  const isAlmostSoldOut = event.sold > event.totalSupply * 0.8 && !isSoldOut;
+  const isPopular = event.sold > 50;
+  
+  // Extract ticket type info if available
+  const eventWithTypes = hasTicketTypes(event) ? event : null;
+  const minPrice = eventWithTypes?.minPrice;
+  const ticketTypeCount = eventWithTypes?.ticketTypeCount || 0;
+  const hasMultipleTiers = eventWithTypes?.hasMultipleTiers || false;
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -96,6 +111,44 @@ export function EventCard({ event, showPurchaseButton = true }: EventCardProps) 
             </div>
           )}
         </div>
+
+        {/* Pricing Section */}
+        {minPrice !== null && minPrice !== undefined && minPrice > 0 && (
+          <div className="mb-4 pb-4 border-b border-gray-200">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Starting from</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatPriceInCurrency(BigInt(minPrice), 'PC')}
+                </p>
+              </div>
+              {hasMultipleTiers && ticketTypeCount > 1 && (
+                <div className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
+                  <Ticket className="w-3 h-3" />
+                  <span>{ticketTypeCount} tiers</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Popularity Indicators */}
+        {(isAlmostSoldOut || isPopular) && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {isAlmostSoldOut && (
+              <div className="flex items-center gap-1 text-xs bg-red-50 text-red-700 px-2 py-1 rounded-full border border-red-200">
+                <AlertCircle className="w-3 h-3" />
+                <span>Almost Sold Out</span>
+              </div>
+            )}
+            {isPopular && (
+              <div className="flex items-center gap-1 text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full border border-green-200">
+                <TrendingUp className="w-3 h-3" />
+                <span>{event.sold} tickets sold</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Organizer */}
         <div className="text-xs text-gray-500 mb-4">
