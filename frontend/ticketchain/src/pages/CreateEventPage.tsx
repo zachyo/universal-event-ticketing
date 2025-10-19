@@ -460,45 +460,45 @@ export const CreateEventPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        <div className="mb-4 md:mb-8">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
             Create a New Event
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm md:text-base text-gray-600">
             Fill out the form below to create your event on TicketChain.
           </p>
         </div>
 
         {/* Draft Banner */}
         {hasDraft && (
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-lg">
-            <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-3 md:p-4 mb-4 md:mb-6 rounded-r-lg">
+            <div className="flex items-center justify-between flex-wrap gap-3 md:gap-4">
               <div className="flex items-center">
-                <AlertCircle className="w-5 h-5 text-blue-500 mr-3 flex-shrink-0" />
+                <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 md:mr-3 flex-shrink-0" />
                 <div>
-                  <h4 className="font-medium text-blue-900">
+                  <h4 className="text-sm md:text-base font-medium text-blue-900">
                     Continue from draft?
                   </h4>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-xs md:text-sm text-blue-700">
                     You have an unsaved event draft
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={loadDraft}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs md:text-sm font-medium transition-colors touch-manipulation"
                 >
                   Load Draft
                 </button>
                 <button
                   type="button"
                   onClick={clearDraft}
-                  className="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                  className="flex-1 sm:flex-none px-3 md:px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-xs md:text-sm font-medium transition-colors touch-manipulation"
                 >
                   Discard
                 </button>
@@ -515,14 +515,16 @@ export const CreateEventPage = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-8">
           {/* Basic Information */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-bold mb-6">Basic Information</h2>
+          <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-bold mb-4 md:mb-6">
+              Basic Information
+            </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                   Event Name *
                 </label>
                 <input
@@ -530,7 +532,7 @@ export const CreateEventPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
                     errors.name ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="Enter event name"
@@ -541,7 +543,7 @@ export const CreateEventPage = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                   Description *
                 </label>
                 <textarea
@@ -550,7 +552,7 @@ export const CreateEventPage = () => {
                   onChange={handleInputChange}
                   rows={4}
                   maxLength={2000}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
                     errors.description ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="Describe your event"
@@ -834,52 +836,57 @@ export const CreateEventPage = () => {
 
               {/* Ticket Types */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium">Ticket Types</h3>
+                <div className="flex items-center justify-between mb-3 md:mb-4">
+                  <h3 className="text-base md:text-lg font-medium">
+                    Ticket Types
+                  </h3>
                   <button
                     type="button"
                     onClick={addTicketTypeField}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    className="flex items-center gap-1.5 md:gap-2 text-blue-600 hover:text-blue-800 text-xs md:text-sm font-medium touch-manipulation"
                   >
-                    <Plus className="w-4 h-4" />
-                    Add Ticket Type
+                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden sm:inline">Add Ticket Type</span>
+                    <span className="sm:hidden">Add</span>
                   </button>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   {ticketTypes.map((ticketType, index) => (
                     <div
                       key={index}
-                      className="border border-gray-200 rounded-lg p-4"
+                      className="border border-gray-200 rounded-lg p-3 md:p-4"
                     >
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium">Ticket Type {index + 1}</h4>
+                      <div className="flex items-center justify-between mb-3 md:mb-4">
+                        <h4 className="text-sm md:text-base font-medium">
+                          Ticket Type {index + 1}
+                        </h4>
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => duplicateTicketType(index)}
-                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs md:text-sm touch-manipulation p-1"
                             title="Duplicate this ticket type"
                           >
-                            <Copy className="w-4 h-4" />
+                            <Copy className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             <span className="hidden sm:inline">Duplicate</span>
                           </button>
                           {ticketTypes.length > 1 && (
                             <button
                               type="button"
                               onClick={() => removeTicketType(index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-600 hover:text-red-800 touch-manipulation p-1"
                               title="Remove this ticket type"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             </button>
                           )}
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                             Name *
                           </label>
                           <input
@@ -892,7 +899,7 @@ export const CreateEventPage = () => {
                                 e.target.value
                               )
                             }
-                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
                               errors[`ticketType${index}Name`]
                                 ? "border-red-500"
                                 : "border-gray-300"
@@ -907,7 +914,7 @@ export const CreateEventPage = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                             Price (PC) *
                           </label>
                           <input
@@ -924,7 +931,7 @@ export const CreateEventPage = () => {
                             }
                             min="0"
                             step="0.001"
-                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
                               errors[`ticketType${index}Price`]
                                 ? "border-red-500"
                                 : "border-gray-300"
@@ -943,7 +950,7 @@ export const CreateEventPage = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                             Supply *
                           </label>
                           <input
@@ -957,7 +964,7 @@ export const CreateEventPage = () => {
                               )
                             }
                             min="1"
-                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
                               errors[`ticketType${index}Supply`]
                                 ? "border-red-500"
                                 : "border-gray-300"
@@ -1007,17 +1014,17 @@ export const CreateEventPage = () => {
             <button
               type="submit"
               disabled={isSubmitting || isCreatingEvent}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+              className="w-full sm:w-auto px-6 py-3.5 md:py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-base touch-manipulation"
             >
               {isSubmitting || isCreatingEvent ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating Event...
+                  <span>Creating Event...</span>
                 </>
               ) : (
                 <>
                   <CheckCircle className="w-4 h-4" />
-                  Create Event
+                  <span>Create Event</span>
                 </>
               )}
             </button>

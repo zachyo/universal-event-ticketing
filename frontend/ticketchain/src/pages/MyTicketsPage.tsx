@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { parseUnits } from "viem";
-import { Search, QrCode, AlertCircle, Package } from "lucide-react";
+import { Search, AlertCircle, Package } from "lucide-react";
 import {
   useUserTickets,
   useListTicket,
@@ -30,6 +30,7 @@ import {
   type TicketSortOption,
 } from "../components/TicketFilters";
 import { BulkListingModal } from "../components/marketplace/BulkListingModal";
+import { ErrorDisplay } from "../components/ErrorDisplay";
 
 interface ListTicketModalProps {
   isOpen: boolean;
@@ -82,9 +83,11 @@ function ListTicketModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full p-6">
-        <h3 className="text-lg font-bold mb-4">List Ticket for Sale</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 md:p-4">
+      <div className="bg-white rounded-lg max-w-md w-full p-5 md:p-6">
+        <h3 className="text-base md:text-lg font-bold mb-4">
+          List Ticket for Sale
+        </h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -96,7 +99,7 @@ function ListTicketModal({
               onChange={(e) => setPrice(e.target.value)}
               min="0"
               step="0.001"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
               placeholder="100"
               required
             />
@@ -444,56 +447,48 @@ const MyTicketsPage = () => {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
-          <div className="text-red-600 mb-4">
-            <QrCode className="w-16 h-16 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Error Loading Tickets</h3>
-            <p>{error}</p>
-          </div>
-          <button
-            onClick={refetch}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
-          >
-            Try Again
-          </button>
+        <div className="py-12">
+          <ErrorDisplay error={error} retry={refetch} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-4xl font-bold text-gray-900">My Tickets</h1>
+      <div className="mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900">
+            My Tickets
+          </h1>
           {!isLoading && filteredTickets.length > 0 && (
             <button
               onClick={() => setShowBulkListModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm touch-manipulation"
             >
-              <Package className="w-5 h-5" />
+              <Package className="w-4 h-4 md:w-5 md:h-5" />
               Bulk List Tickets
             </button>
           )}
         </div>
-        <p className="text-gray-600">
+        <p className="text-sm md:text-base text-gray-600">
           Your NFT ticket collection. Show QR codes at events or list them for
           sale.
         </p>
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-8">
+      <div className="mb-6 md:mb-8">
         {/* Search Bar */}
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
           <input
             type="text"
-            placeholder="Search tickets by event name, venue, or token ID..."
+            placeholder="Search tickets..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-9 md:pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
           />
         </div>
 

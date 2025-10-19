@@ -109,22 +109,23 @@ export function PurchaseModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold">Purchase Tickets</h2>
+        <div className="flex items-center justify-between p-4 md:p-6 border-b sticky top-0 bg-white z-10">
+          <h2 className="text-lg md:text-xl font-bold">Purchase Tickets</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-full"
+            aria-label="Close modal"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 md:w-6 md:h-6" />
           </button>
         </div>
 
         {/* Event Info */}
-        <div className="p-6 border-b">
-          <h3 className="font-bold text-lg mb-2">{event.name}</h3>
+        <div className="p-4 md:p-6 border-b">
+          <h3 className="font-bold text-base md:text-lg mb-2">{event.name}</h3>
           <p className="text-gray-600 text-sm mb-2">
             {formatDateTime(event.startTime)}
           </p>
@@ -132,9 +133,12 @@ export function PurchaseModal({
         </div>
 
         {/* Ticket Type Selection */}
-        <div className="p-6 border-b">
-          <h4 className="font-medium mb-4">Select Ticket Type</h4>
-          <div className="space-x-3 grid grid-cols-2">
+        <div className="p-4 md:p-6 border-b">
+          <h4 className="font-medium mb-4 text-sm md:text-base">
+            Select Ticket Type
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {" "}
             {ticketTypes.map((ticketType, i) => {
               const available =
                 Number(ticketType.supply) - Number(ticketType.sold);
@@ -213,20 +217,22 @@ export function PurchaseModal({
 
         {/* Quantity Selection */}
         {selectedTicketType && isAvailable && (
-          <div className="p-6 border-b">
-            <h4 className="font-medium mb-4">Quantity</h4>
+          <div className="p-4 md:p-6 border-b">
+            <h4 className="font-medium mb-4 text-sm md:text-base">Quantity</h4>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                className="w-10 h-10 md:w-8 md:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 text-lg md:text-base font-medium"
                 disabled={quantity <= 1}
               >
                 -
               </button>
-              <span className="font-medium">{quantity}</span>
+              <span className="font-medium text-lg md:text-base min-w-[2rem] text-center">
+                {quantity}
+              </span>
               <button
                 onClick={() => setQuantity(Math.min(5, quantity + 1))} // Max 5 tickets
-                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                className="w-10 h-10 md:w-8 md:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 text-lg md:text-base font-medium"
                 disabled={
                   quantity >=
                   Number(selectedTicketType?.supply ?? event?.totalSupply)
@@ -244,8 +250,10 @@ export function PurchaseModal({
 
         {/* Chain Selection */}
         {selectedTicketType && isAvailable && (
-          <div className="p-6 border-b">
-            <h4 className="font-medium mb-4">Payment Chain</h4>
+          <div className="p-4 md:p-6 border-b">
+            <h4 className="font-medium mb-4 text-sm md:text-base">
+              Payment Chain
+            </h4>
             <p className="text-sm text-gray-600 mb-4">
               Choose which blockchain to pay from. Push Chain will automatically
               convert your payment to the required amount.
@@ -257,6 +265,7 @@ export function PurchaseModal({
                 Testnet Chains
               </h5>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {" "}
                 {SUPPORTED_CHAINS.filter((chain) => chain.testnet)
                   .slice(0, 6)
                   .map((chain) => (
@@ -306,13 +315,15 @@ export function PurchaseModal({
         )}
 
         {/* Total and Purchase */}
-        <div className="p-6">
+        <div className="p-4 md:p-6 sticky bottom-0 bg-white border-t md:border-t-0">
           {selectedTicketType && isAvailable ? (
             <>
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">Total (PC):</span>
-                  <span className="text-xl font-bold">
+                  <span className="font-medium text-sm md:text-base">
+                    Total (PC):
+                  </span>
+                  <span className="text-lg md:text-xl font-bold">
                     {formatPrice(totalPrice)} PC
                   </span>
                 </div>
@@ -342,8 +353,9 @@ export function PurchaseModal({
                 <button
                   onClick={handlePurchase}
                   disabled={isPending || chainMismatch}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3.5 md:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-base md:text-sm touch-manipulation"
                 >
+                  {" "}
                   {isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />

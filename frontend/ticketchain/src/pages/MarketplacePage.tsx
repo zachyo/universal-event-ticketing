@@ -12,6 +12,7 @@ import {
   OfferHistoryModal,
   MyOffersPanel,
 } from "../components/marketplace";
+import { ErrorDisplay } from "../components/ErrorDisplay";
 
 type SortOption = "price-low" | "price-high" | "newest" | "oldest";
 type PriceFilter = "all" | "0-0.1" | "0.1-0.5" | "0.5+";
@@ -131,42 +132,32 @@ export const MarketplacePage = () => {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
-          <div className="text-red-600 mb-4">
-            <Tag className="w-16 h-16 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">
-              Error Loading Marketplace
-            </h3>
-            <p>{error}</p>
-          </div>
-          <button
-            onClick={refetch}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
-          >
-            Try Again
-          </button>
+        <div className="py-12">
+          <ErrorDisplay error={error} retry={refetch} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Marketplace</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
+          Marketplace
+        </h1>
+        <p className="text-sm md:text-base text-gray-600">
           Buy and sell tickets on the secondary market. All transactions are
           secure and verified on-chain.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-8">
-        <div className="flex gap-4">
+      <div className="border-b border-gray-200 mb-6 md:mb-8 overflow-x-auto">
+        <div className="flex gap-2 md:gap-4 min-w-max">
           <button
             onClick={() => setActiveTab("listings")}
-            className={`px-4 py-2 font-medium transition-colors relative ${
+            className={`px-3 md:px-4 py-2.5 md:py-2 font-medium transition-colors relative text-sm md:text-base touch-manipulation ${
               activeTab === "listings"
                 ? "text-blue-600 border-b-2 border-blue-600"
                 : "text-gray-600 hover:text-gray-900"
@@ -176,7 +167,7 @@ export const MarketplacePage = () => {
           </button>
           <button
             onClick={() => setActiveTab("my-offers")}
-            className={`px-4 py-2 font-medium transition-colors relative ${
+            className={`px-3 md:px-4 py-2.5 md:py-2 font-medium transition-colors relative text-sm md:text-base touch-manipulation ${
               activeTab === "my-offers"
                 ? "text-purple-600 border-b-2 border-purple-600"
                 : "text-gray-600 hover:text-gray-900"
@@ -194,15 +185,17 @@ export const MarketplacePage = () => {
         <>
           {/* Stats */}
           {!loading && listings.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+              <div className="bg-white rounded-lg shadow-sm p-3 md:p-4 text-center">
+                <div className="text-xl md:text-2xl font-bold text-blue-600">
                   {listings.length}
                 </div>
-                <div className="text-sm text-gray-600">Active Listings</div>
+                <div className="text-xs md:text-sm text-gray-600">
+                  Active Listings
+                </div>
               </div>
-              <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">
+              <div className="bg-white rounded-lg shadow-sm p-3 md:p-4 text-center">
+                <div className="text-xl md:text-2xl font-bold text-green-600">
                   {listings.length > 0
                     ? formatPrice(
                         BigInt(
@@ -212,10 +205,13 @@ export const MarketplacePage = () => {
                     : "0"}{" "}
                   PC
                 </div>
-                <div className="text-sm text-gray-600">Lowest Price</div>
+                <div className="text-xs md:text-sm text-gray-600">
+                  Lowest Price
+                </div>
               </div>
-              <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600">
+              <div className="bg-white rounded-lg shadow-sm p-3 md:p-4 text-center">
+                <div className="text-xl md:text-2xl font-bold text-purple-600">
+                  {" "}
                   {listings.length > 0
                     ? formatPrice(
                         BigInt(

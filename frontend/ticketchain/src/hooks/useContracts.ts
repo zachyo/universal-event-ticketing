@@ -24,6 +24,13 @@ import type {
 } from "../types";
 import { usePushChainClient, usePushChain } from "@pushchain/ui-kit";
 import { uploadToIPFS } from "../lib/ipfs";
+import {
+  toastSuccess,
+  toastError,
+  toastLoading,
+  toastDismiss,
+} from "../lib/toast";
+import { getErrorMessage, isUserRejection } from "../lib/errorUtils";
 
 // Hook for creating events
 export function useCreateEvent() {
@@ -36,8 +43,13 @@ export function useCreateEvent() {
       throw new Error("Push Chain client not available");
     }
 
+    let toastId: string | undefined;
+
     try {
       setIsPending(true);
+
+      // Show loading toast
+      toastId = toastLoading("Creating event...");
 
       // Upload event image to IPFS
       const eventIpfsHash = await uploadToIPFS(eventData.image);
@@ -106,9 +118,22 @@ export function useCreateEvent() {
 
       console.log("Event created successfully!");
 
+      // Dismiss loading and show success
+      if (toastId) toastDismiss(toastId);
+      toastSuccess("Event created successfully!");
+
       return tx;
     } catch (error) {
       console.error("Failed to create event:", error);
+
+      // Dismiss loading toast
+      if (toastId) toastDismiss(toastId);
+
+      // Show error toast if not user rejection
+      if (!isUserRejection(error)) {
+        toastError(getErrorMessage(error));
+      }
+
       throw error;
     } finally {
       setIsPending(false);
@@ -334,6 +359,8 @@ export function usePurchaseTicket() {
       throw new Error("Ticket price is required to purchase");
     }
 
+    let toastId: string | undefined;
+
     try {
       setIsPending(true);
 
@@ -341,6 +368,13 @@ export function usePurchaseTicket() {
         params.quantity && params.quantity > 0 ? params.quantity : 1;
       const quantityBigInt = BigInt(quantity);
       const totalPrice = params.price * quantityBigInt;
+
+      // Show loading toast
+      toastId = toastLoading(
+        quantity > 1
+          ? `Purchasing ${quantity} tickets...`
+          : "Purchasing ticket..."
+      );
 
       // Enhanced debugging
       console.log("Purchase parameters:", {
@@ -392,9 +426,20 @@ export function usePurchaseTicket() {
       // Clear cache to refresh data
       localStorage.removeItem("ticketchain_cache");
 
+      // Dismiss loading and show success
+      if (toastId) toastDismiss(toastId);
+      toastSuccess(
+        quantity > 1
+          ? `Successfully purchased ${quantity} tickets!`
+          : "Ticket purchased successfully!"
+      );
+
       return tx;
     } catch (error) {
       console.error("Purchase transaction failed:", error);
+
+      // Dismiss loading toast
+      if (toastId) toastDismiss(toastId);
 
       // Enhanced error logging
       if (error instanceof Error) {
@@ -403,35 +448,58 @@ export function usePurchaseTicket() {
 
         // Check for specific Push Chain error codes
         if (error.message.includes("0xdc210b1a")) {
-          throw new Error(
+          const errorMsg =
             "Invalid payment payload. This could be due to:\n" +
-              "• Incorrect payment amount\n" +
-              "• Invalid ticket type ID\n" +
-              "• Contract authorization issues\n" +
-              "• Network congestion\n\n" +
-              "Please try again or contact support if the issue persists."
-          );
+            "• Incorrect payment amount\n" +
+            "• Invalid ticket type ID\n" +
+            "• Contract authorization issues\n" +
+            "• Network congestion\n\n" +
+            "Please try again or contact support if the issue persists.";
+
+          if (!isUserRejection(error)) {
+            toastError(errorMsg);
+          }
+          throw new Error(errorMsg);
         }
 
         if (error.message.includes("executePayload")) {
-          throw new Error(
+          const errorMsg =
             "Cross-chain transaction failed. This could be due to:\n" +
-              "• Insufficient gas fees\n" +
-              "• Network connectivity issues\n" +
-              "• Invalid transaction parameters\n\n" +
-              "Please check your wallet balance and try again."
-          );
+            "• Insufficient gas fees\n" +
+            "• Network connectivity issues\n" +
+            "• Invalid transaction parameters\n\n" +
+            "Please check your wallet balance and try again.";
+
+          if (!isUserRejection(error)) {
+            toastError(errorMsg);
+          }
+          throw new Error(errorMsg);
         }
 
         if (error.message.includes("IncorrectPayment")) {
-          throw new Error(
+          const errorMsg =
             "Payment amount mismatch. The amount sent does not match the ticket price.\n" +
-              "Please refresh the page and try again."
-          );
+            "Please refresh the page and try again.";
+
+          if (!isUserRejection(error)) {
+            toastError(errorMsg);
+          }
+          throw new Error(errorMsg);
+        }
+
+        // Show generic error toast if not user rejection
+        if (!isUserRejection(error)) {
+          toastError(getErrorMessage(error));
         }
 
         throw new Error(`Purchase failed: ${error.message}`);
       }
+
+      // Show error toast for unknown errors
+      if (!isUserRejection(error)) {
+        toastError(getErrorMessage(error));
+      }
+
       throw error;
     } finally {
       setIsPending(false);
@@ -518,8 +586,13 @@ export function useListTicket() {
       throw new Error("Push Chain client not available");
     }
 
+    let toastId: string | undefined;
+
     try {
       setIsPending(true);
+
+      // Show loading toast
+      toastId = toastLoading("Listing ticket for sale...");
 
       // Ensure marketplace can transfer the NFT into escrow
       const approvalTx = await pushChainClient.universal.sendTransaction({
@@ -546,7 +619,23 @@ export function useListTicket() {
 
       localStorage.removeItem("ticketchain_cache");
 
+      // Dismiss loading and show success
+      if (toastId) toastDismiss(toastId);
+      toastSuccess("Ticket listed successfully!");
+
       return listTx;
+    } catch (error) {
+      console.error("Failed to list ticket:", error);
+
+      // Dismiss loading toast
+      if (toastId) toastDismiss(toastId);
+
+      // Show error toast if not user rejection
+      if (!isUserRejection(error)) {
+        toastError(getErrorMessage(error));
+      }
+
+      throw error;
     } finally {
       setIsPending(false);
     }
@@ -566,8 +655,13 @@ export function useBuyTicket() {
       throw new Error("Push Chain client not available");
     }
 
+    let toastId: string | undefined;
+
     try {
       setIsPending(true);
+
+      // Show loading toast
+      toastId = toastLoading("Purchasing ticket from marketplace...");
 
       const tx = await pushChainClient.universal.sendTransaction({
         to: MARKETPLACE_ADDRESS,
@@ -585,7 +679,23 @@ export function useBuyTicket() {
       // Clear cache to refresh data
       localStorage.removeItem("ticketchain_cache");
 
+      // Dismiss loading and show success
+      if (toastId) toastDismiss(toastId);
+      toastSuccess("Ticket purchased successfully from marketplace!");
+
       return tx;
+    } catch (error) {
+      console.error("Failed to buy ticket:", error);
+
+      // Dismiss loading toast
+      if (toastId) toastDismiss(toastId);
+
+      // Show error toast if not user rejection
+      if (!isUserRejection(error)) {
+        toastError(getErrorMessage(error));
+      }
+
+      throw error;
     } finally {
       setIsPending(false);
     }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useEventsWithTicketTypes } from "../hooks/useEventsWithTicketTypes";
 import {
   EventCard,
@@ -10,6 +10,7 @@ import {
 import { useEventSearch } from "../hooks/useEventSearch";
 import { SearchBar } from "../components/search/SearchBar";
 import { FilterPanel } from "../components/search/FilterPanel";
+import { ErrorDisplay } from "../components/ErrorDisplay";
 
 const EventsPage = () => {
   const {
@@ -46,30 +47,28 @@ const EventsPage = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <div className="text-red-600 mb-4">
-            <Calendar className="w-16 h-16 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Error Loading Events</h3>
-            <p>{error}</p>
-          </div>
+          <ErrorDisplay error={error} retry={handleRefresh} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
       {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mb-6 md:mb-8 flex flex-col gap-3 md:gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Events</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-1 md:mb-2">
+            Events
+          </h1>
+          <p className="text-sm md:text-base text-gray-600">
             Discover amazing events happening around the world
           </p>
         </div>
         <button
           onClick={handleRefresh}
           disabled={loading || isRefreshing}
-          className="inline-flex items-center gap-2 self-start rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+          className="inline-flex items-center gap-2 self-start rounded-lg border border-gray-300 px-4 py-2.5 md:py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 touch-manipulation"
         >
           <RefreshCw
             className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -79,9 +78,9 @@ const EventsPage = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Filter Sidebar */}
-        <aside className="lg:col-span-1">
+      <div className="mb-6 md:mb-8 flex flex-col lg:grid lg:grid-cols-4 gap-4 md:gap-6">
+        {/* Filter Sidebar - Hidden on mobile, shown in collapsible section */}
+        <aside className="lg:col-span-1 order-2 lg:order-1">
           <FilterPanel
             filters={filters}
             onFiltersChange={setFilters}
@@ -90,24 +89,24 @@ const EventsPage = () => {
         </aside>
 
         {/* Main Content */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 order-1 lg:order-2">
           {/* Search Bar */}
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
             isSearching={isSearching}
-            className="mb-6"
+            className="mb-4 md:mb-6"
           />
 
           {/* Results Count */}
           {!loading && (
-            <div className="mb-6 flex items-center justify-between">
-              <p className="text-gray-600">
+            <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <p className="text-sm md:text-base text-gray-600">
                 {resultCount} event{resultCount !== 1 ? "s" : ""} found
                 {searchQuery && ` for "${searchQuery}"`}
               </p>
               {resultCount > 0 && (
-                <p className="text-sm text-gray-500">
+                <p className="text-xs md:text-sm text-gray-500">
                   Sorted by:{" "}
                   {filters.sortBy === "date"
                     ? "Date (Nearest First)"

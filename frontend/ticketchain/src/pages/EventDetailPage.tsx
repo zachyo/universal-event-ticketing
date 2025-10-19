@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useAccount } from "wagmi";
 import {
   Calendar,
   MapPin,
   Users,
   ArrowLeft,
-  Share2,
-  Heart,
-  ExternalLink,
   Ticket,
+  BarChart3,
 } from "lucide-react";
 import { useGetEvent, useTicketTypes } from "../hooks/useContracts";
 import { useAutoMetadata } from "../hooks/useAutoMetadata";
@@ -39,6 +38,7 @@ import {
   DialogTitle,
   DialogClose,
 } from "../components/ui/dialog";
+import { MarketplaceSection } from "../components/event/MarketplaceSection";
 
 type TicketTypeOption = {
   id: string;
@@ -55,6 +55,7 @@ type TicketTypeOption = {
 const EventDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const eventId = id ? parseInt(id) : 0;
+  const { address } = useAccount();
 
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false);
@@ -78,7 +79,7 @@ const EventDetailPage = () => {
     refetch: refetchTicketTypes,
   } = useTicketTypes(eventId);
   const { pushChainClient, isInitialized } = usePushChainClient();
-  const { connectionStatus, handleConnectToPushWallet } =
+  const { connectionStatus, handleConnectToPushWallet, universalAccount } =
     usePushWalletContext();
   const { PushChain } = usePushChain();
   const { generateAndUploadMetadata } = useAutoMetadata();
@@ -190,6 +191,13 @@ const EventDetailPage = () => {
     formattedEvent.totalSupply
   );
   const isSoldOut = formattedEvent.sold >= formattedEvent.totalSupply;
+
+  // Check if current user is the organizer
+  const isOrganizer =
+    formattedEvent.organizer.toLowerCase() === address?.toLowerCase() ||
+    formattedEvent.organizer.toLowerCase() ===
+      universalAccount?.address?.toLowerCase();
+
   const priceRange = ticketTypes
     ? getPriceRange(ticketTypes)
     : { min: 0, max: 0 };
@@ -414,23 +422,27 @@ const EventDetailPage = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="absolute top-4 right-4 flex gap-2">
-              <button className="bg-white bg-opacity-20 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-opacity-30 transition-colors">
-                <Heart className="w-5 h-5" />
-              </button>
-              <button className="bg-white bg-opacity-20 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-opacity-30 transition-colors">
-                <Share2 className="w-5 h-5" />
-              </button>
-            </div>
+            {isOrganizer && (
+              <div className="absolute top-4 right-4">
+                <Link to={`/event-analytics/${eventId}`}>
+                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 font-medium shadow-lg">
+                    <BarChart3 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Analytics</span>
+                  </button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Event Details */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-2xl font-bold mb-4">About This Event</h2>
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">
+                About This Event
+              </h2>
               <div className="prose max-w-none">
                 <p className="text-gray-700 leading-relaxed">
                   {formattedEvent.description}
@@ -439,9 +451,11 @@ const EventDetailPage = () => {
             </div>
 
             {/* Event Details */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h3 className="text-xl font-bold mb-4">Event Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6">
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">
+                Event Details
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">
                     Date & Time
@@ -458,9 +472,6 @@ const EventDetailPage = () => {
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Location</h4>
                   <p className="text-gray-600">{formattedEvent.venue}</p>
-                  <button className="text-blue-600 hover:text-blue-800 text-sm mt-1 flex items-center">
-                    View on Map <ExternalLink className="w-3 h-3 ml-1" />
-                  </button>
                 </div>
 
                 <div>
@@ -485,9 +496,11 @@ const EventDetailPage = () => {
 
             {/* Ticket Types */}
             {ticketTypes && ticketTypes.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-xl font-bold mb-4">Ticket Types</h3>
-                <div className="space-y-4">
+              <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+                <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">
+                  Ticket Types
+                </h3>
+                <div className="space-y-3 md:space-y-4">
                   {ticketTypes.map((ticketType) => {
                     const available =
                       Number(ticketType.supply) - Number(ticketType.sold);
@@ -499,13 +512,13 @@ const EventDetailPage = () => {
                     return (
                       <div
                         key={ticketType.ticketTypeId?.toString()}
-                        className="border border-gray-200 rounded-lg p-4 flex gap-4"
+                        className="border border-gray-200 rounded-lg p-3 md:p-4 flex gap-3 md:gap-4"
                       >
                         {/* Tier Image */}
                         <img
                           src={tierImageUrl}
                           alt={ticketType.name}
-                          className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                          className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src =
@@ -516,15 +529,15 @@ const EventDetailPage = () => {
 
                         <div className="flex-1 flex justify-between items-start">
                           <div>
-                            <h4 className="font-medium text-lg">
+                            <h4 className="font-medium text-base md:text-lg">
                               {ticketType.name}
                             </h4>
-                            <p className="text-2xl font-bold text-blue-600">
+                            <p className="text-xl md:text-2xl font-bold text-blue-600">
                               {formatPrice(ticketType.price)} PC
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs md:text-sm text-gray-600">
                               {available} of {Number(ticketType.supply)}{" "}
                               available
                             </p>
@@ -541,16 +554,19 @@ const EventDetailPage = () => {
                 </div>
               </div>
             )}
+
+            {/* Marketplace Section - Resale Tickets */}
+            <MarketplaceSection eventId={eventId} />
           </div>
 
-          {/* Sidebar */}
-          <div>
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-8">
-              <div className="text-center mb-6">
-                <div className="text-3xl font-bold text-gray-900 mb-2">
+          {/* Sidebar - Purchase Section */}
+          <div className="order-1 lg:order-2">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 lg:sticky lg:top-8">
+              <div className="text-center mb-4 md:mb-6">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                   {priceText}
                 </div>
-                <div className="text-sm text-gray-600 mb-2">
+                <div className="text-xs md:text-sm text-gray-600 mb-2">
                   Pay with any supported currency
                 </div>
                 <p className="text-gray-600">
@@ -564,12 +580,12 @@ const EventDetailPage = () => {
                 </p>
               </div>
 
-              <div className="mb-6">
-                <p className="text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4 md:mb-6">
+                <p className="text-xs md:text-sm font-medium text-gray-700 mb-2">
                   Select ticket tier
                 </p>
                 {ticketTypeOptions.length > 0 ? (
-                  <div className="space-y-2">
+                  <div className="space-y-2 md:space-y-2.5">
                     {ticketTypeOptions.map((option) => {
                       const isSelected = option.id === selectedTicketTypeId;
                       const disabled = option.soldOut;
@@ -585,7 +601,7 @@ const EventDetailPage = () => {
                             !disabled && setSelectedTicketTypeId(option.id)
                           }
                           disabled={disabled}
-                          className={`w-full rounded-lg border p-3 text-left transition ${
+                          className={`w-full rounded-lg border p-2.5 md:p-3 text-left transition touch-manipulation ${
                             isSelected
                               ? "border-blue-600 bg-blue-50"
                               : "border-gray-200 hover:border-blue-300"
@@ -595,12 +611,12 @@ const EventDetailPage = () => {
                               : ""
                           }`}
                         >
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-2 md:gap-3">
                             {/* Tier Image Thumbnail */}
                             <img
                               src={tierImageUrl}
                               alt={option.name}
-                              className="w-12 h-12 object-cover rounded flex-shrink-0"
+                              className="w-10 h-10 md:w-12 md:h-12 object-cover rounded flex-shrink-0"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src =
@@ -609,18 +625,18 @@ const EventDetailPage = () => {
                               }}
                             />
 
-                            <div className="flex-1 flex items-start justify-between gap-3">
+                            <div className="flex-1 flex items-start justify-between gap-2 md:gap-3">
                               <div>
-                                <p className="font-medium text-gray-900">
+                                <p className="text-sm md:text-base font-medium text-gray-900">
                                   {option.name}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-xs md:text-sm text-gray-600">
                                   {option.available} of {option.supply}{" "}
                                   available
                                 </p>
                               </div>
                               <div className="text-right">
-                                <p className="font-semibold text-blue-600">
+                                <p className="text-sm md:text-base font-semibold text-blue-600">
                                   {formatPrice(option.price)} PC
                                 </p>
                                 {disabled && (
@@ -649,7 +665,7 @@ const EventDetailPage = () => {
                     disabled={
                       isPurchasing || isGeneratingMetadata || !canPurchase
                     }
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-medium transition-colors mb-3"
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed text-white py-3.5 md:py-3 px-4 rounded-lg font-medium transition-colors mb-3 text-base md:text-base touch-manipulation"
                   >
                     {isPurchasing
                       ? "Processing purchase..."
