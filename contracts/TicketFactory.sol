@@ -531,6 +531,21 @@ contract TicketFactory is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Check if an address is the organizer of an event
+     * @param eventId The event id to check
+     * @param addr The address to check
+     * @return bool True if the address is the event organizer
+     */
+    function isEventOrganizer(uint256 eventId, address addr) 
+        external 
+        view 
+        validEvent(eventId) 
+        returns (bool) 
+    {
+        return events[eventId].organizer == addr;
+    }
+
+    /**
      * @notice Mark a ticket as validated (used) by the event organizer
      * @param eventId The event id the ticket belongs to
      * @param tokenId The token id of the ticket to validate

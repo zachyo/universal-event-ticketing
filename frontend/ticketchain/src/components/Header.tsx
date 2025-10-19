@@ -59,12 +59,20 @@ export const Header = () => {
               Create Event
             </Link>
             {connectionStatus === "connected" && (
-              <Link
-                to="/my-tickets"
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
-              >
-                My Tickets
-              </Link>
+              <>
+                <Link
+                  to="/my-tickets"
+                  className="transition-colors hover:text-foreground/80 text-foreground/60"
+                >
+                  My Tickets
+                </Link>
+                <Link
+                  to="/organizer-scan"
+                  className="transition-colors hover:text-foreground/80 text-foreground/60"
+                >
+                  Scan Tickets
+                </Link>
+              </>
             )}
           </nav>
         </div>

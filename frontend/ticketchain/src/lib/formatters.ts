@@ -102,6 +102,9 @@ export function formatTicket(
     purchasePrice: toBigInt(
       (ticket as { purchasePrice?: unknown }).purchasePrice
     ),
+    // Explicitly preserve currentOwner (don't let it become empty string)
+    currentOwner: normalizedCurrentOwner || ticket.currentOwner,
+    originalOwner: normalizedOriginalOwner || ticket.originalOwner,
     purchaseChain,
     event,
     purchaseChainMeta,

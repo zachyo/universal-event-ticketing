@@ -426,12 +426,15 @@ export function useUserTickets(address?: string): UseTicketsReturn {
 
     if (!ticketMetadataArray || !tokenIds) return [];
 
-    // Combine metadata with token IDs
+    // Combine metadata with token IDs and add currentOwner
+    // Note: getUserTicketsWithDetails only returns tickets owned by the queried address,
+    // so currentOwner is always the same as the queried userAddress
     return ticketMetadataArray.map((metadata, index) => ({
       ...metadata,
       tokenId: tokenIds[index],
+      currentOwner: userAddress || "", // Add currentOwner since contract doesn't return it
     }));
-  }, [batchData]);
+  }, [batchData, userAddress]);
 
   return {
     tickets,

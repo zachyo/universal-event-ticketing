@@ -1,11 +1,5 @@
 import { useState, useMemo } from "react";
-import {
-  Search,
-  Calendar,
-  MapPin,
-  SlidersHorizontal,
-  RefreshCw,
-} from "lucide-react";
+import { Calendar, RefreshCw } from "lucide-react";
 import { useEvents } from "../hooks/useContracts";
 import {
   EventCard,
@@ -13,61 +7,32 @@ import {
   EventGrid,
   EventsEmptyState,
 } from "../components/EventCard";
-import {
-  formatEvent,
-  sortEventsByDate,
-  filterEventsByStatus,
-  searchEvents,
-} from "../lib/formatters";
-
-type StatusFilter = "all" | "upcoming" | "live" | "ended";
-
-const STATUS_FILTERS: ReadonlyArray<{ key: StatusFilter; label: string }> = [
-  { key: "all", label: "All Events" },
-  { key: "upcoming", label: "Upcoming" },
-  { key: "live", label: "Live" },
-  { key: "ended", label: "Ended" },
-];
+import { formatEvent } from "../lib/formatters";
+import { useEventSearch } from "../hooks/useEventSearch";
+import { SearchBar } from "../components/search/SearchBar";
+import { FilterPanel } from "../components/search/FilterPanel";
 
 const EventsPage = () => {
   const { events, loading, error, refetch } = useEvents();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [showFilters, setShowFilters] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Format and filter events
-  const filteredEvents = useMemo(() => {
+  // Format events
+  const formattedEvents = useMemo(() => {
     if (!events.length) return [];
+    return events.map(formatEvent);
+  }, [events]);
 
-    let formattedEvents = events.map(formatEvent);
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      formattedEvents = searchEvents(formattedEvents, searchQuery);
-    }
-
-    // Apply status filter
-    formattedEvents = filterEventsByStatus(formattedEvents, statusFilter);
-
-    // Apply sorting
-    formattedEvents = sortEventsByDate(formattedEvents, sortOrder === "asc");
-
-    return formattedEvents;
-  }, [events, searchQuery, statusFilter, sortOrder]);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleStatusFilterChange = (status: StatusFilter) => {
-    setStatusFilter(status);
-  };
-
-  const handleSortOrderChange = (order: "asc" | "desc") => {
-    setSortOrder(order);
-  };
+  // Use search hook
+  const {
+    filteredEvents,
+    isSearching,
+    searchQuery,
+    setSearchQuery,
+    filters,
+    setFilters,
+    clearFilters,
+    resultCount,
+  } = useEventSearch(formattedEvents);
 
   const handleRefresh = async () => {
     if (!refetch) return;
@@ -116,151 +81,74 @@ const EventsPage = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-8">
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search events by name, venue, or description..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <div className="mb-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Filter Sidebar */}
+        <aside className="lg:col-span-1">
+          <FilterPanel
+            filters={filters}
+            onFiltersChange={setFilters}
+            onClearFilters={clearFilters}
           />
-        </div>
+        </aside>
 
-        {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-4">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filters
-          </button>
+        {/* Main Content */}
+        <div className="lg:col-span-3">
+          {/* Search Bar */}
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            isSearching={isSearching}
+            className="mb-6"
+          />
 
-          {/* Quick Status Filters */}
-          <div className="flex gap-2">
-            {STATUS_FILTERS.map((filter) => (
-              <button
-                key={filter.key}
-                onClick={() => handleStatusFilterChange(filter.key)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  statusFilter === filter.key
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort Order */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleSortOrderChange("asc")}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                sortOrder === "asc"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              Earliest First
-            </button>
-            <button
-              onClick={() => handleSortOrderChange("desc")}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                sortOrder === "desc"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              Latest First
-            </button>
-          </div>
-        </div>
-
-        {/* Extended Filters */}
-        {showFilters && (
-          <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location
-                </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Filter by venue..."
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date Range
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price Range
-                </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Any Price</option>
-                  <option value="free">Free</option>
-                  <option value="0-0.1">0 - 0.1 ETH</option>
-                  <option value="0.1-0.5">0.1 - 0.5 ETH</option>
-                  <option value="0.5+">0.5+ ETH</option>
-                </select>
-              </div>
+          {/* Results Count */}
+          {!loading && (
+            <div className="mb-6 flex items-center justify-between">
+              <p className="text-gray-600">
+                {resultCount} event{resultCount !== 1 ? "s" : ""} found
+                {searchQuery && ` for "${searchQuery}"`}
+              </p>
+              {resultCount > 0 && (
+                <p className="text-sm text-gray-500">
+                  Sorted by:{" "}
+                  {filters.sortBy === "date"
+                    ? "Date (Nearest First)"
+                    : filters.sortBy === "newest"
+                    ? "Newly Created"
+                    : filters.sortBy === "popular"
+                    ? "Most Popular"
+                    : filters.sortBy}
+                </p>
+              )}
             </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* Results Count */}
-      {!loading && (
-        <div className="mb-6">
-          <p className="text-gray-600">
-            {filteredEvents.length} event
-            {filteredEvents.length !== 1 ? "s" : ""} found
-            {searchQuery && ` for "${searchQuery}"`}
-          </p>
+          {/* Events Grid */}
+          {loading ? (
+            <EventGrid>
+              {Array.from({ length: 6 }).map((_, index) => (
+                <EventCardSkeleton key={index} />
+              ))}
+            </EventGrid>
+          ) : filteredEvents.length > 0 ? (
+            <EventGrid>
+              {filteredEvents.map((event) => (
+                <EventCard key={event.eventId} event={event} />
+              ))}
+            </EventGrid>
+          ) : (
+            <EventsEmptyState
+              message={
+                searchQuery
+                  ? `No events found matching "${searchQuery}"`
+                  : filters.status !== "all"
+                  ? `No ${filters.status} events found`
+                  : "No events available at the moment"
+              }
+            />
+          )}
         </div>
-      )}
-
-      {/* Events Grid */}
-      {loading ? (
-        <EventGrid>
-          {Array.from({ length: 6 }).map((_, index) => (
-            <EventCardSkeleton key={index} />
-          ))}
-        </EventGrid>
-      ) : filteredEvents.length > 0 ? (
-        <EventGrid>
-          {filteredEvents.map((event) => (
-            <EventCard key={event.eventId} event={event} />
-          ))}
-        </EventGrid>
-      ) : (
-        <EventsEmptyState
-          message={
-            searchQuery
-              ? `No events found matching "${searchQuery}"`
-              : statusFilter !== "all"
-              ? `No ${statusFilter} events found`
-              : "No events available at the moment"
-          }
-        />
-      )}
+      </div>
     </div>
   );
 };

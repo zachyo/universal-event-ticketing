@@ -1,14 +1,14 @@
-import { Routes, Route, Outlet } from 'react-router-dom';
-import { Header } from './components/Header';
-import { Footer } from './components/Footer';
-import { HomePage } from './pages/HomePage';
-import EventsPage from './pages/EventsPage';
-import EventDetailPage from './pages/EventDetailPage';
-import { MarketplacePage } from './pages/MarketplacePage';
-import { CreateEventPage } from './pages/CreateEventPage';
-import MyTicketsPage from './pages/MyTicketsPage';
-import VerifyPage from './pages/VerifyPage';
-
+import { Routes, Route, Outlet } from "react-router-dom";
+import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
+import { HomePage } from "./pages/HomePage";
+import EventsPage from "./pages/EventsPage";
+import EventDetailPage from "./pages/EventDetailPage";
+import { MarketplacePage } from "./pages/MarketplacePage";
+import { CreateEventPage } from "./pages/CreateEventPage";
+import MyTicketsPage from "./pages/MyTicketsPage";
+import VerifyPage from "./pages/VerifyPage";
+import { OrganizerVerificationPage } from "./pages/OrganizerVerificationPage";
 
 const AppLayout = () => (
   <div className="min-h-screen flex flex-col font-sans">
@@ -31,6 +31,7 @@ function App() {
         <Route path="create-event" element={<CreateEventPage />} />
         <Route path="my-tickets" element={<MyTicketsPage />} />
         <Route path="verify" element={<VerifyPage />} />
+        <Route path="organizer-scan" element={<OrganizerVerificationPage />} />
       </Route>
     </Routes>
   );

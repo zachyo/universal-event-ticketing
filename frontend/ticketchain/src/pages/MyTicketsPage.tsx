@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { parseUnits } from "viem";
-import { Filter, Search, QrCode, AlertCircle } from "lucide-react";
+import { Search, QrCode, AlertCircle, Package } from "lucide-react";
 import {
   useUserTickets,
   useListTicket,
   useEvents,
+  useMarketplaceListings,
 } from "../hooks/useContracts";
 import {
   TicketCard,
@@ -22,6 +23,13 @@ import {
 } from "../lib/formatters";
 import { PC_TOKEN } from "../lib/contracts";
 import type { FormattedEvent } from "../types";
+import { ViewQRModal } from "../components/ViewQRModal";
+import {
+  TicketFilters,
+  type TicketStatusFilter,
+  type TicketSortOption,
+} from "../components/TicketFilters";
+import { BulkListingModal } from "../components/marketplace/BulkListingModal";
 
 interface ListTicketModalProps {
   isOpen: boolean;
@@ -122,14 +130,6 @@ function ListTicketModal({
   );
 }
 
-type StatusFilter = "all" | "valid" | "used";
-
-const STATUS_FILTERS: Array<{ key: StatusFilter; label: string }> = [
-  { key: "all", label: "All Tickets" },
-  { key: "valid", label: "Valid" },
-  { key: "used", label: "Used" },
-];
-
 const MyTicketsPage = () => {
   const { connectionStatus, universalAccount, handleConnectToPushWallet } =
     usePushWalletContext();
@@ -210,11 +210,18 @@ const MyTicketsPage = () => {
     useUserTickets(pushAccountAddress);
   const { listTicket } = useListTicket();
   const { events, loading: eventsLoading } = useEvents();
+  const { listings } = useMarketplaceListings();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<TicketStatusFilter>("all");
+  const [sortBy, setSortBy] = useState<TicketSortOption>("recent");
   const [showListModal, setShowListModal] = useState(false);
   const [selectedTokenId, setSelectedTokenId] = useState<number | null>(null);
+  const [showBulkListModal, setShowBulkListModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedTicketForQR, setSelectedTicketForQR] = useState<
+    (typeof formattedTickets)[0] | null
+  >(null);
 
   const formattedEvents = useMemo(() => events.map(formatEvent), [events]);
 
@@ -227,10 +234,29 @@ const MyTicketsPage = () => {
   const formattedTickets = useMemo(() => {
     if (!tickets.length) return [];
 
-    return tickets.map((ticket) =>
-      formatTicket(ticket, eventsById.get(Number(ticket.eventId)))
-    );
+    const formatted = tickets.map((ticket) => {
+      console.log("Raw ticket from contract:", {
+        tokenId: ticket.tokenId,
+        currentOwner: ticket.currentOwner,
+        originalOwner: ticket.originalOwner,
+      });
+      return formatTicket(ticket, eventsById.get(Number(ticket.eventId)));
+    });
+
+    console.log("Formatted tickets:", formatted);
+    return formatted;
   }, [tickets, eventsById]);
+
+  // Create a map of tokenId to listing for quick lookup
+  const listingsByTokenId = useMemo(() => {
+    const map = new Map<number, boolean>();
+    listings.forEach((listing) => {
+      if (listing.active) {
+        map.set(Number(listing.tokenId), true);
+      }
+    });
+    return map;
+  }, [listings]);
 
   const ticketStats = useMemo(() => {
     let valid = 0;
@@ -286,19 +312,60 @@ const MyTicketsPage = () => {
 
     // Apply status filter
     if (statusFilter !== "all") {
-      visibleTickets = visibleTickets.filter((ticket) =>
-        statusFilter === "valid"
-          ? ticket.ticketStatus !== "used"
-          : ticket.ticketStatus === "used"
-      );
+      if (statusFilter === "valid") {
+        visibleTickets = visibleTickets.filter(
+          (ticket) => ticket.ticketStatus !== "used"
+        );
+      } else if (statusFilter === "used") {
+        visibleTickets = visibleTickets.filter(
+          (ticket) => ticket.ticketStatus === "used"
+        );
+      } else if (statusFilter === "listed") {
+        visibleTickets = visibleTickets.filter((ticket) =>
+          listingsByTokenId.has(ticket.tokenId)
+        );
+      } else if (statusFilter === "unlisted") {
+        visibleTickets = visibleTickets.filter(
+          (ticket) =>
+            !listingsByTokenId.has(ticket.tokenId) &&
+            ticket.ticketStatus !== "used"
+        );
+      }
     }
 
+    // Apply sorting
+    visibleTickets.sort((a, b) => {
+      switch (sortBy) {
+        case "recent":
+          // Most recently purchased first (higher tokenId = more recent)
+          return b.tokenId - a.tokenId;
+        case "event-date":
+          // Upcoming events first
+          if (!a.event || !b.event) return 0;
+          return a.event.startTime.getTime() - b.event.startTime.getTime();
+        case "price-high":
+          return Number(b.purchasePrice - a.purchasePrice);
+        case "price-low":
+          return Number(a.purchasePrice - b.purchasePrice);
+        case "name":
+          if (!a.event || !b.event) return 0;
+          return a.event.name.localeCompare(b.event.name);
+        default:
+          return 0;
+      }
+    });
+
     return visibleTickets;
-  }, [formattedTickets, searchQuery, statusFilter]);
+  }, [formattedTickets, searchQuery, statusFilter, sortBy, listingsByTokenId]);
 
   const handleListTicket = (tokenId: number) => {
     setSelectedTokenId(tokenId);
     setShowListModal(true);
+  };
+
+  const handleViewQR = (ticket: (typeof formattedTickets)[0]) => {
+    setSelectedTicketForQR(ticket);
+    setShowQRModal(true);
   };
 
   const handleConfirmList = async (tokenId: number, price: string) => {
@@ -398,7 +465,18 @@ const MyTicketsPage = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">My Tickets</h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-4xl font-bold text-gray-900">My Tickets</h1>
+          {!isLoading && filteredTickets.length > 0 && (
+            <button
+              onClick={() => setShowBulkListModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            >
+              <Package className="w-5 h-5" />
+              Bulk List Tickets
+            </button>
+          )}
+        </div>
         <p className="text-gray-600">
           Your NFT ticket collection. Show QR codes at events or list them for
           sale.
@@ -420,30 +498,12 @@ const MyTicketsPage = () => {
         </div>
 
         {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">
-              Filter by status:
-            </span>
-          </div>
-
-          <div className="flex gap-2">
-            {STATUS_FILTERS.map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setStatusFilter(key)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  statusFilter === key
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <TicketFilters
+          statusFilter={statusFilter}
+          sortBy={sortBy}
+          onStatusFilterChange={setStatusFilter}
+          onSortChange={setSortBy}
+        />
       </div>
 
       {/* Stats */}
@@ -504,6 +564,9 @@ const MyTicketsPage = () => {
               showQR={true}
               showListButton={ticket.ticketStatus !== "used"}
               onList={handleListTicket}
+              onViewQR={handleViewQR}
+              showListingBadge={true}
+              isListed={listingsByTokenId.has(ticket.tokenId)}
             />
           ))}
         </TicketGrid>
@@ -531,6 +594,40 @@ const MyTicketsPage = () => {
         tokenId={selectedTokenId || 0}
         onList={handleConfirmList}
       />
+
+      {/* Bulk Listing Modal */}
+      <BulkListingModal
+        isOpen={showBulkListModal}
+        onClose={() => setShowBulkListModal(false)}
+        availableTickets={formattedTickets
+          .filter(
+            (ticket) =>
+              ticket.ticketStatus !== "used" &&
+              !listingsByTokenId.has(ticket.tokenId)
+          )
+          .map((ticket) => ({
+            tokenId: BigInt(ticket.tokenId),
+            eventName: ticket.event?.name || `Event #${ticket.eventId}`,
+            ticketTypeName: `Type #${ticket.ticketTypeId}`,
+            originalPrice: ticket.purchasePrice,
+          }))}
+        onSuccess={() => {
+          setShowBulkListModal(false);
+          refetch();
+        }}
+      />
+
+      {/* View QR Modal */}
+      {selectedTicketForQR && (
+        <ViewQRModal
+          isOpen={showQRModal}
+          onClose={() => {
+            setShowQRModal(false);
+            setSelectedTicketForQR(null);
+          }}
+          ticket={selectedTicketForQR}
+        />
+      )}
     </div>
   );
 };

@@ -45,6 +45,9 @@ interface TicketCardProps {
   showQR?: boolean;
   showListButton?: boolean;
   onList?: (tokenId: number) => void;
+  onViewQR?: (ticket: FormattedTicket) => void;
+  showListingBadge?: boolean;
+  isListed?: boolean;
 }
 
 export function TicketCard({
@@ -52,6 +55,9 @@ export function TicketCard({
   showQR = true,
   showListButton = true,
   onList,
+  onViewQR,
+  showListingBadge = false,
+  isListed = false,
 }: TicketCardProps) {
   const [showQRCode, setShowQRCode] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -159,13 +165,20 @@ export function TicketCard({
                 : "Date coming soon"}
             </CardDescription>
           </div>
-          {eventStatus && (
-            <span
-              className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[eventStatus].className}`}
-            >
-              {statusStyles[eventStatus].label}
-            </span>
-          )}
+          <div className="flex flex-col gap-2 items-end">
+            {eventStatus && (
+              <span
+                className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[eventStatus].className}`}
+              >
+                {statusStyles[eventStatus].label}
+              </span>
+            )}
+            {showListingBadge && isListed && (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold bg-green-100 text-green-800 border border-green-200">
+                <Tag className="h-3 w-3" /> Listed
+              </span>
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -180,12 +193,23 @@ export function TicketCard({
                     Present this code at the event entrance to verify ownership
                     on Push Chain.
                   </p>
+                  {onViewQR && (
+                    <button
+                      onClick={() => onViewQR(ticket)}
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                      <QrCode className="h-3.5 w-3.5" />
+                      View Full Size QR
+                    </button>
+                  )}
                 </div>
                 <div className="self-center rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                   <QRCodeDisplay
-                    tokenId={ticket.tokenId}
-                    eventId={ticket.eventId}
-                    size={140}
+                    tokenId={BigInt(ticket.tokenId)}
+                    eventId={BigInt(ticket.eventId)}
+                    owner={ticket.currentOwner}
+                    size="sm"
+                    showDownload={false}
                   />
                 </div>
               </div>
