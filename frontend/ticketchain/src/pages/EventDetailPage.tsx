@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
 import {
   Calendar,
   MapPin,
@@ -10,7 +10,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useGetEvent, useTicketTypes } from "../hooks/useContracts";
-import { useAutoMetadata } from "../hooks/useAutoMetadata";
+import { uploadTicketMetadata } from "../hooks/useAutoMetadata";
 import {
   formatEvent,
   formatDateTime,
@@ -22,7 +22,12 @@ import {
   getPriceRange,
   formatPriceRange,
 } from "../lib/formatters";
-import { TicketFactoryABI, TICKET_FACTORY_ADDRESS } from "../lib/contracts";
+import {
+  TicketFactoryABI,
+  TICKET_FACTORY_ADDRESS,
+  TicketNFTABI,
+  TICKET_NFT_ADDRESS,
+} from "../lib/contracts";
 import {
   usePushChainClient,
   usePushWalletContext,
@@ -79,11 +84,16 @@ const EventDetailPage = () => {
     error: ticketTypesError,
     refetch: refetchTicketTypes,
   } = useTicketTypes(eventId);
+  const { data: tokenCounterData, refetch: refetchTokenCounter } =
+    useReadContract({
+      address: TICKET_NFT_ADDRESS as `0x${string}`,
+      abi: TicketNFTABI,
+      functionName: "tokenCounter",
+    });
   const { pushChainClient, isInitialized } = usePushChainClient();
   const { connectionStatus, handleConnectToPushWallet, universalAccount } =
     usePushWalletContext();
   const { PushChain } = usePushChain();
-  const { generateAndUploadMetadata } = useAutoMetadata();
 
   const ticketTypeOptions = useMemo<TicketTypeOption[]>(() => {
     if (!ticketTypes) return [];
@@ -250,12 +260,57 @@ const EventDetailPage = () => {
 
     try {
       setIsPurchasing(true);
+      setIsGeneratingMetadata(true);
+
+      let currentCounter: bigint | undefined;
+      if (refetchTokenCounter) {
+        try {
+          const refetchResponse = await refetchTokenCounter();
+          const result = (refetchResponse as { result?: unknown })?.result;
+          if (typeof result === "bigint") {
+            currentCounter = result;
+          } else if (typeof result === "number") {
+            currentCounter = BigInt(result);
+          } else if (result !== undefined && result !== null) {
+            currentCounter = BigInt(result as bigint);
+          }
+        } catch (error) {
+          console.warn("Failed to refetch token counter", error);
+        }
+      }
+
+      if (currentCounter === undefined) {
+        const data = tokenCounterData;
+        if (typeof data === "bigint") {
+          currentCounter = data;
+        } else if (typeof data === "number") {
+          currentCounter = BigInt(data);
+        } else if (data !== undefined && data !== null) {
+          currentCounter = BigInt(data as bigint);
+        } else {
+          currentCounter = 0n;
+        }
+      }
+
+      const nextTokenId = currentCounter + 1n;
+      const purchaseChain = "Push Chain Universal";
+
+      const { tokenURI } = await uploadTicketMetadata({
+        tokenId: Number(nextTokenId),
+        event: formattedEvent,
+        ticketTypeName: selectedTicketType.name,
+        purchasePrice: selectedTicketType.price,
+        purchaseChain,
+        tierImageIpfsHash: selectedTicketType.imageIpfsHash,
+      });
+
+      setIsGeneratingMetadata(false);
 
       const ticketTypeId = selectedTicketType.ticketTypeId;
       const txData = PushChain.utils.helpers.encodeTxData({
         abi: Array.from(TicketFactoryABI),
-        functionName: "purchaseTickets",
-        args: [BigInt(eventId), ticketTypeId, 1],
+        functionName: "purchaseTicketWithURI",
+        args: [BigInt(eventId), ticketTypeId, tokenURI],
       });
 
       const tx = await pushChainClient.universal.sendTransaction({
@@ -264,54 +319,8 @@ const EventDetailPage = () => {
         value: selectedTicketType.price,
       });
 
-      const receipt = await tx.wait();
+      await tx.wait();
       setTxHash(tx.hash);
-
-      // Extract tokenId from TicketMinted event in the receipt
-      let mintedTokenId: bigint | null = null;
-
-      if (receipt && receipt.logs) {
-        // TicketMinted event signature: TicketMinted(uint256 indexed tokenId, address indexed buyer, uint256 eventId, uint256 ticketTypeId)
-        const ticketMintedTopic =
-          "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f";
-
-        for (const log of receipt.logs) {
-          if (
-            log.topics &&
-            log.topics[0] === ticketMintedTopic &&
-            log.topics[1]
-          ) {
-            // First indexed parameter (tokenId) is in topics[1]
-            mintedTokenId = BigInt(log.topics[1]);
-            break;
-          }
-        }
-      }
-
-      // Generate and upload metadata if tokenId was found
-      if (mintedTokenId !== null) {
-        try {
-          setIsGeneratingMetadata(true);
-
-          const formattedEvent = formatEvent(event);
-          // Get chain information - Push Chain uses universal chain abstraction
-          const purchaseChain = "Push Chain Universal";
-
-          await generateAndUploadMetadata({
-            tokenId: Number(mintedTokenId),
-            event: formattedEvent,
-            ticketTypeName: selectedTicketType.name,
-            purchasePrice: selectedTicketType.price,
-            purchaseChain,
-          });
-        } catch (metadataError) {
-          console.error("Failed to generate metadata:", metadataError);
-          // Don't fail the entire purchase if metadata generation fails
-          // The ticket is already purchased, metadata can be added later
-        } finally {
-          setIsGeneratingMetadata(false);
-        }
-      }
 
       localStorage.removeItem("ticketchain_cache");
       await refetchEvent();
@@ -715,7 +724,7 @@ const EventDetailPage = () => {
                       {!isGeneratingMetadata && (
                         <p className="mt-1 text-xs">
                           <Link
-                            to="/tickets"
+                            to="/my-tickets"
                             className="font-semibold underline"
                           >
                             View in My Tickets →

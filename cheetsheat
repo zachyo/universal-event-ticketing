@@ -1,0 +1,17 @@
+npx hardhat verify --network push_testnet \
+  0xb01EA7C00cCe6D8d481e4947c8dBd8589e5fD04c \
+  "TicketChain NFT" \
+  "TCNFT" \
+  0xa5526df9eb2016d3624b4dc36a91608797b5b6d5 \
+  0x0000000000000000000000000000000000000000 \
+  0
+
+npx hardhat verify --network push_testnet \
+  0xbaf600B3343a32Dfff5991D2c470D885B4D1E2Ea \
+  0xb01EA7C00cCe6D8d481e4947c8dBd8589e5fD04c
+
+npx hardhat verify --network push_testnet \
+  0x46132Ea822faA3aa9BdCdBa0693cf51E86703065 \
+  0xb01EA7C00cCe6D8d481e4947c8dBd8589e5fD04c
+
+  
