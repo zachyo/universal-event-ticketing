@@ -39,6 +39,7 @@ import {
   DialogClose,
 } from "../components/ui/dialog";
 import { MarketplaceSection } from "../components/event/MarketplaceSection";
+import { cn } from "../utils/cn";
 
 type TicketTypeOption = {
   id: string;
@@ -141,17 +142,17 @@ const EventDetailPage = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-300 rounded w-1/4 mb-4"></div>
-          <div className="h-64 bg-gray-300 rounded mb-6"></div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="mb-4 h-8 w-1/4 rounded bg-border/60"></div>
+          <div className="mb-6 h-64 rounded bg-border/60"></div>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <div className="h-6 bg-gray-300 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-gray-300 rounded w-full mb-2"></div>
-              <div className="h-4 bg-gray-300 rounded w-5/6 mb-2"></div>
-              <div className="h-4 bg-gray-300 rounded w-4/6"></div>
+              <div className="mb-4 h-6 w-3/4 rounded bg-border/60"></div>
+              <div className="mb-2 h-4 w-full rounded bg-border/60"></div>
+              <div className="mb-2 h-4 w-5/6 rounded bg-border/60"></div>
+              <div className="h-4 w-4/6 rounded bg-border/60"></div>
             </div>
             <div>
-              <div className="h-48 bg-gray-300 rounded"></div>
+              <div className="h-48 rounded bg-border/60"></div>
             </div>
           </div>
         </div>
@@ -161,20 +162,20 @@ const EventDetailPage = () => {
 
   if (eventError || ticketTypesError || !event) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
-          <Ticket className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+      <div className="container px-4 py-16">
+        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border/70 bg-card/85 px-6 py-12 text-center">
+          <Ticket className="mx-auto mb-4 h-14 w-14 text-primary" />
+          <h3 className="text-xl font-semibold text-foreground">
             Event Not Found
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="mt-3 text-sm text-muted-foreground">
             {eventError?.toString() ||
               ticketTypesError?.toString() ||
               "The event you are looking for does not exist."}
           </p>
           <Link
             to="/events"
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
           >
             ← Back to Events
           </Link>
@@ -337,157 +338,175 @@ const EventDetailPage = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "live":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "upcoming":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "ended":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      case "inactive":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Link
-            to="/events"
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Events
-          </Link>
-        </div>
-      </div>
+    <div className="space-y-10 pb-16">
+      <div className="container px-4 space-y-6 pt-4">
+        <Link
+          to="/events"
+          className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Events
+        </Link>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Event Hero */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
-          <div className="relative h-64 md:h-96">
-            <img
-              src={formattedEvent.imageUrl || "/placeholder-event.jpg"}
-              alt={formattedEvent.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = "/placeholder-event.jpg";
-              }}
-            />
-
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-
-            {/* Event Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <div className="flex items-center gap-3 mb-4">
-                <div
-                  className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                    status
-                  )} bg-white`}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </div>
-                {isSoldOut && (
-                  <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                    Sold Out
-                  </div>
-                )}
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-border/70 bg-card/85 shadow-[0_24px_80px_-32px_rgba(129,54,255,0.65)]">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-transparent to-accent/30" />
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="relative">
+              <div className="h-64 overflow-hidden rounded-[2.5rem] lg:h-full">
+                <img
+                  src={formattedEvent.imageUrl || "/placeholder-event.jpg"}
+                  alt={formattedEvent.name}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/placeholder-event.jpg";
+                  }}
+                />
               </div>
-
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                {formattedEvent.name}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-4 text-sm">
-                <div className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  {formatDateTime(formattedEvent.startTime)}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-6 pb-6 pt-24 text-white">
+                <div className="flex flex-wrap items-center gap-3 pb-4">
+                  <span
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider",
+                      status === "live"
+                        ? "border-emerald-300 bg-emerald-400/20 text-emerald-100"
+                        : status === "upcoming"
+                        ? "border-sky-300 bg-sky-400/20 text-sky-100"
+                        : status === "ended"
+                        ? "border-zinc-300 bg-zinc-500/20 text-zinc-100"
+                        : "border-rose-300 bg-rose-400/20 text-rose-100"
+                    )}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </span>
+                  {isSoldOut && (
+                    <span className="rounded-full border border-rose-300 bg-rose-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-rose-100">
+                      Sold Out
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  {formattedEvent.venue}
-                </div>
-                <div className="flex items-center">
-                  <Users className="w-4 h-4 mr-2" />
-                  {availability}
+                <h1 className="text-3xl font-semibold leading-tight md:text-4xl">
+                  {formattedEvent.name}
+                </h1>
+                <div className="mt-4 flex flex-wrap gap-4 text-sm text-white/80">
+                  <div className="inline-flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {formatDateTime(formattedEvent.startTime)}
+                  </div>
+                  <div className="inline-flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    {formattedEvent.venue}
+                  </div>
+                  <div className="inline-flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {availability}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            {isOrganizer && (
-              <div className="absolute top-4 right-4">
-                <Link to={`/event-analytics/${eventId}`}>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 font-medium shadow-lg">
-                    <BarChart3 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Analytics</span>
-                  </button>
+            <div className="relative flex flex-col justify-between gap-6 border-t border-t-border/30 bg-card/85 px-6 py-6 lg:border-l lg:border-t-0">
+              {isOrganizer && (
+                <Link
+                  to={`/event-analytics/${eventId}`}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  Event Analytics
                 </Link>
+              )}
+              <div className="space-y-4 text-sm text-muted-foreground">
+                <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+                  <span className="text-xs uppercase tracking-wider text-primary">
+                    Price Range
+                  </span>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">
+                    {priceText}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+                  <span className="text-xs uppercase tracking-wider text-primary">
+                    Time Until Event
+                  </span>
+                  <p className="mt-2 text-base text-foreground">
+                    {status === "upcoming"
+                      ? timeUntil
+                      : status === "live"
+                      ? "Happening now"
+                      : status === "ended"
+                      ? "Event ended"
+                      : "Inactive"}
+                  </p>
+                </div>
               </div>
-            )}
+              <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">
+                Organized by{" "}
+                <span className="font-mono text-sm text-foreground">
+                  {formatAddress(formattedEvent.organizer)}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-          {/* Event Details */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
-            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6">
-              <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">
-                About This Event
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="space-y-6">
+            <div className="glass-card rounded-[2rem] border border-border/70 bg-card/85 p-6 md:p-8">
+              <h2 className="text-2xl font-semibold text-foreground md:text-3xl">
+                About this experience
               </h2>
-              <div className="prose max-w-none">
-                <p className="text-gray-700 leading-relaxed">
-                  {formattedEvent.description}
-                </p>
-              </div>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
+                {formattedEvent.description}
+              </p>
             </div>
 
             {/* Event Details */}
-            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6">
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">
-                Event Details
+            <div className="glass-card rounded-[2rem] border border-border/70 bg-card/85 p-6 md:p-8">
+              <h3 className="text-xl font-semibold text-foreground md:text-2xl">
+                Event essentials
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">
+              <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Date & Time
                   </h4>
-                  <div className="space-y-1 text-gray-600">
+                  <div className="space-y-1 text-sm text-foreground">
                     <p>Starts: {formatDateTime(formattedEvent.startTime)}</p>
                     <p>Ends: {formatDateTime(formattedEvent.endTime)}</p>
                     {status === "upcoming" && (
-                      <p className="text-blue-600 font-medium">{timeUntil}</p>
+                      <p className="text-primary font-semibold">{timeUntil}</p>
                     )}
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Location</h4>
-                  <p className="text-gray-600">{formattedEvent.venue}</p>
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Location
+                  </h4>
+                  <p className="text-sm text-foreground">
+                    {formattedEvent.venue}
+                  </p>
                 </div>
 
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Organizer</h4>
-                  <p className="text-gray-600 font-mono text-sm">
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Organizer
+                  </h4>
+                  <p className="font-mono text-sm text-foreground">
                     {formatAddress(formattedEvent.organizer)}
                   </p>
                 </div>
 
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Capacity</h4>
-                  <p className="text-gray-600">
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Capacity
+                  </h4>
+                  <p className="text-sm text-foreground">
                     {formattedEvent.totalSupply} total tickets
                   </p>
-                  <p className="text-gray-600">
-                    {formattedEvent.sold} sold,{" "}
+                  <p className="text-sm text-muted-foreground">
+                    {formattedEvent.sold} sold ·{" "}
                     {formattedEvent.totalSupply - formattedEvent.sold} remaining
                   </p>
                 </div>
@@ -496,11 +515,11 @@ const EventDetailPage = () => {
 
             {/* Ticket Types */}
             {ticketTypes && ticketTypes.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-                <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">
-                  Ticket Types
+              <div className="glass-card rounded-[2rem] border border-border/70 bg-card/85 p-6 md:p-8">
+                <h3 className="text-xl font-semibold text-foreground md:text-2xl">
+                  Ticket tiers
                 </h3>
-                <div className="space-y-3 md:space-y-4">
+                <div className="mt-4 space-y-4">
                   {ticketTypes.map((ticketType) => {
                     const available =
                       Number(ticketType.supply) - Number(ticketType.sold);
@@ -512,13 +531,12 @@ const EventDetailPage = () => {
                     return (
                       <div
                         key={ticketType.ticketTypeId?.toString()}
-                        className="border border-gray-200 rounded-lg p-3 md:p-4 flex gap-3 md:gap-4"
+                        className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-background/70 p-4 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        {/* Tier Image */}
                         <img
                           src={tierImageUrl}
                           alt={ticketType.name}
-                          className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0"
+                          className="h-16 w-16 rounded-2xl border border-border/60 object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src =
@@ -527,24 +545,24 @@ const EventDetailPage = () => {
                           }}
                         />
 
-                        <div className="flex-1 flex justify-between items-start">
+                        <div className="flex flex-1 items-center justify-between gap-4">
                           <div>
-                            <h4 className="font-medium text-base md:text-lg">
+                            <h4 className="text-lg font-semibold text-foreground">
                               {ticketType.name}
                             </h4>
-                            <p className="text-xl md:text-2xl font-bold text-blue-600">
-                              {formatPrice(ticketType.price)} PC
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs md:text-sm text-gray-600">
+                            <p className="text-sm text-muted-foreground">
                               {available} of {Number(ticketType.supply)}{" "}
                               available
                             </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl font-semibold text-primary">
+                              {formatPrice(ticketType.price)} PC
+                            </span>
                             {soldOut && (
-                              <p className="text-red-600 font-medium text-sm">
+                              <span className="rounded-full border border-rose-200 bg-rose-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-rose-500">
                                 Sold Out
-                              </p>
+                              </span>
                             )}
                           </div>
                         </div>
@@ -559,17 +577,16 @@ const EventDetailPage = () => {
             <MarketplaceSection eventId={eventId} />
           </div>
 
-          {/* Sidebar - Purchase Section */}
-          <div className="order-1 lg:order-2">
-            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 lg:sticky lg:top-8">
-              <div className="text-center mb-4 md:mb-6">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          <div className="space-y-6 lg:sticky lg:top-32">
+            <div className="glass-card rounded-[2rem] border border-border/70 bg-card/90 p-6 md:p-8">
+              <div className="text-center">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Choose your tier
+                </p>
+                <div className="mt-2 text-3xl font-semibold text-foreground">
                   {priceText}
                 </div>
-                <div className="text-xs md:text-sm text-gray-600 mb-2">
-                  Pay with any supported currency
-                </div>
-                <p className="text-gray-600">
+                <p className="mt-2 text-sm text-muted-foreground">
                   {selectedTicketType
                     ? `${selectedTicketType.available} of ${selectedTicketType.supply} available`
                     : ticketTypeOptions.length > 1
@@ -580,12 +597,12 @@ const EventDetailPage = () => {
                 </p>
               </div>
 
-              <div className="mb-4 md:mb-6">
-                <p className="text-xs md:text-sm font-medium text-gray-700 mb-2">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Select ticket tier
                 </p>
                 {ticketTypeOptions.length > 0 ? (
-                  <div className="space-y-2 md:space-y-2.5">
+                  <div className="space-y-2">
                     {ticketTypeOptions.map((option) => {
                       const isSelected = option.id === selectedTicketTypeId;
                       const disabled = option.soldOut;
@@ -601,22 +618,20 @@ const EventDetailPage = () => {
                             !disabled && setSelectedTicketTypeId(option.id)
                           }
                           disabled={disabled}
-                          className={`w-full rounded-lg border p-2.5 md:p-3 text-left transition touch-manipulation ${
+                          className={cn(
+                            "w-full rounded-2xl border px-4 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                            disabled &&
+                              "cursor-not-allowed opacity-60 hover:border-border/60",
                             isSelected
-                              ? "border-blue-600 bg-blue-50"
-                              : "border-gray-200 hover:border-blue-300"
-                          } ${
-                            disabled
-                              ? "cursor-not-allowed opacity-60 hover:border-gray-200"
-                              : ""
-                          }`}
+                              ? "border-primary bg-primary/10 shadow-[0_16px_40px_-24px_rgba(196,73,255,0.6)]"
+                              : "border-border/60 bg-background/70 hover:border-primary/40"
+                          )}
                         >
-                          <div className="flex items-start gap-2 md:gap-3">
-                            {/* Tier Image Thumbnail */}
+                          <div className="flex items-start gap-3">
                             <img
                               src={tierImageUrl}
                               alt={option.name}
-                              className="w-10 h-10 md:w-12 md:h-12 object-cover rounded flex-shrink-0"
+                              className="h-12 w-12 rounded-xl border border-border/60 object-cover"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src =
@@ -625,22 +640,22 @@ const EventDetailPage = () => {
                               }}
                             />
 
-                            <div className="flex-1 flex items-start justify-between gap-2 md:gap-3">
+                            <div className="flex flex-1 items-start justify-between gap-3">
                               <div>
-                                <p className="text-sm md:text-base font-medium text-gray-900">
+                                <p className="text-sm font-semibold text-foreground">
                                   {option.name}
                                 </p>
-                                <p className="text-xs md:text-sm text-gray-600">
+                                <p className="text-xs text-muted-foreground">
                                   {option.available} of {option.supply}{" "}
                                   available
                                 </p>
                               </div>
                               <div className="text-right">
-                                <p className="text-sm md:text-base font-semibold text-blue-600">
+                                <p className="text-sm font-semibold text-primary">
                                   {formatPrice(option.price)} PC
                                 </p>
                                 {disabled && (
-                                  <p className="text-xs font-medium text-red-600">
+                                  <p className="text-xs font-semibold uppercase tracking-wider text-rose-500">
                                     Sold Out
                                   </p>
                                 )}
@@ -652,7 +667,7 @@ const EventDetailPage = () => {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">
+                  <p className="rounded-2xl border border-border/60 bg-background/70 px-4 py-6 text-sm text-muted-foreground">
                     Tickets aren’t available yet for this event.
                   </p>
                 )}
@@ -665,7 +680,7 @@ const EventDetailPage = () => {
                     disabled={
                       isPurchasing || isGeneratingMetadata || !canPurchase
                     }
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed text-white py-3.5 md:py-3 px-4 rounded-lg font-medium transition-colors mb-3 text-base md:text-base touch-manipulation"
+                    className="w-full rounded-full bg-gradient-to-r from-primary via-primary to-accent px-5 py-3 text-sm font-semibold text-white shadow-[0_24px_60px_-24px_rgba(196,73,255,0.85)] transition hover:shadow-[0_26px_70px_-20px_rgba(196,73,255,0.95)] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
                   >
                     {isPurchasing
                       ? "Processing purchase..."
@@ -676,17 +691,19 @@ const EventDetailPage = () => {
                       : "Buy Ticket"}
                   </button>
                   {purchaseError && (
-                    <p className="text-sm text-red-600 mb-2">{purchaseError}</p>
+                    <p className="text-sm font-medium text-destructive">
+                      {purchaseError}
+                    </p>
                   )}
                   {txHash && pushChainClient && (
-                    <div className="text-sm text-green-600">
-                      <p className="font-medium">
+                    <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary-foreground">
+                      <p className="font-semibold">
                         {isGeneratingMetadata
                           ? "Purchase complete! Generating ticket metadata..."
                           : "Purchase successful!"}
                       </p>
                       <a
-                        className="underline"
+                        className="inline-flex items-center gap-2 text-xs font-medium underline"
                         href={pushChainClient.explorer.getTransactionUrl(
                           txHash
                         )}
@@ -696,8 +713,11 @@ const EventDetailPage = () => {
                         View on Explorer
                       </a>
                       {!isGeneratingMetadata && (
-                        <p className="mt-1">
-                          <Link to="/tickets" className="underline font-medium">
+                        <p className="mt-1 text-xs">
+                          <Link
+                            to="/tickets"
+                            className="font-semibold underline"
+                          >
                             View in My Tickets →
                           </Link>
                         </p>
@@ -706,36 +726,38 @@ const EventDetailPage = () => {
                   )}
                 </>
               ) : (
-                <div className="text-center py-3 mb-4">
+                <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-6 text-center text-sm font-semibold text-muted-foreground">
                   {isSoldOut && (
-                    <p className="text-red-600 font-medium">Sold Out</p>
+                    <p className="text-destructive">Sold Out</p>
                   )}
                   {status === "ended" && (
-                    <p className="text-gray-500 font-medium">Event Ended</p>
+                    <p className="text-muted-foreground">Event Ended</p>
                   )}
                   {status === "live" && (
-                    <p className="text-green-600 font-medium">Event is Live</p>
+                    <p className="text-primary">Event is Live</p>
                   )}
                   {status === "inactive" && (
-                    <p className="text-red-600 font-medium">Event Inactive</p>
+                    <p className="text-destructive">Event Inactive</p>
                   )}
                 </div>
               )}
 
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Tickets:</span>
-                  <span className="font-medium">
+              <div className="space-y-3 rounded-2xl border border-border/60 bg-background/70 px-4 py-4 text-sm">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Total Tickets</span>
+                  <span className="font-semibold text-foreground">
                     {formattedEvent.totalSupply}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Sold:</span>
-                  <span className="font-medium">{formattedEvent.sold}</span>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Sold</span>
+                  <span className="font-semibold text-foreground">
+                    {formattedEvent.sold}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Available:</span>
-                  <span className="font-medium">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Available</span>
+                  <span className="font-semibold text-foreground">
                     {formattedEvent.totalSupply - formattedEvent.sold}
                   </span>
                 </div>
@@ -743,18 +765,18 @@ const EventDetailPage = () => {
 
               {/* Progress Bar */}
               <div className="mt-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>Sales Progress</span>
-                  <span>
+                <div className="mb-2 flex justify-between text-xs uppercase tracking-wide text-muted-foreground">
+                  <span>Sales progress</span>
+                  <span className="text-foreground">
                     {Math.round(
                       (formattedEvent.sold / formattedEvent.totalSupply) * 100
                     )}
                     %
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-border">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="h-full rounded-full bg-gradient-to-r from-primary via-primary to-accent transition-all duration-300"
                     style={{
                       width: `${
                         (formattedEvent.sold / formattedEvent.totalSupply) * 100
@@ -781,36 +803,38 @@ const EventDetailPage = () => {
                 : "No tickets are currently available for this event."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 text-sm text-gray-600">
+          <div className="space-y-3 text-sm text-muted-foreground">
             <p>
               Make sure your Push Wallet is connected and funded with a
               supported currency.
             </p>
             {connectionStatus !==
               PushUI.CONSTANTS.CONNECTION.STATUS.CONNECTED && (
-              <p className="text-amber-600">
+              <p className="text-amber-500">
                 We'll prompt you to connect your Push Wallet before completing
                 the purchase.
               </p>
             )}
             {isPurchasing && (
-              <p className="text-blue-600 font-medium">
+              <p className="font-semibold text-primary">
                 Processing your purchase...
               </p>
             )}
             {isGeneratingMetadata && (
-              <p className="text-blue-600 font-medium">
+              <p className="font-semibold text-primary">
                 Generating your ticket metadata and uploading to IPFS...
               </p>
             )}
-            {purchaseError && <p className="text-red-600">{purchaseError}</p>}
+            {purchaseError && (
+              <p className="font-semibold text-destructive">{purchaseError}</p>
+            )}
           </div>
           <DialogFooter>
             <DialogClose asChild>
               <button
                 type="button"
                 disabled={isPurchasing || isGeneratingMetadata}
-                className="w-full sm:w-auto rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
                 Cancel
               </button>
@@ -819,7 +843,7 @@ const EventDetailPage = () => {
               type="button"
               onClick={handleConfirmQuickPurchase}
               disabled={isPurchasing || isGeneratingMetadata || !canPurchase}
-              className="w-full sm:w-auto rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600"
+              className="w-full rounded-full bg-gradient-to-r from-primary via-primary to-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_18px_50px_-20px_rgba(196,73,255,0.85)] transition hover:shadow-[0_22px_60px_-18px_rgba(196,73,255,0.95)] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground sm:w-auto"
             >
               {isPurchasing
                 ? "Processing..."

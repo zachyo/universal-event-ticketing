@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef } from "react";
 import {
   QrCode,
   Camera,
@@ -9,24 +9,13 @@ import {
   Upload,
   RefreshCw,
 } from "lucide-react";
-import {
-  useGetEvent,
-  useTicketDetails,
-  useTicketTypes,
-  useValidateTicket,
-} from "../hooks/useContracts";
+import { useTicketDetails, useValidateTicket } from "../hooks/useContracts";
 import { usePushWalletContext } from "@pushchain/ui-kit";
 import {
   validateQRCodeData,
   formatAddress,
-  formatEvent,
-  formatDateTime,
-  formatPriceWithCurrency,
 } from "../lib/formatters";
-import { getIPFSUrl } from "../lib/ipfs";
-import type { TicketNFT, NFTMetadata, FormattedEvent } from "../types";
-import { useReadContract } from "wagmi";
-import { TicketNFTABI, TICKET_NFT_ADDRESS } from "../lib/contracts";
+import type { TicketNFT } from "../types";
 
 interface TicketValidationResult {
   valid: boolean;
@@ -35,8 +24,6 @@ interface TicketValidationResult {
   ticket?: TicketNFT;
   error?: string;
 }
-
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const VerifyPage = () => {
   const { connectionStatus } = usePushWalletContext();
@@ -58,186 +45,8 @@ const VerifyPage = () => {
   const {
     ticketDetails,
     isLoading: isLoadingTicket,
-    error: ticketDetailsError,
     refetch: refetchTicketDetails,
   } = useTicketDetails(tokenId, { enabled: hasValidScan });
-
-  const {
-    event: rawEvent,
-    isLoading: isLoadingEvent,
-    error: eventError,
-  } = useGetEvent(eventId, { enabled: hasValidScan });
-
-  const formattedEvent = useMemo<FormattedEvent | undefined>(
-    () => (rawEvent ? formatEvent(rawEvent) : undefined),
-    [rawEvent]
-  );
-
-  const {
-    ticketTypes,
-    isLoading: isLoadingTicketTypes,
-    error: ticketTypesError,
-  } = useTicketTypes(eventId, { enabled: hasValidScan });
-
-  const ticketTypeName = useMemo(() => {
-    if (!ticketDetails || !ticketTypes) return undefined;
-    const typeId = Number(ticketDetails.ticketTypeId);
-    const match = ticketTypes.find(
-      (ticketType) => Number(ticketType.ticketTypeId) === typeId
-    );
-    return match?.name;
-  }, [ticketDetails, ticketTypes]);
-
-  const ticketExists = Boolean(
-    ticketDetails &&
-      ticketDetails.originalOwner &&
-      ticketDetails.originalOwner !== ZERO_ADDRESS
-  );
-
-  const {
-    data: ownerData,
-    isLoading: isLoadingOwner,
-    error: ownerError,
-  } = useReadContract({
-    address: TICKET_NFT_ADDRESS as `0x${string}`,
-    abi: TicketNFTABI,
-    functionName: "ownerOf",
-    args: [BigInt(tokenId)],
-    query: {
-      enabled: hasValidScan && ticketExists,
-    },
-  });
-
-  const currentOwner =
-    typeof ownerData === "string" && ownerData.length > 0
-      ? ownerData
-      : undefined;
-
-  const {
-    data: tokenURIData,
-    isLoading: isLoadingTokenUri,
-    error: tokenUriError,
-  } = useReadContract({
-    address: TICKET_NFT_ADDRESS as `0x${string}`,
-    abi: TicketNFTABI,
-    functionName: "tokenURI",
-    args: [BigInt(tokenId)],
-    query: {
-      enabled: hasValidScan && ticketExists,
-    },
-  });
-
-  const tokenURI =
-    typeof tokenURIData === "string" && tokenURIData.length > 0
-      ? tokenURIData
-      : undefined;
-
-  const resolvedMetadataUrl = useMemo(() => {
-    if (!tokenURI) return undefined;
-    return tokenURI.startsWith("ipfs://") ? getIPFSUrl(tokenURI) : tokenURI;
-  }, [tokenURI]);
-
-  const [metadata, setMetadata] = useState<NFTMetadata | null>(null);
-  const [metadataError, setMetadataError] = useState<string | null>(null);
-  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
-
-  useEffect(() => {
-    if (!resolvedMetadataUrl || !hasValidScan || !ticketExists) {
-      setMetadata(null);
-      setMetadataError(null);
-      setIsLoadingMetadata(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    const fetchMetadata = async () => {
-      setIsLoadingMetadata(true);
-      try {
-        const response = await fetch(resolvedMetadataUrl);
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch metadata: ${response.statusText}`);
-        }
-
-        const json = (await response.json()) as NFTMetadata;
-
-        if (!cancelled) {
-          setMetadata(json);
-          setMetadataError(null);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setMetadata(null);
-          setMetadataError(
-            error instanceof Error ? error.message : String(error)
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingMetadata(false);
-        }
-      }
-    };
-
-    void fetchMetadata();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [resolvedMetadataUrl, hasValidScan, ticketExists]);
-
-  const metadataAttributes = useMemo(() => {
-    if (!metadata?.attributes) {
-      return {
-        seat: undefined,
-        section: undefined,
-        row: undefined,
-      };
-    }
-
-    const findAttribute = (traitName: string) =>
-      metadata.attributes.find((attribute) => {
-        if (!attribute.trait_type) return false;
-        return attribute.trait_type.toLowerCase() === traitName.toLowerCase();
-      })?.value;
-
-    return {
-      seat: findAttribute("Seat") ?? findAttribute("Seat Number"),
-      section: findAttribute("Section"),
-      row: findAttribute("Row"),
-    };
-  }, [metadata]);
-
-  const formattedPurchasePrice = useMemo(() => {
-    if (!ticketDetails) return undefined;
-    return formatPriceWithCurrency(ticketDetails.purchasePrice);
-  }, [ticketDetails]);
-
-  const purchaseChainLabel = useMemo(() => {
-    if (!ticketDetails) return undefined;
-    const chain = ticketDetails.purchaseChain?.trim();
-    if (!chain) return "Push Chain";
-    if (chain.startsWith("chain:")) {
-      const id = chain.split("chain:")[1];
-      return id ? `Chain ${id}` : "Push Chain";
-    }
-    return chain;
-  }, [ticketDetails]);
-
-  const resolveErrorMessage = (error: unknown) => {
-    if (!error) return null;
-    if (error instanceof Error) return error.message;
-    if (typeof error === "string") return error;
-    return null;
-  };
-
-  const ticketDetailsErrorMessage = resolveErrorMessage(ticketDetailsError);
-  const eventErrorMessage = resolveErrorMessage(eventError);
-  const ticketTypesErrorMessage = resolveErrorMessage(ticketTypesError);
-  const ownerErrorMessage = resolveErrorMessage(ownerError);
-  const tokenUriErrorMessage = resolveErrorMessage(tokenUriError);
-  const metadataErrorMessage = metadataError;
 
   const handleQRScan = async (data: string) => {
     setQrData(data);

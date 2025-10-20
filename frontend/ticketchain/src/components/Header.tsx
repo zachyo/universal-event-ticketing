@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   PushUniversalAccountButton,
   usePushWalletContext,
@@ -6,150 +6,132 @@ import {
 
 import { Ticket, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { ThemeToggle } from "./ThemeToggle";
+import { cn } from "../utils/cn";
 
 export const Header = () => {
   const { connectionStatus } = usePushWalletContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // console.log("This is the push chain client", pushChainClient);
-  // console.log(
-  //   "Push UI connection status:",
-  //   PushUI.CONSTANTS.CONNECTION.STATUS.CONNECTED
-  // );
 
-  // const sendTokens = () => {
-  //   if (pushChainClient != null) {
-  //     pushChainClient.universal
-  //       .sendTransaction({
-  //         to: pushChainClient.universal.account,
-  //         // value: PushChain.utils.helpers.parseUnits("10000", 18), // 0.1 PC in uPC
-  //         // value: BigInt('100000000000000000') is equivalent here
-  //         funds: {
-  //           amount: PushChain.utils.helpers.parseUnits("10", 18),
-  //           token: pushChainClient.moveable.token.USDT,
-  //         },
-  //       })
-  //       .then((txHash) => alert(txHash))
-  //       .catch((err) => console.error(err, "some shit ain't right"));
-  //   }
-  // };
+  const primaryLinks = [
+    { to: "/events", label: "Events" },
+    { to: "/marketplace", label: "Marketplace" },
+  ];
+
+  const authenticatedLinks =
+    connectionStatus === "connected"
+      ? [
+          { to: "/my-tickets", label: "My Tickets" },
+          { to: "/organizer-scan", label: "Scan Tickets" },
+        ]
+      : [];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        {/* Logo */}
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center space-x-2">
-            <Ticket className="h-6 w-6 text-primary" />
-            <span className="font-bold">TicketChain</span>
-          </Link>
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex md:ml-6 items-center gap-6 text-sm">
-          <Link
-            to="/events"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Events
-          </Link>
-          <Link
-            to="/marketplace"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Marketplace
-          </Link>
-          <Link
-            to="/create-event"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Create Event
-          </Link>
-          {connectionStatus === "connected" && (
-            <>
-              <Link
-                to="/my-tickets"
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
-              >
-                My Tickets
-              </Link>
-              <Link
-                to="/organizer-scan"
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
-              >
-                Scan Tickets
-              </Link>
-            </>
-          )}
-        </nav>
-
-        {/* Desktop Wallet Button */}
-        <div className="hidden md:flex flex-1 items-center justify-end space-x-4">
-          <PushUniversalAccountButton />
-        </div>
-
-        {/* Mobile Menu Button & Wallet */}
-        <div className="flex md:hidden flex-1 items-center justify-end gap-2">
-          <div className="scale-90">
-            <PushUniversalAccountButton />
+    <header className="sticky top-0 z-50 bg-transparent">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[-1] h-32 bg-gradient-to-b from-background/90 via-background/70 to-transparent backdrop-blur-md" />
+      <div className="container px-4 py-4">
+        <div className="flex items-center gap-3 rounded-full border border-border/60 bg-background/85 px-4 py-3 shadow-[0_18px_60px_-24px_rgba(129,54,255,0.35)] backdrop-blur-xl transition-colors duration-300">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-1.5 font-semibold text-foreground/90 transition hover:bg-secondary hover:text-foreground"
+            >
+              <Ticket className="h-5 w-5 text-primary" />
+              TicketChain
+            </Link>
           </div>
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="inline-flex items-center justify-center rounded-md p-2 text-foreground/60 hover:bg-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+
+          <nav className="hidden flex-1 items-center justify-center gap-1 text-sm font-medium md:flex">
+            {[...primaryLinks, ...authenticatedLinks].map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  cn(
+                    "relative rounded-full px-4 py-2 transition-all duration-300",
+                    "text-foreground/70 hover:text-foreground",
+                    "hover:bg-secondary/70",
+                    isActive &&
+                      "bg-gradient-to-r from-primary/90 via-primary to-accent text-primary-foreground shadow-lg shadow-primary/30"
+                  )
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+            <Link
+              to="/create-event"
+              className="ml-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary via-primary to-accent px-5 py-2 text-sm font-semibold text-white shadow-[0_10px_40px_rgba(129,54,255,0.45)] transition hover:shadow-[0_16px_50px_rgba(196,73,255,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+            >
+              Launch Event
+            </Link>
+          </nav>
+
+          <div className="hidden items-center gap-2 md:flex">
+            <ThemeToggle />
+            <div className="flex items-center">
+              <PushUniversalAccountButton />
+            </div>
+          </div>
+
+          <div className="flex flex-1 items-center justify-end gap-2 md:hidden">
+            <ThemeToggle />
+            <div className="scale-90">
+              <PushUniversalAccountButton />
+            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-secondary/80 text-foreground transition hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Navigation Drawer */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-border/40 bg-background">
-          <nav className="container px-4 py-4 flex flex-col gap-3">
-            <Link
-              to="/events"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-foreground/60 hover:bg-accent hover:text-foreground transition-colors"
-            >
-              Events
-            </Link>
-            <Link
-              to="/marketplace"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-foreground/60 hover:bg-accent hover:text-foreground transition-colors"
-            >
-              Marketplace
-            </Link>
-            <Link
-              to="/create-event"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-foreground/60 hover:bg-accent hover:text-foreground transition-colors"
-            >
-              Create Event
-            </Link>
-            {connectionStatus === "connected" && (
-              <>
+        <div className="md:hidden">
+          <div className="container px-4 pb-6">
+            <div className="glass-card rounded-3xl px-5 py-6 backdrop-blur-2xl">
+              <div className="relative z-[1] flex flex-col gap-4 text-base">
+                {[...primaryLinks, ...authenticatedLinks].map((link) => (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center justify-between rounded-2xl px-4 py-3 transition-all duration-300",
+                        "text-foreground/80 hover:bg-secondary/80 hover:text-foreground",
+                        isActive && "bg-primary/90 text-primary-foreground"
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span>{link.label}</span>
+                        <span className="text-xs uppercase tracking-wider text-foreground/50">
+                          {isActive ? "Active" : "Explore"}
+                        </span>
+                      </>
+                    )}
+                  </NavLink>
+                ))}
                 <Link
-                  to="/my-tickets"
+                  to="/create-event"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-foreground/60 hover:bg-accent hover:text-foreground transition-colors"
+                  className="mt-2 inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-primary via-primary to-accent px-4 py-3 font-semibold text-white shadow-[0_20px_40px_-20px_rgba(196,73,255,0.75)]"
                 >
-                  My Tickets
+                  Launch New Event
                 </Link>
-                <Link
-                  to="/organizer-scan"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-foreground/60 hover:bg-accent hover:text-foreground transition-colors"
-                >
-                  Scan Tickets
-                </Link>
-              </>
-            )}
-          </nav>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </header>

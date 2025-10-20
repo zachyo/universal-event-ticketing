@@ -12,9 +12,9 @@ import { OrganizerVerificationPage } from "./pages/OrganizerVerificationPage";
 import EventAnalyticsPage from "./pages/EventAnalyticsPage";
 
 const AppLayout = () => (
-  <div className="min-h-screen flex flex-col font-sans">
+  <div className="relative flex min-h-screen flex-col font-sans">
     <Header />
-    <main className="flex-grow">
+    <main className="flex-1 pb-16 pt-6 md:pt-10">
       <Outlet />
     </main>
     <Footer />

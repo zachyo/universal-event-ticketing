@@ -23,12 +23,21 @@ interface EventCardProps {
   showPurchaseButton?: boolean;
 }
 
-// Type guard to check if event has ticket types
 function hasTicketTypes(
   event: FormattedEvent | EventWithTicketTypes
 ): event is EventWithTicketTypes {
   return "ticketTypes" in event && "minPrice" in event;
 }
+
+const statusStyles: Record<
+  ReturnType<typeof getEventStatus>,
+  string
+> = {
+  live: "border-emerald-300 bg-emerald-400/20 text-emerald-50",
+  upcoming: "border-sky-300 bg-sky-400/20 text-sky-50",
+  ended: "border-zinc-300 bg-zinc-500/20 text-zinc-50",
+  inactive: "border-rose-300 bg-rose-400/20 text-rose-50",
+};
 
 export function EventCard({
   event,
@@ -38,110 +47,88 @@ export function EventCard({
   const timeUntil = getTimeUntilEvent(event.startTime);
   const availability = formatAvailability(event.sold, event.totalSupply);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "live":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "upcoming":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "ended":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      case "inactive":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
   const isSoldOut = event.sold >= event.totalSupply;
   const isAlmostSoldOut = event.sold > event.totalSupply * 0.8 && !isSoldOut;
   const isPopular = event.sold > 50;
 
-  // Extract ticket type info if available
   const eventWithTypes = hasTicketTypes(event) ? event : null;
   const minPrice = eventWithTypes?.minPrice;
   const ticketTypeCount = eventWithTypes?.ticketTypeCount || 0;
   const hasMultipleTiers = eventWithTypes?.hasMultipleTiers || false;
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      {/* Event Image */}
-      <div className="relative h-48 overflow-hidden">
+    <div className="group relative overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 p-4 shadow-[0_20px_60px_-30px_rgba(129,54,255,0.55)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_32px_90px_-32px_rgba(196,73,255,0.65)]">
+      <div className="relative h-48 overflow-hidden rounded-[1.8rem]">
         <img
           src={event.imageUrl || "/placeholder-event.jpg"}
           alt={event.name}
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.src = "/placeholder-event.jpg";
           }}
         />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/70" />
 
-        {/* Status Badge */}
-        <div
-          className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-            status
-          )}`}
-        >
-          {status.charAt(0).toUpperCase() + status.slice(1)}
+        <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2">
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${statusStyles[status]}`}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </span>
+          {isSoldOut && (
+            <span className="rounded-full border border-rose-300 bg-rose-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-rose-100">
+              Sold Out
+            </span>
+          )}
         </div>
-
-        {/* Sold Out Badge */}
-        {isSoldOut && (
-          <div className="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-            Sold Out
-          </div>
-        )}
       </div>
 
-      {/* Event Details */}
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
-          {event.name}
-        </h3>
+      <div className="p-4 pt-6">
+        <div className="space-y-3">
+          <h3 className="text-xl font-semibold leading-tight text-foreground line-clamp-2">
+            {event.name}
+          </h3>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {event.description}
+          </p>
+        </div>
 
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {event.description}
-        </p>
-
-        {/* Event Info */}
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+        <div className="mt-5 space-y-2 text-sm text-muted-foreground">
+          <div className="inline-flex items-center gap-2 text-foreground">
+            <Calendar className="h-4 w-4 text-primary" />
             <span>{formatDateTime(event.startTime)}</span>
           </div>
-
-          <div className="flex items-center text-sm text-gray-600">
-            <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+          <div className="inline-flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-primary" />
             <span className="truncate">{event.venue}</span>
           </div>
-
-          <div className="flex items-center text-sm text-gray-600">
-            <Users className="w-4 h-4 mr-2 text-gray-400" />
+          <div className="inline-flex items-center gap-2">
+            <Users className="h-4 w-4 text-primary" />
             <span>{availability}</span>
           </div>
-
           {status === "upcoming" && (
-            <div className="flex items-center text-sm text-blue-600">
-              <Clock className="w-4 h-4 mr-2 text-blue-400" />
+            <div className="inline-flex items-center gap-2 text-primary">
+              <Clock className="h-4 w-4" />
               <span>{timeUntil}</span>
             </div>
           )}
         </div>
 
-        {/* Pricing Section */}
         {minPrice !== null && minPrice !== undefined && minPrice > 0 && (
-          <div className="mb-4 pb-4 border-b border-gray-200">
-            <div className="flex items-end justify-between">
+          <div className="mt-6 rounded-2xl border border-border/60 bg-background/70 px-5 py-4">
+            <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-xs text-gray-500 mb-1">Starting from</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Starting from
+                </p>
+                <p className="text-2xl font-semibold text-primary">
                   {formatPriceInCurrency(BigInt(minPrice), "PC")}
                 </p>
               </div>
               {hasMultipleTiers && ticketTypeCount > 1 && (
-                <div className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
-                  <Ticket className="w-3 h-3" />
+                <div className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                  <Ticket className="h-3.5 w-3.5" />
                   <span>{ticketTypeCount} tiers</span>
                 </div>
               )}
@@ -149,35 +136,32 @@ export function EventCard({
           </div>
         )}
 
-        {/* Popularity Indicators */}
         {(isAlmostSoldOut || isPopular) && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="mt-4 flex flex-wrap gap-2">
             {isAlmostSoldOut && (
-              <div className="flex items-center gap-1 text-xs bg-red-50 text-red-700 px-2 py-1 rounded-full border border-red-200">
-                <AlertCircle className="w-3 h-3" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-rose-300 bg-rose-500/15 px-3 py-1 text-xs font-semibold text-rose-500">
+                <AlertCircle className="h-3.5 w-3.5" />
                 <span>Almost Sold Out</span>
               </div>
             )}
             {isPopular && (
-              <div className="flex items-center gap-1 text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full border border-green-200">
-                <TrendingUp className="w-3 h-3" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-500">
+                <TrendingUp className="h-3.5 w-3.5" />
                 <span>{event.sold} tickets sold</span>
               </div>
             )}
           </div>
         )}
 
-        {/* Organizer */}
-        <div className="text-xs text-gray-500 mb-4">
-          Organized by {event.organizer.slice(0, 6)}...
+        <div className="mt-5 text-xs text-muted-foreground">
+          Organized by {event.organizer.slice(0, 6)}…
           {event.organizer.slice(-4)}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between">
+        <div className="mt-6 flex items-center justify-between gap-3">
           <Link
             to={`/events/${event.eventId}`}
-            className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
+            className="text-sm font-semibold text-primary transition hover:text-accent"
           >
             View Details →
           </Link>
@@ -185,18 +169,19 @@ export function EventCard({
           {showPurchaseButton && status === "upcoming" && !isSoldOut && (
             <Link
               to={`/events/${event.eventId}`}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_20px_40px_-24px_rgba(196,73,255,0.65)] transition hover:shadow-[0_24px_50px_-22px_rgba(196,73,255,0.75)]"
             >
               Get Tickets
             </Link>
           )}
 
           {isSoldOut && (
-            <span className="text-red-600 font-medium text-sm">Sold Out</span>
+            <span className="text-sm font-semibold text-destructive">
+              Sold Out
+            </span>
           )}
-
           {status === "ended" && (
-            <span className="text-gray-500 font-medium text-sm">
+            <span className="text-sm font-semibold text-muted-foreground">
               Event Ended
             </span>
           )}
@@ -206,49 +191,45 @@ export function EventCard({
   );
 }
 
-// Skeleton loader for EventCard
 export function EventCardSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
-      <div className="h-48 bg-gray-300"></div>
-      <div className="p-6">
-        <div className="h-6 bg-gray-300 rounded mb-2"></div>
-        <div className="h-4 bg-gray-300 rounded mb-4 w-3/4"></div>
-        <div className="space-y-2 mb-4">
-          <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-          <div className="h-4 bg-gray-300 rounded w-2/3"></div>
-          <div className="h-4 bg-gray-300 rounded w-1/3"></div>
+    <div className="glass-card rounded-[2rem] border border-border/70 bg-card/85 p-4 shadow-[0_20px_60px_-30px_rgba(129,54,255,0.35)]">
+      <div className="h-48 rounded-[1.8rem] bg-border/50" />
+      <div className="mt-6 space-y-4">
+        <div className="space-y-2">
+          <div className="h-5 w-3/4 rounded bg-border/50" />
+          <div className="h-4 w-full rounded bg-border/50" />
         </div>
-        <div className="h-4 bg-gray-300 rounded mb-4 w-1/4"></div>
-        <div className="flex justify-between">
-          <div className="h-4 bg-gray-300 rounded w-20"></div>
-          <div className="h-8 bg-gray-300 rounded w-24"></div>
+        <div className="space-y-2">
+          <div className="h-3.5 w-1/2 rounded bg-border/50" />
+          <div className="h-3.5 w-2/3 rounded bg-border/50" />
+          <div className="h-3.5 w-1/3 rounded bg-border/50" />
         </div>
+        <div className="h-3 w-1/4 rounded bg-border/50" />
+        <div className="h-9 w-full rounded-full bg-border/40" />
       </div>
     </div>
   );
 }
 
-// Grid container for event cards
 export function EventGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
       {children}
     </div>
   );
 }
 
-// Empty state for when no events are found
 export function EventsEmptyState({
   message = "No events found",
 }: {
   message?: string;
 }) {
   return (
-    <div className="text-center py-12">
-      <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 mb-2">No Events</h3>
-      <p className="text-gray-600">{message}</p>
+    <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border/70 bg-card/85 px-6 py-12 text-center">
+      <Calendar className="mx-auto mb-4 h-14 w-14 text-primary" />
+      <h3 className="text-xl font-semibold text-foreground">No events</h3>
+      <p className="mt-3 text-sm text-muted-foreground">{message}</p>
     </div>
   );
 }

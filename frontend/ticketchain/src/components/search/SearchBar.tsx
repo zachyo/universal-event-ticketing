@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, X, Clock, TrendingUp } from "lucide-react";
 import { useSearchHistory } from "../../hooks/useEventSearch";
+import { cn } from "../../utils/cn";
 
 interface SearchBarProps {
   value: string;
@@ -75,16 +76,17 @@ export function SearchBar({
   };
 
   return (
-    <div className={`relative ${className}`}>
-      <form onSubmit={handleSubmit} className="relative">
+    <div className={cn("relative", className)}>
+      <form onSubmit={handleSubmit}>
         <div
-          className={`flex items-center border rounded-lg bg-white transition-all ${
-            isFocused
-              ? "border-blue-500 ring-2 ring-blue-100"
-              : "border-gray-300"
-          }`}
+          className={cn(
+            "flex items-center rounded-full border border-border/60 bg-background/70 px-4 py-2 transition-all",
+            "shadow-[0_12px_35px_-24px_rgba(129,54,255,0.5)]",
+            isFocused &&
+              "border-primary/60 shadow-[0_18px_55px_-18px_rgba(196,73,255,0.7)]"
+          )}
         >
-          <Search className="ml-3 w-5 h-5 text-gray-400" />
+          <Search className="mr-3 h-5 w-5 text-primary" />
           <input
             ref={inputRef}
             type="text"
@@ -93,45 +95,42 @@ export function SearchBar({
             onFocus={handleFocus}
             onBlur={handleBlur}
             placeholder={placeholder}
-            className="flex-1 px-3 py-2.5 outline-none bg-transparent text-gray-900 placeholder:text-gray-400"
+            className="flex-1 bg-transparent px-1 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none"
           />
           {isSearching && (
-            <div className="mr-3">
-              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            </div>
+            <div className="mr-3 h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
           )}
           {value && !isSearching && (
             <button
               type="button"
               onClick={handleClear}
-              className="mr-3 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="ml-2 rounded-full p-1 text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
               aria-label="Clear search"
             >
-              <X className="w-4 h-4 text-gray-400" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
       </form>
 
-      {/* Search History / Suggestions */}
       {showSuggestions && showHistory && history.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
-          <div className="p-2">
-            <div className="flex items-center justify-between px-2 py-1 mb-1">
-              <span className="text-xs font-medium text-gray-500 uppercase">
-                Recent Searches
+        <div className="absolute top-full left-0 right-0 z-50 mt-3 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card/90 backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(129,54,255,0.45)]">
+          <div className="px-4 py-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Recent searches
               </span>
             </div>
             <div className="space-y-1">
               {history.map((query, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between px-2 py-2 hover:bg-gray-50 rounded-md cursor-pointer group"
+                  className="group flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 transition hover:bg-primary/10"
                   onClick={() => handleHistoryClick(query)}
                 >
-                  <div className="flex items-center flex-1 min-w-0">
-                    <Clock className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 truncate">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span className="truncate text-sm text-foreground">
                       {query}
                     </span>
                   </div>
@@ -141,10 +140,10 @@ export function SearchBar({
                       e.stopPropagation();
                       removeFromHistory(query);
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity"
+                    className="rounded-full p-1 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:bg-primary/10 hover:text-primary"
                     aria-label="Remove from history"
                   >
-                    <X className="w-3 h-3 text-gray-500" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
@@ -153,14 +152,13 @@ export function SearchBar({
         </div>
       )}
 
-      {/* Popular Searches (Optional) */}
       {showSuggestions && !value && history.length === 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-          <div className="p-2">
-            <div className="flex items-center px-2 py-1 mb-1">
-              <TrendingUp className="w-4 h-4 text-gray-400 mr-2" />
-              <span className="text-xs font-medium text-gray-500 uppercase">
-                Popular Searches
+        <div className="absolute top-full left-0 right-0 z-50 mt-3 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card/90 backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(129,54,255,0.45)]">
+          <div className="px-4 py-3">
+            <div className="mb-2 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Popular searches
               </span>
             </div>
             <div className="space-y-1">
@@ -169,7 +167,7 @@ export function SearchBar({
                   key={term}
                   type="button"
                   onClick={() => handleHistoryClick(term)}
-                  className="w-full text-left px-2 py-2 hover:bg-gray-50 rounded-md text-sm text-gray-700"
+                  className="w-full rounded-xl px-3 py-2 text-left text-sm text-foreground transition hover:bg-primary/10"
                 >
                   {term}
                 </button>

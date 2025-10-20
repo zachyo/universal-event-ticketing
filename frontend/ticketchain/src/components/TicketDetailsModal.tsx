@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ExternalLink, Image as ImageIcon, User } from "lucide-react";
+import { ExternalLink, Image as ImageIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useReadContract } from "wagmi";
 import {
@@ -21,7 +21,6 @@ interface TicketMetadata {
   qrCodeHash: string;
 }
 
-// Type for the raw tuple returned from the contract
 type TicketMetadataTuple = readonly [
   bigint,
   bigint,
@@ -37,14 +36,10 @@ interface TicketDetailsModalProps {
   onClose: () => void;
 }
 
-/**
- * TicketDetailsModal - Shows detailed ticket information
- */
 export function TicketDetailsModal({
   tokenId,
   onClose,
 }: TicketDetailsModalProps) {
-  // Fetch ticket metadata from contract
   const { data: ticketData } = useReadContract({
     address: TICKET_NFT_ADDRESS as `0x${string}`,
     abi: TicketNFTABI,
@@ -52,7 +47,6 @@ export function TicketDetailsModal({
     args: [BigInt(tokenId)],
   });
 
-  // Fetch token URI for image
   const { data: tokenURI } = useReadContract({
     address: TICKET_NFT_ADDRESS as `0x${string}`,
     abi: TicketNFTABI,
@@ -60,11 +54,6 @@ export function TicketDetailsModal({
     args: [BigInt(tokenId)],
   });
 
-  console.log("[TicketDetailsModal] Token ID:", tokenId);
-  console.log("[TicketDetailsModal] Raw ticket data:", ticketData);
-  console.log("[TicketDetailsModal] Token URI:", tokenURI);
-
-  // Parse metadata first to get eventId
   const metadata = ticketData
     ? ({
         eventId: (ticketData as TicketMetadataTuple)[0],
@@ -77,7 +66,6 @@ export function TicketDetailsModal({
       } as TicketMetadata)
     : undefined;
 
-  // Fetch ticket types for the event to get the ticket type name
   const { data: ticketTypesData } = useReadContract({
     address: TICKET_FACTORY_ADDRESS as `0x${string}`,
     abi: TicketFactoryABI,
@@ -89,24 +77,16 @@ export function TicketDetailsModal({
   });
 
   const ticketTypes = ticketTypesData as TicketType[] | undefined;
-  // ticketTypeId is the array index in the contract
   const ticketType =
     ticketTypes && metadata?.ticketTypeId !== undefined
       ? ticketTypes[Number(metadata.ticketTypeId)]
       : undefined;
 
-  console.log("[TicketDetailsModal] Parsed metadata:", metadata);
-  console.log("[TicketDetailsModal] Ticket Types:", ticketTypes);
-  console.log("[TicketDetailsModal] Ticket Type ID:", metadata?.ticketTypeId);
-  console.log("[TicketDetailsModal] Selected Ticket Type:", ticketType);
-
   const [showImage, setShowImage] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  // Parse token URI to get image
   useEffect(() => {
     if (tokenURI && typeof tokenURI === "string") {
-      // If it's an IPFS URI, convert to HTTP gateway
       if (tokenURI.startsWith("ipfs://")) {
         const ipfsHash = tokenURI.replace("ipfs://", "");
         setImageUrl(`https://gateway.pinata.cloud/ipfs/${ipfsHash}`);
@@ -118,173 +98,185 @@ export function TicketDetailsModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="glass-card max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] border border-border/70 bg-card/90 p-6 md:p-8"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Ticket #{tokenId}</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-            >
-              ×
-            </button>
-          </div>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-foreground">
+            Ticket #{tokenId}
+          </h2>
+          <button
+            onClick={onClose}
+            className="rounded-full border border-border/60 p-1 text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+          >
+            ×
+          </button>
+        </div>
 
-          {metadata && metadata.eventId !== undefined ? (
-            <div className="space-y-4">
-              {/* NFT Image Toggle */}
-              {imageUrl && (
-                <div className="border-b pb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <button
-                      onClick={() => setShowImage(!showImage)}
-                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      <ImageIcon className="w-5 h-5" />
-                      {showImage ? "Hide NFT Image" : "View NFT Image"}
-                    </button>
-
-                    {showImage && (
-                      <a
-                        href={imageUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        Open Full Size
-                      </a>
-                    )}
-                  </div>
-
+        {metadata && metadata.eventId !== undefined ? (
+          <div className="space-y-5">
+            {imageUrl && (
+              <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-4">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setShowImage(!showImage)}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:text-accent"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    {showImage ? "Hide NFT Image" : "View NFT Image"}
+                  </button>
                   {showImage && (
-                    <div className="rounded-lg overflow-hidden border-2 border-gray-200">
-                      <a
-                        href={imageUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block cursor-pointer hover:opacity-90 transition-opacity"
-                      >
-                        <img
-                          src={imageUrl}
-                          alt={`Ticket #${tokenId} NFT`}
-                          className="w-full h-auto"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "/placeholder-event.jpg";
-                          }}
-                        />
-                      </a>
-                      <div className="bg-gray-50 px-3 py-2 text-xs text-gray-600 border-t">
-                        Click image to view in full size
-                      </div>
-                    </div>
+                    <a
+                      href={imageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition hover:text-accent"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Open Full Size
+                    </a>
                   )}
                 </div>
-              )}
 
-              {/* Ticket Details */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <p className="text-sm text-gray-600 mb-2">Event</p>
-                  <Link
-                    to={`/events/${metadata.eventId.toString()}`}
-                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold hover:underline"
-                  >
-                    Event #{metadata.eventId.toString()}
-                    <ExternalLink className="w-4 h-4" />
-                  </Link>
-                </div>
-
-                <div className="col-span-2">
-                  <p className="text-sm text-gray-600">Ticket Type</p>
-                  <p className="font-semibold text-lg">
-                    {ticketType?.name ||
-                      `Type #${metadata.ticketTypeId.toString()}`}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-600">
-                    Original Purchase Price
-                  </p>
-                  <p className="font-semibold">
-                    {formatPrice(metadata.purchasePrice)} PC
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-600">Purchase Chain</p>
-                  <p className="font-semibold">
-                    {metadata.purchaseChain || "Push Chain"}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-600">Status</p>
-                  <p
-                    className={`font-semibold ${
-                      metadata.used ? "text-red-600" : "text-green-600"
-                    }`}
-                  >
-                    {metadata.used ? "Used" : "Valid"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Original Owner */}
-              {metadata.originalOwner &&
-                metadata.originalOwner !==
-                  "0x0000000000000000000000000000000000000000" && (
-                  <div className="border-t pt-4">
-                    <div className="flex items-start gap-2">
-                      <User className="w-5 h-5 text-gray-600 mt-0.5" />
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">
-                          Original Owner
-                        </p>
-                        <p className="font-mono text-sm break-all">
-                          {formatAddress(metadata.originalOwner)}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          This is the first person who purchased this ticket
-                        </p>
-                      </div>
+                {showImage && (
+                  <div className="mt-4 overflow-hidden rounded-2xl border border-border/60">
+                    <a
+                      href={imageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block transition hover:opacity-90"
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`Ticket #${tokenId} NFT`}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder-event.jpg";
+                        }}
+                      />
+                    </a>
+                    <div className="border-t border-border/60 bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+                      Click image to view in full size
                     </div>
                   </div>
                 )}
-
-              {/* Info Note */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900">
-                  <strong>Note:</strong> All ticket data is stored on-chain and
-                  cannot be tampered with. The NFT image and metadata are stored
-                  on IPFS for permanent availability.
-                </p>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Loading ticket details...</p>
-            </div>
-          )}
+            )}
 
-          <div className="mt-6 pt-4 border-t">
-            <button
-              onClick={onClose}
-              className="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
-            >
-              Close
-            </button>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Event
+                </p>
+                <Link
+                  to={`/events/${metadata.eventId.toString()}`}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:text-accent"
+                >
+                  Event #{metadata.eventId.toString()}
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <DetailRow label="Ticket Type ID" value={`#${metadata.ticketTypeId.toString()}`} />
+              <DetailRow
+                label="Purchase Price"
+                value={`${formatPrice(metadata.purchasePrice)} PC`}
+              />
+              <DetailRow
+                label="Original Owner"
+                value={formatAddress(metadata.originalOwner)}
+                mono
+              />
+              <DetailRow label="Purchase Chain" value={metadata.purchaseChain} />
+              <DetailRow
+                label="Usage Status"
+                value={metadata.used ? "Used" : "Not Used"}
+                valueClass={metadata.used ? "text-destructive" : "text-primary"}
+              />
+              <DetailRow
+                label="Ticket Type"
+                value={ticketType ? ticketType.name : "Not available"}
+              />
+            </div>
+
+            <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                QR Code Hash
+              </p>
+              <p className="mt-2 break-words font-mono text-xs text-foreground/80">
+                {metadata.qrCodeHash}
+              </p>
+            </div>
           </div>
+        ) : (
+          <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-6 text-center text-sm text-muted-foreground">
+            Ticket metadata could not be loaded.
+          </div>
+        )}
+
+        {tokenURI && typeof tokenURI === "string" && (
+          <div className="mt-6 border-t border-border/60 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Token URI
+            </p>
+            <a
+              href={
+                tokenURI.startsWith("ipfs://")
+                  ? tokenURI.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/")
+                  : tokenURI
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-primary transition hover:text-accent"
+            >
+              {tokenURI}
+            </a>
+          </div>
+        )}
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="rounded-full bg-gradient-to-r from-primary via-primary to-accent px-5 py-2 text-sm font-semibold text-white shadow-[0_16px_40px_-22px_rgba(196,73,255,0.75)] transition hover:shadow-[0_18px_48px_-20px_rgba(196,73,255,0.85)]"
+          >
+            Close
+          </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function DetailRow({
+  label,
+  value,
+  valueClass,
+  mono,
+}: {
+  label: string;
+  value: string;
+  valueClass?: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <p
+        className={
+          mono
+            ? `font-mono text-xs text-foreground ${valueClass ?? ""}`
+            : `text-sm font-semibold text-foreground ${valueClass ?? ""}`
+        }
+      >
+        {value}
+      </p>
     </div>
   );
 }

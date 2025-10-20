@@ -8,6 +8,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import type { SearchFilters } from "../../hooks/useEventSearch";
+import { cn } from "../../utils/cn";
 
 interface FilterPanelProps {
   filters: SearchFilters;
@@ -65,16 +66,16 @@ export function FilterPanel({
   return (
     <>
       {/* Mobile Filter Button */}
-      <div className="lg:hidden mb-4">
+      <div className="mb-4 lg:hidden">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-between w-full rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
         >
           <div className="flex items-center">
             <Filter className="w-4 h-4 mr-2" />
             <span className="font-medium">Filters</span>
             {hasActiveFilters() && (
-              <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
+              <span className="ml-2 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-xs uppercase tracking-wider text-primary">
                 Active
               </span>
             )}
@@ -89,15 +90,18 @@ export function FilterPanel({
 
       {/* Filter Panel */}
       <div
-        className={`${className} ${
-          isOpen ? "block" : "hidden"
-        } lg:block bg-white border border-gray-200 rounded-lg p-4`}
+        className={cn(
+          className,
+          isOpen ? "block" : "hidden",
+          "lg:block rounded-[1.75rem] border border-border/70 bg-card/85 p-5 space-y-6"
+        )}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            <Filter className="w-5 h-5 mr-2 text-gray-600" />
-            <h3 className="font-semibold text-gray-900">Filters</h3>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Filter className="h-5 w-5 text-primary" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
+              Filters
+            </h3>
           </div>
           {hasActiveFilters() && (
             <button
@@ -105,22 +109,22 @@ export function FilterPanel({
                 onClearFilters();
                 setIsOpen(false);
               }}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              className="text-xs font-semibold uppercase tracking-wider text-primary transition hover:text-accent"
             >
-              Clear All
+              Clear all
             </button>
           )}
         </div>
 
         {/* Status Filter */}
-        <div className="mb-6">
+        <div>
           <button
             onClick={() => toggleSection("status")}
-            className="flex items-center justify-between w-full mb-2"
+            className="flex items-center justify-between w-full rounded-xl border border-transparent px-2 py-2 text-sm font-semibold text-foreground transition hover:border-border/50"
           >
-            <span className="font-medium text-gray-900">Event Status</span>
+            <span>Event Status</span>
             <ChevronDown
-              className={`w-4 h-4 transition-transform ${
+              className={`h-4 w-4 transition-transform ${
                 expandedSections.status ? "rotate-180" : ""
               }`}
             />
@@ -130,7 +134,7 @@ export function FilterPanel({
               {statusOptions.map((option) => (
                 <label
                   key={option.value}
-                  className="flex items-center cursor-pointer group"
+                  className="group flex items-center gap-2 rounded-xl px-2 py-1 transition hover:bg-primary/10"
                 >
                   <input
                     type="radio"
@@ -142,9 +146,9 @@ export function FilterPanel({
                         status: e.target.value as SearchFilters["status"],
                       })
                     }
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    className="h-4 w-4 text-primary focus:ring-primary"
                   />
-                  <span className="ml-2 text-sm text-gray-700 group-hover:text-gray-900">
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground">
                     {option.label}
                   </span>
                 </label>
@@ -154,17 +158,17 @@ export function FilterPanel({
         </div>
 
         {/* Date Range Filter */}
-        <div className="mb-6">
+        <div>
           <button
             onClick={() => toggleSection("date")}
-            className="flex items-center justify-between w-full mb-2"
+            className="flex items-center justify-between w-full rounded-xl border border-transparent px-2 py-2 text-sm font-semibold text-foreground transition hover:border-border/50"
           >
             <div className="flex items-center">
-              <Calendar className="w-4 h-4 mr-2 text-gray-600" />
-              <span className="font-medium text-gray-900">Date Range</span>
+              <Calendar className="mr-2 h-4 w-4 text-primary" />
+              <span>Date Range</span>
             </div>
             <ChevronDown
-              className={`w-4 h-4 transition-transform ${
+              className={`h-4 w-4 transition-transform ${
                 expandedSections.date ? "rotate-180" : ""
               }`}
             />
@@ -172,7 +176,7 @@ export function FilterPanel({
           {expandedSections.date && (
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   From
                 </label>
                 <input
@@ -190,11 +194,11 @@ export function FilterPanel({
                       },
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-xl border border-border/60 bg-background/80 px-3 py-2 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   To
                 </label>
                 <input
@@ -212,48 +216,46 @@ export function FilterPanel({
                       },
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-xl border border-border/60 bg-background/80 px-3 py-2 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
             </div>
           )}
         </div>
 
-        {/* Price Range Filter (Placeholder) */}
-        <div className="mb-6">
+        <div>
           <button
             onClick={() => toggleSection("price")}
-            className="flex items-center justify-between w-full mb-2"
+            className="flex items-center justify-between w-full rounded-xl border border-transparent px-2 py-2 text-sm font-semibold text-foreground transition hover:border-border/50"
           >
             <div className="flex items-center">
-              <DollarSign className="w-4 h-4 mr-2 text-gray-600" />
-              <span className="font-medium text-gray-900">Price Range</span>
+              <DollarSign className="mr-2 h-4 w-4 text-primary" />
+              <span>Price Range</span>
             </div>
             <ChevronDown
-              className={`w-4 h-4 transition-transform ${
+              className={`h-4 w-4 transition-transform ${
                 expandedSections.price ? "rotate-180" : ""
               }`}
             />
           </button>
           {expandedSections.price && (
-            <div className="text-sm text-gray-500 italic">
-              Coming soon - Filter by ticket price
+            <div className="mt-2 rounded-xl border border-dashed border-border/60 bg-background/70 px-3 py-3 text-xs italic text-muted-foreground">
+              Coming soon — filter by ticket price
             </div>
           )}
         </div>
 
-        {/* Sort By */}
-        <div className="mb-4">
+        <div>
           <button
             onClick={() => toggleSection("sort")}
-            className="flex items-center justify-between w-full mb-2"
+            className="flex items-center justify-between w-full rounded-xl border border-transparent px-2 py-2 text-sm font-semibold text-foreground transition hover:border-border/50"
           >
             <div className="flex items-center">
-              <Tag className="w-4 h-4 mr-2 text-gray-600" />
-              <span className="font-medium text-gray-900">Sort By</span>
+              <Tag className="mr-2 h-4 w-4 text-primary" />
+              <span>Sort By</span>
             </div>
             <ChevronDown
-              className={`w-4 h-4 transition-transform ${
+              className={`h-4 w-4 transition-transform ${
                 expandedSections.sort ? "rotate-180" : ""
               }`}
             />
@@ -266,7 +268,7 @@ export function FilterPanel({
                   sortBy: e.target.value as SearchFilters["sortBy"],
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mt-3 w-full rounded-xl border border-border/60 bg-background/80 px-3 py-2 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -277,26 +279,25 @@ export function FilterPanel({
           )}
         </div>
 
-        {/* Active Filters Summary */}
         {hasActiveFilters() && (
-          <div className="pt-4 border-t border-gray-200">
+          <div className="border-t border-border/60 pt-4">
             <div className="flex flex-wrap gap-2">
               {filters.status !== "all" && (
-                <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                   {
                     statusOptions.find((opt) => opt.value === filters.status)
                       ?.label
                   }
                   <button
                     onClick={() => onFiltersChange({ status: "all" })}
-                    className="ml-1 hover:bg-blue-200 rounded-full"
+                    className="rounded-full border border-primary/30 bg-primary/20 p-0.5 text-primary hover:bg-primary/30"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
               {filters.dateRange?.start && (
-                <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                   From: {filters.dateRange.start.toLocaleDateString()}
                   <button
                     onClick={() =>
@@ -307,14 +308,14 @@ export function FilterPanel({
                         },
                       })
                     }
-                    className="ml-1 hover:bg-blue-200 rounded-full"
+                    className="rounded-full border border-primary/30 bg-primary/20 p-0.5 text-primary hover:bg-primary/30"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
               {filters.dateRange?.end && (
-                <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                   To: {filters.dateRange.end.toLocaleDateString()}
                   <button
                     onClick={() =>
@@ -325,9 +326,9 @@ export function FilterPanel({
                         },
                       })
                     }
-                    className="ml-1 hover:bg-blue-200 rounded-full"
+                    className="rounded-full border border-primary/30 bg-primary/20 p-0.5 text-primary hover:bg-primary/30"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               )}

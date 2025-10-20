@@ -11,7 +11,6 @@ import {
 } from "../lib/contracts";
 import { AlertCircle, Scan } from "lucide-react";
 import { usePushWalletContext, usePushChain } from "@pushchain/ui-kit";
-import { useValidateTicket } from "../hooks/useContracts";
 
 interface VerificationResult {
   status: "success" | "error" | "warning";
@@ -45,7 +44,6 @@ export function OrganizerVerificationPage() {
   const { address: originAddress } = useAccount();
   const { universalAccount } = usePushWalletContext();
   const { PushChain } = usePushChain();
-  const { validateTicket, isPending: isMarkingUsed } = useValidateTicket();
 
   const [organizerAddress, setOrganizerAddress] = useState<string | null>(null);
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);

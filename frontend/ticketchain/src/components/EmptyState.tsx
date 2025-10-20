@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import { cn } from "../utils/cn";
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -27,28 +28,31 @@ export function EmptyState({
   title,
   message,
   action,
-  className = "",
+  className,
 }: EmptyStateProps) {
   return (
     <div
-      className={`flex flex-col items-center justify-center py-16 px-4 text-center ${className}`}
+      className={cn(
+        "flex flex-col items-center justify-center px-6 py-16 text-center",
+        className
+      )}
     >
-      {/* Icon */}
-      <div className="mb-4 p-4 bg-gray-100 rounded-full">
-        <Icon className="w-12 h-12 text-gray-400" />
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-accent/20 text-primary shadow-[0_14px_35px_-22px_rgba(129,54,255,0.45)]">
+        <Icon className="h-10 w-10" />
       </div>
 
-      {/* Title */}
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+      <h3 className="mb-2 text-xl font-semibold text-foreground md:text-2xl">
+        {title}
+      </h3>
 
-      {/* Message */}
-      <p className="text-gray-600 max-w-md mb-6">{message}</p>
+      <p className="mb-6 max-w-md text-sm text-muted-foreground md:text-base">
+        {message}
+      </p>
 
-      {/* Action Button */}
       {action && (
         <button
           onClick={action.onClick}
-          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+          className="rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_45px_-22px_rgba(196,73,255,0.75)] transition hover:shadow-[0_22px_55px_-20px_rgba(196,73,255,0.85)]"
         >
           {action.label}
         </button>

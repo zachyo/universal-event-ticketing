@@ -35,129 +35,94 @@ export function ListingCard({
 
   return (
     <div
-      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+      className="glass-card rounded-[1.75rem] border border-border/70 bg-card/85 p-5 shadow-[0_18px_60px_-28px_rgba(129,54,255,0.55)] transition-transform duration-500 hover:-translate-y-1 hover:shadow-[0_24px_70px_-26px_rgba(196,73,255,0.65)]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Listing Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h3 className="font-bold text-lg line-clamp-1">
-              {listing.ticket?.event?.name ||
-                `Event #${listing.ticket?.eventId}`}
-            </h3>
-            <p className="text-sm text-gray-600">Ticket #{listing.tokenId}</p>
-          </div>
-          <div className="text-right ml-3">
-            <div className="text-2xl font-bold text-green-600">
-              {formatPrice(BigInt(listing.price))} PC
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            Ticket #{listing.tokenId}
+          </p>
+          <h3 className="text-lg font-semibold text-foreground">
+            {listing.ticket?.event?.name || `Listing #${listing.listingId}`}
+          </h3>
+          {listing.ticket?.event?.venue && (
+            <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 text-primary" />
+              <span>{listing.ticket.event.venue}</span>
             </div>
-            <div className="text-xs text-gray-500">
-              Listed {listing.createdAt.toLocaleDateString()}
-            </div>
-          </div>
+          )}
+        </div>
+        <div className="text-right">
+          <p className="text-xl font-semibold text-primary">
+            {formatPrice(BigInt(listing.price))} PC
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Listed {listing.createdAt.toLocaleDateString()}
+          </p>
         </div>
       </div>
 
-      {/* Event Details */}
-      {listing.ticket?.event && (
-        <div className="p-4 border-b bg-gray-50">
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center text-gray-600">
-              <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span className="line-clamp-1">
-                {formatDateTime(listing.ticket.event.startTime)}
-              </span>
-            </div>
-            {listing.ticket.event.venue && (
-              <div className="flex items-center text-gray-600">
-                <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="line-clamp-1">
-                  {listing.ticket.event.venue}
-                </span>
-              </div>
-            )}
-          </div>
+      {listing.ticket?.event?.startTime && (
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
+          <Calendar className="h-3.5 w-3.5 text-primary" />
+          <span>{formatDateTime(listing.ticket.event.startTime)}</span>
         </div>
       )}
 
-      {/* Seller Info & Offer Count */}
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex-1 min-w-0">
-            <span className="text-gray-500">Seller:</span>
-            <span className="ml-2 font-mono text-xs">
-              {formatAddress(listing.seller)}
-            </span>
-          </div>
-          {isCurrentUser && (
-            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium ml-2 flex-shrink-0">
-              Your Listing
-            </span>
-          )}
-        </div>
-
-        {/* Offer Count Badge */}
-        {offerCount > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            <button
-              onClick={() => onViewOffers?.(listing)}
-              className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>
-                {offerCount} Active Offer{offerCount !== 1 ? "s" : ""}
-              </span>
-              {isCurrentUser && <TrendingUp className="w-3.5 h-3.5 ml-auto" />}
-            </button>
-          </div>
+      <div className="mt-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+        <span className="font-mono text-sm text-foreground/80">
+          {formatAddress(listing.seller)}
+        </span>
+        {isCurrentUser && (
+          <span className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+            Your listing
+          </span>
         )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="p-4 space-y-2">
-        {!isCurrentUser ? (
-          <>
-            <button
-              onClick={() => onBuy(listing.listingId)}
-              className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-200 ${
-                isHovered
-                  ? "bg-green-600 text-white transform scale-105"
-                  : "bg-green-500 text-white hover:bg-green-600"
-              }`}
-            >
-              <ShoppingCart className="w-4 h-4 inline mr-2" />
-              Buy Now
-            </button>
-            {onMakeOffer && (
-              <button
-                onClick={() => onMakeOffer(listing)}
-                className="w-full py-2 px-4 border-2 border-purple-500 text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-colors"
-              >
-                <Tag className="w-4 h-4 inline mr-2" />
-                Make an Offer
-              </button>
-            )}
-          </>
+      {offerCount > 0 && (
+        <button
+          onClick={() => onViewOffers?.(listing)}
+          className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
+        >
+          <MessageCircle className="h-3.5 w-3.5" />
+          {offerCount} Active Offer{offerCount === 1 ? "" : "s"}
+          {isCurrentUser && <TrendingUp className="h-3 w-3 text-primary" />}
+        </button>
+      )}
+
+      <div className="mt-6 space-y-2">
+        {isCurrentUser ? (
+          <button
+            disabled
+            className="w-full rounded-full border border-border/60 bg-background/70 px-4 py-2 text-sm font-semibold text-muted-foreground"
+          >
+            Listed by you
+          </button>
         ) : (
-          <>
-            <button
-              className="w-full py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-              disabled
-            >
-              Your Listing
-            </button>
-            {offerCount > 0 && onViewOffers && (
-              <button
-                onClick={() => onViewOffers(listing)}
-                className="w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
-              >
-                <MessageCircle className="w-4 h-4 inline mr-2" />
-                View & Accept Offers
-              </button>
-            )}
-          </>
+          <button
+            onClick={() => onBuy(listing.listingId)}
+            className={`w-full rounded-full px-4 py-2 text-sm font-semibold text-white transition ${
+              isHovered
+                ? "scale-[1.02] bg-gradient-to-r from-primary to-accent shadow-[0_22px_60px_-22px_rgba(196,73,255,0.85)]"
+                : "bg-gradient-to-r from-primary via-primary to-accent shadow-[0_18px_50px_-24px_rgba(196,73,255,0.75)]"
+            }`}
+          >
+            <ShoppingCart className="mr-2 inline h-4 w-4" />
+            Buy now
+          </button>
+        )}
+
+        {onMakeOffer && !isCurrentUser && (
+          <button
+            onClick={() => onMakeOffer(listing)}
+            className="w-full rounded-full border border-border/60 bg-background/70 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
+          >
+            <Tag className="mr-2 inline h-4 w-4" />
+            Make an offer
+          </button>
         )}
       </div>
     </div>
@@ -166,32 +131,15 @@ export function ListingCard({
 
 export function ListingCardSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
-      <div className="p-4 border-b">
-        <div className="flex justify-between">
-          <div>
-            <div className="h-5 bg-gray-300 rounded w-32 mb-2"></div>
-            <div className="h-4 bg-gray-300 rounded w-20"></div>
-          </div>
-          <div>
-            <div className="h-6 bg-gray-300 rounded w-20 mb-1"></div>
-            <div className="h-3 bg-gray-300 rounded w-16"></div>
-          </div>
-        </div>
+    <div className="glass-card rounded-[1.75rem] border border-border/70 bg-card/85 p-5 shadow-[0_18px_60px_-28px_rgba(129,54,255,0.35)]">
+      <div className="h-28 rounded-2xl bg-border/50" />
+      <div className="mt-4 space-y-3">
+        <div className="h-4 w-2/3 rounded bg-border/50" />
+        <div className="h-3.5 w-1/2 rounded bg-border/50" />
+        <div className="h-3.5 w-1/3 rounded bg-border/50" />
       </div>
-      <div className="p-4 border-b bg-gray-50">
-        <div className="space-y-2">
-          <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-        </div>
-      </div>
-      <div className="p-4 border-b">
-        <div className="h-4 bg-gray-300 rounded w-2/3"></div>
-      </div>
-      <div className="p-4">
-        <div className="h-8 bg-gray-300 rounded mb-2"></div>
-        <div className="h-8 bg-gray-300 rounded"></div>
-      </div>
+      <div className="mt-4 h-8 w-full rounded-full bg-border/40" />
+      <div className="mt-2 h-8 w-full rounded-full bg-border/40" />
     </div>
   );
 }

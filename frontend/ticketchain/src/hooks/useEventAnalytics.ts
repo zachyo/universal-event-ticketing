@@ -5,8 +5,6 @@ import {
   useMarketplaceListings,
 } from "./useContracts";
 import { useTicketNFT } from "./useTicketNFT";
-import { formatListing } from "../lib/formatters";
-import type { FormattedListing } from "../types";
 
 export interface TierAnalytics {
   name: string;

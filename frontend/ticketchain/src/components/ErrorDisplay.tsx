@@ -1,5 +1,6 @@
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { getErrorMessage } from "../lib/errorUtils";
+import { cn } from "../utils/cn";
 
 interface ErrorDisplayProps {
   error: unknown;
@@ -28,14 +29,17 @@ export function ErrorDisplay({
   if (compact) {
     return (
       <div
-        className={`flex items-center gap-2 text-sm text-red-600 ${className}`}
+        className={cn(
+          "flex items-center gap-2 text-sm text-destructive",
+          className
+        )}
       >
-        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <AlertCircle className="h-4 w-4" />
         <span>{errorMessage}</span>
         {retry && (
           <button
             onClick={retry}
-            className="text-blue-600 hover:text-blue-700 font-medium underline"
+            className="rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-destructive transition hover:bg-destructive/15"
           >
             Retry
           </button>
@@ -46,26 +50,24 @@ export function ErrorDisplay({
 
   return (
     <div
-      className={`bg-red-50 border border-red-200 rounded-lg p-6 ${className}`}
+      className={cn(
+        "glass-card rounded-[1.75rem] border border-destructive/40 bg-destructive/10 p-5 text-destructive",
+        className
+      )}
     >
       <div className="flex items-start gap-3">
-        {/* Icon */}
-        <div className="flex-shrink-0">
-          <AlertCircle className="w-6 h-6 text-red-600" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/20">
+          <AlertCircle className="h-5 w-5" />
         </div>
-
-        {/* Content */}
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-red-900 mb-1">Error</h3>
-          <p className="text-red-700">{errorMessage}</p>
-
-          {/* Retry Button */}
+        <div className="flex-1 text-sm">
+          <h3 className="text-lg font-semibold text-destructive">Error</h3>
+          <p className="mt-1 text-destructive/90">{errorMessage}</p>
           {retry && (
             <button
               onClick={retry}
-              className="mt-4 flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-destructive via-red-500 to-rose-500 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white shadow-[0_16px_40px_-24px_rgba(244,63,94,0.45)] transition hover:shadow-[0_20px_48px_-20px_rgba(244,63,94,0.6)]"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="h-4 w-4" />
               Try Again
             </button>
           )}

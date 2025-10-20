@@ -12,12 +12,32 @@ interface StatsCardProps {
   };
 }
 
-const colorClasses = {
-  blue: "bg-blue-50 text-blue-600 border-blue-200",
-  green: "bg-green-50 text-green-600 border-green-200",
-  purple: "bg-purple-50 text-purple-600 border-purple-200",
-  orange: "bg-orange-50 text-orange-600 border-orange-200",
-  red: "bg-red-50 text-red-600 border-red-200",
+const colorThemes = {
+  blue: {
+    background: "from-sky-500/80 via-sky-400/80 to-cyan-300/70",
+    text: "text-sky-50",
+    shadow: "shadow-[0_14px_40px_-20px_rgba(56,189,248,0.55)]",
+  },
+  green: {
+    background: "from-emerald-500/80 via-emerald-400/80 to-lime-300/70",
+    text: "text-emerald-50",
+    shadow: "shadow-[0_14px_40px_-20px_rgba(16,185,129,0.55)]",
+  },
+  purple: {
+    background: "from-primary/80 via-primary/70 to-accent/70",
+    text: "text-white",
+    shadow: "shadow-[0_14px_40px_-20px_rgba(196,73,255,0.6)]",
+  },
+  orange: {
+    background: "from-orange-500/80 via-amber-400/80 to-yellow-300/70",
+    text: "text-amber-50",
+    shadow: "shadow-[0_14px_40px_-20px_rgba(251,191,36,0.55)]",
+  },
+  red: {
+    background: "from-rose-500/80 via-rose-400/80 to-pink-300/70",
+    text: "text-rose-50",
+    shadow: "shadow-[0_14px_40px_-20px_rgba(244,63,94,0.55)]",
+  },
 };
 
 export function StatsCard({
@@ -28,37 +48,43 @@ export function StatsCard({
   color,
   trend,
 }: StatsCardProps) {
-  const colorClass = colorClasses[color];
+  const theme = colorThemes[color];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-      <div className="flex items-start justify-between">
+    <div className="glass-card rounded-[1.75rem] border border-border/70 bg-card/85 p-5">
+      <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {title}
+          </p>
+          <p className="mt-1 text-2xl font-semibold text-foreground md:text-3xl">
             {value}
           </p>
           {subtitle && (
-            <p className="text-xs md:text-sm text-gray-500">{subtitle}</p>
+            <p className="text-xs text-muted-foreground md:text-sm">
+              {subtitle}
+            </p>
           )}
           {trend && (
             <div className="mt-2 flex items-center gap-1">
               <span
-                className={`text-xs font-medium ${
-                  trend.value >= 0 ? "text-green-600" : "text-red-600"
+                className={`text-xs font-semibold ${
+                  trend.value >= 0 ? "text-primary" : "text-destructive"
                 }`}
               >
                 {trend.value >= 0 ? "+" : ""}
                 {trend.value}%
               </span>
-              <span className="text-xs text-gray-500">{trend.label}</span>
+              <span className="text-xs text-muted-foreground">
+                {trend.label}
+              </span>
             </div>
           )}
         </div>
         <div
-          className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-lg border ${colorClass}`}
+          className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${theme.background} ${theme.shadow}`}
         >
-          <Icon className="w-5 h-5 md:w-6 md:h-6" />
+          <Icon className={`h-5 w-5 ${theme.text}`} />
         </div>
       </div>
     </div>
