@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { parseUnits } from "viem";
-import { Search, AlertCircle, Package } from "lucide-react";
+import { AlertCircle, Package } from "lucide-react";
 import {
   useUserTickets,
   useListTicket,
@@ -31,6 +31,7 @@ import {
 } from "../components/TicketFilters";
 import { BulkListingModal } from "../components/marketplace/BulkListingModal";
 import { ErrorDisplay } from "../components/ErrorDisplay";
+import { SearchBar } from "../components/search/SearchBar";
 
 interface ListTicketModalProps {
   isOpen: boolean;
@@ -83,14 +84,23 @@ function ListTicketModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 md:p-4">
-      <div className="bg-white rounded-lg max-w-md w-full p-5 md:p-6">
-        <h3 className="text-base md:text-lg font-bold mb-4">
-          List Ticket for Sale
-        </h3>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <div className="glass-card w-full max-w-lg rounded-[1.75rem] border border-border/70 bg-card/90 p-6 shadow-[0_32px_120px_-40px_rgba(129,54,255,0.6)]">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">
+            List Ticket for Sale
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-border/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:border-primary/50 hover:text-primary"
+          >
+            Close
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+          <div className="space-y-3">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Price ({pcSymbol})
             </label>
             <input
@@ -99,30 +109,32 @@ function ListTicketModal({
               onChange={(e) => setPrice(e.target.value)}
               min="0"
               step="0.001"
-              className="w-full px-3 py-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm font-medium text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
               placeholder="100"
               required
             />
-            <p className="text-xs text-gray-500 mt-2">
-              Set your asking price in PC tokens. Push Chain will convert the
-              buyer's payment from their origin chain automatically.
+            <p className="text-xs text-muted-foreground">
+              Push Chain automatically handles cross-chain settlement; simply
+              set your desired amount in PC tokens.
             </p>
             {errorMessage && (
-              <p className="text-sm text-red-600 mt-2">{errorMessage}</p>
+              <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive">
+                {errorMessage}
+              </p>
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="rounded-full border border-border/60 bg-background/70 px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary/40 hover:text-primary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isListing || !price}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+              className="rounded-full bg-gradient-to-r from-primary via-primary to-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_18px_45px_-22px_rgba(196,73,255,0.75)] transition hover:shadow-[0_22px_55px_-20px_rgba(196,73,255,0.85)] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
             >
               {isListing ? "Listing..." : "List Ticket"}
             </button>
@@ -390,19 +402,23 @@ const MyTicketsPage = () => {
 
   if (!isConnected) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center">
-          <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-4">Connect Your Wallet</h1>
-          <p className="text-gray-600 mb-6">
-            Connect a Push universal wallet or any supported EVM wallet to see
-            your tickets.
+      <div className="container px-4 py-16">
+        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border/70 bg-card/90 p-10 text-center shadow-[0_30px_100px_-40px_rgba(129,54,255,0.6)]">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-accent/20 text-primary">
+            <AlertCircle className="h-9 w-9" />
+          </div>
+          <h1 className="text-2xl font-semibold text-foreground md:text-3xl">
+            Connect your wallet
+          </h1>
+          <p className="mt-3 text-sm text-muted-foreground md:text-base">
+            Link a Push universal account or supported EVM wallet to unlock your
+            cross-chain ticket collection.
           </p>
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_50px_-25px_rgba(196,73,255,0.8)] transition hover:shadow-[0_26px_60px_-20px_rgba(196,73,255,0.95)]"
             onClick={handleConnectToPushWallet}
           >
-            Connect Wallet
+            Connect wallet
           </button>
         </div>
       </div>
@@ -411,12 +427,15 @@ const MyTicketsPage = () => {
 
   if (isResolvingPushAccount) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-4">Preparing Your Tickets</h1>
-          <p className="text-gray-600">
-            Mapping your wallet to its Push Chain executor address...
+      <div className="container px-4 py-16">
+        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-primary/40 bg-primary/10 p-10 text-center text-primary shadow-[0_30px_100px_-40px_rgba(196,73,255,0.55)]">
+          <div className="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+          <h1 className="text-2xl font-semibold md:text-3xl">
+            Preparing your tickets
+          </h1>
+          <p className="mt-3 text-sm text-primary/80 md:text-base">
+            Mapping your wallet to its Push Chain executor address. Hang tight—
+            this only takes a moment.
           </p>
         </div>
       </div>
@@ -425,19 +444,23 @@ const MyTicketsPage = () => {
 
   if (!pushAccountAddress) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center">
-          <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-4">Address Not Ready</h1>
-          <p className="text-gray-600 mb-6">
+      <div className="container px-4 py-16">
+        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border/70 bg-card/90 p-10 text-center shadow-[0_30px_100px_-40px_rgba(129,54,255,0.6)]">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-300/40 via-amber-200/20 to-rose-200/20 text-amber-500">
+            <AlertCircle className="h-9 w-9" />
+          </div>
+          <h1 className="text-2xl font-semibold text-foreground md:text-3xl">
+            Address still syncing
+          </h1>
+          <p className="mt-3 text-sm text-muted-foreground md:text-base">
             {addressResolutionError ??
-              "We're still syncing your universal account on Push Chain."}
+              "We're finishing the Push Chain sync for your universal account. Give it a second and try reconnecting."}
           </p>
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_50px_-25px_rgba(196,73,255,0.8)] transition hover:shadow-[0_26px_60px_-20px_rgba(196,73,255,0.95)]"
             onClick={handleConnectToPushWallet}
           >
-            Retry Connection
+            Retry connection
           </button>
         </div>
       </div>
@@ -446,8 +469,8 @@ const MyTicketsPage = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="py-12">
+      <div className="container px-4 py-16">
+        <div className="max-w-3xl">
           <ErrorDisplay error={error} retry={refetch} />
         </div>
       </div>
@@ -455,44 +478,88 @@ const MyTicketsPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
-      {/* Header */}
-      <div className="mb-6 md:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900">
-            My Tickets
-          </h1>
+    <div className="container px-4 py-12 space-y-8">
+      <div className="glass-card rounded-[2.25rem] border border-border/70 bg-card/90 p-6 md:p-8 shadow-[0_30px_120px_-45px_rgba(129,54,255,0.6)]">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+              Ticket Vault
+            </span>
+            <h1 className="text-3xl font-semibold text-foreground md:text-4xl">
+              Your universal ticket hub
+            </h1>
+            <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+              Manage on-chain access passes, surface QR codes in seconds, and
+              list seats across Push Chain’s secondary markets—all from one
+              place.
+            </p>
+          </div>
           {!isLoading && filteredTickets.length > 0 && (
             <button
               onClick={() => setShowBulkListModal(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm touch-manipulation"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary via-primary to-accent px-5 py-3 text-sm font-semibold text-white shadow-[0_22px_50px_-25px_rgba(196,73,255,0.8)] transition hover:shadow-[0_24px_60px_-22px_rgba(196,73,255,0.95)]"
             >
-              <Package className="w-4 h-4 md:w-5 md:h-5" />
-              Bulk List Tickets
+              <Package className="h-5 w-5" />
+              Bulk list tickets
             </button>
           )}
         </div>
-        <p className="text-sm md:text-base text-gray-600">
-          Your NFT ticket collection. Show QR codes at events or list them for
-          sale.
-        </p>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-24 rounded-2xl border border-border/50 bg-background/60 animate-pulse"
+                />
+              ))
+            : [
+                {
+                  label: "Total tickets",
+                  primary: ticketStats.total,
+                  secondary: `Portfolio value ${totalValuePC}`,
+                },
+                {
+                  label: "Ready to use",
+                  primary: ticketStats.valid,
+                  secondary: "Scannable for entry",
+                },
+                {
+                  label: "Already scanned",
+                  primary: ticketStats.used,
+                  secondary: "History preserved",
+                },
+                {
+                  label: "Purchase volume",
+                  primary: totalValuePC,
+                  secondary: `≈ ${totalValueInEth}`,
+                },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-border/60 bg-background/70 px-5 py-4"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {stat.label}
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">
+                    {stat.primary}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {stat.secondary}
+                  </p>
+                </div>
+              ))}
+        </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="mb-6 md:mb-8">
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
-          <input
-            type="text"
-            placeholder="Search tickets..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 md:pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-          />
-        </div>
-
-        {/* Filter Controls */}
+      <div className="glass-card rounded-[2rem] border border-border/70 bg-card/90 p-6 md:p-8">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search tickets by event, venue, or token ID..."
+          className="mb-5"
+        />
         <TicketFilters
           statusFilter={statusFilter}
           sortBy={sortBy}
@@ -501,49 +568,20 @@ const MyTicketsPage = () => {
         />
       </div>
 
-      {/* Stats */}
-      {!isLoading && ticketStats.total > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {ticketStats.total}
-            </div>
-            <div className="text-sm text-gray-600">Total Tickets</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {ticketStats.valid}
-            </div>
-            <div className="text-sm text-gray-600">Valid Tickets</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <div className="text-2xl font-bold text-gray-600">
-              {ticketStats.used}
-            </div>
-            <div className="text-sm text-gray-600">Used Tickets</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {totalValuePC}
-            </div>
-            <div className="text-xs text-gray-500">≈ {totalValueInEth}</div>
-            <div className="text-sm text-gray-600">Total Purchased Value</div>
-          </div>
-        </div>
-      )}
-
-      {/* Results Count */}
       {!isLoading && (
-        <div className="mb-6">
-          <p className="text-gray-600">
-            {filteredTickets.length} ticket
-            {filteredTickets.length !== 1 ? "s" : ""} found
-            {searchQuery && ` for "${searchQuery}"`}
-          </p>
+        <div className="rounded-[1.75rem] border border-border/60 bg-secondary/60 px-5 py-4 text-sm text-muted-foreground">
+          <span className="text-foreground font-semibold">
+            {filteredTickets.length}
+          </span>{" "}
+          ticket{filteredTickets.length !== 1 ? "s" : ""} ready to explore
+          {searchQuery && (
+            <>
+              {" "}for <span className="text-foreground">"{searchQuery}"</span>
+            </>
+          )}
         </div>
       )}
 
-      {/* Tickets Grid */}
       {isLoading ? (
         <TicketGrid>
           {Array.from({ length: 6 }).map((_, index) => (

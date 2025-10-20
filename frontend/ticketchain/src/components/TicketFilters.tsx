@@ -1,4 +1,5 @@
 import { Filter, ArrowUpDown } from "lucide-react";
+import { cn } from "../utils/cn";
 
 export type TicketStatusFilter =
   | "all"
@@ -63,26 +64,25 @@ export function TicketFilters({
   onSortChange,
 }: TicketFiltersProps) {
   return (
-    <div className="space-y-4">
-      {/* Status Filters */}
+    <div className="space-y-6">
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">
-            Filter by status:
+        <div className="mb-3 flex items-center gap-2">
+          <Filter className="h-4 w-4 text-primary" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Filter by status
           </span>
         </div>
-
         <div className="flex flex-wrap gap-2">
           {STATUS_FILTERS.map(({ key, label, description }) => (
             <button
               key={key}
               onClick={() => onStatusFilterChange(key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-semibold transition-all",
                 statusFilter === key
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-              }`}
+                  ? "bg-gradient-to-r from-primary via-primary to-accent text-white shadow-[0_16px_40px_-24px_rgba(196,73,255,0.75)]"
+                  : "border border-border/60 bg-background/70 text-muted-foreground hover:border-primary/40 hover:text-primary"
+              )}
               title={description}
             >
               {label}
@@ -91,23 +91,24 @@ export function TicketFilters({
         </div>
       </div>
 
-      {/* Sort Options */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <ArrowUpDown className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+        <div className="mb-3 flex items-center gap-2">
+          <ArrowUpDown className="h-4 w-4 text-primary" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Sort by
+          </span>
         </div>
-
         <div className="flex flex-wrap gap-2">
           {SORT_OPTIONS.map(({ key, label, description }) => (
             <button
               key={key}
               onClick={() => onSortChange(key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-semibold transition-all",
                 sortBy === key
-                  ? "bg-purple-600 text-white shadow-md"
-                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-              }`}
+                  ? "bg-gradient-to-r from-primary via-primary to-accent text-white shadow-[0_16px_40px_-24px_rgba(196,73,255,0.75)]"
+                  : "border border-border/60 bg-background/70 text-muted-foreground hover:border-primary/40 hover:text-primary"
+              )}
               title={description}
             >
               {label}

@@ -298,28 +298,30 @@ export function OrganizerVerificationPage() {
 
   if (!organizerAddress) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+      <div className="container flex min-h-screen items-center justify-center px-4 py-16">
+        <div className="glass-card w-full max-w-lg rounded-[2rem] border border-border/70 bg-card/90 p-8 text-center shadow-[0_32px_110px_-45px_rgba(129,54,255,0.65)]">
           {isResolvingAddress ? (
             <>
-              <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Resolving Address
+              <div className="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+              <h2 className="text-2xl font-semibold text-foreground">
+                Verifying organizer access
               </h2>
-              <p className="text-gray-600">
-                Please wait while we verify your organizer credentials on Push
-                Chain...
+              <p className="mt-3 text-sm text-muted-foreground">
+                Sit tight while we map your wallet to its Push executor
+                address.
               </p>
             </>
           ) : (
             <>
-              <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Connect Wallet
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/25 via-primary/10 to-accent/20 text-primary">
+                <AlertCircle className="h-9 w-9" />
+              </div>
+              <h2 className="text-2xl font-semibold text-foreground">
+                Connect your organizer wallet
               </h2>
-              <p className="text-gray-600">
-                Please connect your wallet to access the ticket verification
-                system.
+              <p className="mt-3 text-sm text-muted-foreground">
+                Link the wallet tied to your event so you can securely verify
+                ticket holders.
               </p>
             </>
           )}
@@ -329,29 +331,32 @@ export function OrganizerVerificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Scan className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">
-              Ticket Verification
-            </h1>
+    <div className="container px-4 py-12">
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div className="glass-card rounded-[2.25rem] border border-border/70 bg-card/90 p-6 md:p-8 shadow-[0_30px_120px_-40px_rgba(129,54,255,0.6)]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 via-primary/10 to-accent/20 text-primary">
+              <Scan className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground md:text-3xl">
+                Ticket verification hub
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Scan attendee QR codes, confirm ownership, and mark entry on
+                chain in real time.
+              </p>
+            </div>
           </div>
-          <p className="text-gray-600">
-            Scan ticket QR codes to verify authenticity and grant entry
-          </p>
-          <div className="mt-4 text-sm text-gray-500">
-            <p>
-              Organizer: {organizerAddress.slice(0, 6)}...
-              {organizerAddress.slice(-4)}
-            </p>
+          <div className="mt-4 rounded-[1.5rem] border border-border/60 bg-background/70 px-4 py-3 text-xs text-muted-foreground">
+            Organizer wallet:&nbsp;
+            <span className="font-mono text-foreground">
+              {organizerAddress.slice(0, 6)}…{organizerAddress.slice(-4)}
+            </span>
           </div>
         </div>
 
-        {/* Scanner Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="glass-card rounded-[2.25rem] border border-border/70 bg-card/90 p-6 md:p-8">
           <QRScanner
             onScan={handleScan}
             onError={(error) => console.error("Scanner error:", error)}
@@ -359,8 +364,10 @@ export function OrganizerVerificationPage() {
 
           {isVerifying && (
             <div className="mt-6 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-2 text-gray-600">Verifying ticket...</p>
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+              <p className="mt-2 text-sm text-muted-foreground">
+                Verifying ticket...
+              </p>
             </div>
           )}
         </div>
@@ -375,15 +382,16 @@ export function OrganizerVerificationPage() {
           details={verificationResult?.details}
         />
 
-        {/* Instructions */}
-        <div className="mt-6 bg-blue-50 rounded-lg p-6">
-          <h3 className="font-semibold text-blue-900 mb-2">How to use:</h3>
-          <ol className="list-decimal list-inside space-y-2 text-blue-800 text-sm">
-            <li>Click "Start Scanning" to activate the camera</li>
-            <li>Point the camera at the ticket holder's QR code</li>
-            <li>Wait for automatic verification</li>
-            <li>Grant entry if verification is successful (green)</li>
-            <li>Deny entry if ticket is used or invalid (red)</li>
+        <div className="glass-card mt-6 rounded-[2rem] border border-primary/30 bg-primary/10 p-6 text-primary-foreground">
+          <h3 className="text-sm font-semibold uppercase tracking-wider">
+            How to verify tickets
+          </h3>
+          <ol className="mt-3 space-y-2 text-xs">
+            <li>1. Tap “Start scanning” inside the QR component to enable your camera.</li>
+            <li>2. Center the attendee’s QR code within the frame—verification runs instantly.</li>
+            <li>3. Green success means grant entry; red alerts flag used or mismatched tickets.</li>
+            <li>4. Each successful scan locks the ticket, preventing re-entry attempts.</li>
+            <li>5. Need to reset? Hit “Clear” in the result modal and scan the next guest.</li>
           </ol>
         </div>
       </div>

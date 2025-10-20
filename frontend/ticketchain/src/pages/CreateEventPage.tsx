@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
-  MapPin,
   Upload,
   Plus,
   Trash2,
@@ -444,15 +443,20 @@ export const CreateEventPage = () => {
 
   if (connectionStatus !== "connected") {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center">
-          <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-4">Connect Your Wallet</h1>
-          <p className="text-gray-600 mb-6">
-            You need to connect your wallet to create events on TicketChain.
+      <div className="container px-4 py-16">
+        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border/70 bg-card/90 p-10 text-center shadow-[0_30px_100px_-40px_rgba(129,54,255,0.6)]">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-accent/20 text-primary">
+            <AlertCircle className="h-9 w-9" />
+          </div>
+          <h1 className="text-2xl font-semibold text-foreground md:text-3xl">
+            Connect your wallet to launch an event
+          </h1>
+          <p className="mt-3 text-sm text-muted-foreground md:text-base">
+            TicketChain needs a connected Push wallet to mint NFT passes and
+            fund your event treasury.
           </p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
-            Connect Wallet
+          <button className="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_50px_-25px_rgba(196,73,255,0.8)] transition hover:shadow-[0_26px_60px_-20px_rgba(196,73,255,0.95)]">
+            Connect wallet
           </button>
         </div>
       </div>
@@ -460,90 +464,118 @@ export const CreateEventPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-4 md:mb-8">
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
-            Create a New Event
-          </h1>
-          <p className="text-sm md:text-base text-gray-600">
-            Fill out the form below to create your event on TicketChain.
-          </p>
+    <div className="container px-4 py-12">
+      <div className="mx-auto max-w-5xl space-y-8">
+        <div className="glass-card rounded-[2.5rem] border border-border/70 bg-card/90 p-6 md:p-10 shadow-[0_40px_140px_-50px_rgba(129,54,255,0.6)]">
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-3">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                Event Studio
+              </span>
+              <h1 className="text-3xl font-semibold text-foreground md:text-4xl">
+                Craft a signature experience
+              </h1>
+              <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+                Design every tier, automate royalty splits, and launch an
+                on-chain event that dazzles attendees and hackathon judges
+                alike.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-background/70 px-5 py-4 text-xs text-muted-foreground">
+              <p className="font-semibold uppercase tracking-wider text-foreground">
+                Draft status
+              </p>
+              <p className="mt-1">
+                {lastSaved
+                  ? `Autosaved ${lastSaved.toLocaleTimeString()}`
+                  : "No draft yet"}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Draft Banner */}
         {hasDraft && (
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-3 md:p-4 mb-4 md:mb-6 rounded-r-lg">
-            <div className="flex items-center justify-between flex-wrap gap-3 md:gap-4">
-              <div className="flex items-center">
-                <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-500 mr-2 md:mr-3 flex-shrink-0" />
-                <div>
-                  <h4 className="text-sm md:text-base font-medium text-blue-900">
-                    Continue from draft?
-                  </h4>
-                  <p className="text-xs md:text-sm text-blue-700">
-                    You have an unsaved event draft
-                  </p>
-                </div>
+          <div className="glass-card flex flex-col gap-3 rounded-[1.75rem] border border-primary/40 bg-primary/10 p-5 text-primary">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5" />
+              <div>
+                <h4 className="text-sm font-semibold uppercase tracking-wider">
+                  Resume your draft?
+                </h4>
+                <p className="text-xs text-primary/80">
+                  We found unsaved event configuration from your last session.
+                </p>
               </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={loadDraft}
-                  className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs md:text-sm font-medium transition-colors touch-manipulation"
-                >
-                  Load Draft
-                </button>
-                <button
-                  type="button"
-                  onClick={clearDraft}
-                  className="flex-1 sm:flex-none px-3 md:px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-xs md:text-sm font-medium transition-colors touch-manipulation"
-                >
-                  Discard
-                </button>
-              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+              <button
+                type="button"
+                onClick={loadDraft}
+                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-4 py-2 text-xs font-semibold text-white shadow-[0_18px_45px_-22px_rgba(196,73,255,0.75)] transition hover:shadow-[0_22px_55px_-20px_rgba(196,73,255,0.85)]"
+              >
+                Load draft
+              </button>
+              <button
+                type="button"
+                onClick={clearDraft}
+                className="inline-flex items-center justify-center rounded-full border border-primary/40 bg-background/70 px-4 py-2 text-xs font-semibold text-primary transition hover:border-primary"
+              >
+                Discard
+              </button>
             </div>
           </div>
         )}
 
         {/* Auto-save Indicator */}
         {lastSaved && !hasDraft && (
-          <div className="flex items-center justify-end text-sm text-gray-500 mb-4">
-            <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
-            Draft saved at {lastSaved.toLocaleTimeString()}
+          <div className="flex items-center justify-end text-xs uppercase tracking-wider text-muted-foreground">
+            <CheckCircle className="mr-2 h-4 w-4 text-primary" />
+            Draft saved {lastSaved.toLocaleTimeString()}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 md:space-y-10">
           {/* Basic Information */}
-          <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-bold mb-4 md:mb-6">
-              Basic Information
-            </h2>
+          <div className="glass-card rounded-[2rem] border border-border/70 bg-card/90 p-6 md:p-8">
+            <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-foreground md:text-2xl">
+                  Basic information
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Introduce the experience and set the tone for potential
+                  attendees.
+                </p>
+              </div>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
               <div className="md:col-span-2">
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
-                  Event Name *
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Event name *
                 </label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
-                    errors.name ? "border-red-500" : "border-gray-300"
+                  className={`w-full rounded-2xl border bg-background/80 px-4 py-3 text-sm font-medium text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                    errors.name
+                      ? "border-destructive/60 shadow-[0_0_0_1px_rgba(244,63,94,0.35)]"
+                      : "border-border/60"
                   }`}
-                  placeholder="Enter event name"
+                  placeholder="Metaverse Mixer • NYC"
                 />
                 {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                  <p className="mt-2 text-sm font-semibold text-destructive">
+                    {errors.name}
+                  </p>
                 )}
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Description *
                 </label>
                 <textarea
@@ -552,218 +584,260 @@ export const CreateEventPage = () => {
                   onChange={handleInputChange}
                   rows={4}
                   maxLength={2000}
-                  className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
-                    errors.description ? "border-red-500" : "border-gray-300"
+                  className={`w-full rounded-2xl border bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                    errors.description
+                      ? "border-destructive/60 shadow-[0_0_0_1px_rgba(244,63,94,0.35)]"
+                      : "border-border/60"
                   }`}
-                  placeholder="Describe your event"
+                  placeholder="Share the vibe, headliners, and exclusive perks attendees unlock by joining."
                 />
-                <div className="flex items-center justify-between mt-1">
-                  {errors.description && (
-                    <p className="text-red-500 text-sm">{errors.description}</p>
+                <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                  {errors.description ? (
+                    <p className="font-semibold text-destructive">
+                      {errors.description}
+                    </p>
+                  ) : (
+                    <span>Keep it punchy—highlight the why and wow.</span>
                   )}
-                  <p
-                    className={`text-sm ml-auto ${
+                  <span
+                    className={
                       formData.description.length > 1800
-                        ? "text-yellow-600"
-                        : "text-gray-500"
-                    }`}
+                        ? "text-amber-500"
+                        : ""
+                    }
                   >
-                    {formData.description.length} / 2000 characters
-                  </p>
+                    {formData.description.length} / 2000
+                  </span>
                 </div>
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 inline mr-1" />
-                  Venue *
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Venue / location *
                 </label>
                 <input
                   type="text"
                   name="venue"
                   value={formData.venue}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.venue ? "border-red-500" : "border-gray-300"
+                  className={`w-full rounded-2xl border bg-background/80 px-4 py-3 text-sm font-medium text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                    errors.venue
+                      ? "border-destructive/60 shadow-[0_0_0_1px_rgba(244,63,94,0.35)]"
+                      : "border-border/60"
                   }`}
-                  placeholder="Event venue or location"
+                  placeholder="123 Web3 Way, Brooklyn, NY or Metaverse District 4"
                 />
                 {errors.venue && (
-                  <p className="text-red-500 text-sm mt-1">{errors.venue}</p>
+                  <p className="mt-2 text-sm font-semibold text-destructive">
+                    {errors.venue}
+                  </p>
                 )}
               </div>
             </div>
           </div>
 
           {/* Date and Time */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-bold mb-2 flex items-center">
-              <Calendar className="w-5 h-5 mr-2" />
-              Event Schedule
-            </h2>
-            <p className="text-sm text-gray-600 mb-6">
-              Set when the event opens and when it ends so attendees know your
-              full schedule.
-            </p>
+          <div className="glass-card rounded-[2rem] border border-border/70 bg-card/90 p-6 md:p-8">
+            <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-accent/20 text-primary">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground md:text-2xl">
+                    Event schedule
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Set check-in and closing times so ticket utility updates
+                    automatically.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                  Event Start
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="md:col-span-2 space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Event start
                 </h3>
-                <p className="text-xs text-gray-500 mb-4">
-                  Choose the date and time when attendees can start checking in
-                  or entering the venue.
+                <p className="text-xs text-muted-foreground/80">
+                  Choose when doors open or the livestream goes live—attendees
+                  gain access at this time.
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Date *
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Start date *
                 </label>
                 <input
                   type="date"
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.startDate ? "border-red-500" : "border-gray-300"
+                  className={`w-full rounded-2xl border bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                    errors.startDate
+                      ? "border-destructive/60 shadow-[0_0_0_1px_rgba(244,63,94,0.35)]"
+                      : "border-border/60"
                   }`}
                 />
                 {errors.startDate && (
-                  <p className="text-red-500 text-sm mt-1">
+                  <p className="mt-2 text-sm font-semibold text-destructive">
                     {errors.startDate}
                   </p>
                 )}
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Time *
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Start time *
                 </label>
                 <input
                   type="time"
                   name="startTime"
                   value={formData.startTime}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.startTime ? "border-red-500" : "border-gray-300"
+                  className={`w-full rounded-2xl border bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                    errors.startTime
+                      ? "border-destructive/60 shadow-[0_0_0_1px_rgba(244,63,94,0.35)]"
+                      : "border-border/60"
                   }`}
                 />
                 {errors.startTime && (
-                  <p className="text-red-500 text-sm mt-1">
+                  <p className="mt-2 text-sm font-semibold text-destructive">
                     {errors.startTime}
                   </p>
                 )}
               </div>
 
-              <div className="md:col-span-2 mt-2">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                  Event End
+              <div className="md:col-span-2 space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Event end
                 </h3>
-                <p className="text-xs text-gray-500 mb-4">
-                  Specify when the event finishes so the ticket automatically
-                  closes after this time.
+                <p className="text-xs text-muted-foreground/80">
+                  After this timestamp, tickets will display as inactive—great
+                  for redeemables or post-event gating.
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  End Date *
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  End date *
                 </label>
                 <input
                   type="date"
                   name="endDate"
                   value={formData.endDate}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.endDate ? "border-red-500" : "border-gray-300"
+                  className={`w-full rounded-2xl border bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                    errors.endDate
+                      ? "border-destructive/60 shadow-[0_0_0_1px_rgba(244,63,94,0.35)]"
+                      : "border-border/60"
                   }`}
                 />
                 {errors.endDate && (
-                  <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>
+                  <p className="mt-2 text-sm font-semibold text-destructive">
+                    {errors.endDate}
+                  </p>
                 )}
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  End Time *
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  End time *
                 </label>
                 <input
                   type="time"
                   name="endTime"
                   value={formData.endTime}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.endTime ? "border-red-500" : "border-gray-300"
+                  className={`w-full rounded-2xl border bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                    errors.endTime
+                      ? "border-destructive/60 shadow-[0_0_0_1px_rgba(244,63,94,0.35)]"
+                      : "border-border/60"
                   }`}
                 />
                 {errors.endTime && (
-                  <p className="text-red-500 text-sm mt-1">{errors.endTime}</p>
+                  <p className="mt-2 text-sm font-semibold text-destructive">
+                    {errors.endTime}
+                  </p>
                 )}
               </div>
             </div>
           </div>
 
           {/* Event Image */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-bold mb-6">Event Image</h2>
+          <div className="glass-card rounded-[2rem] border border-border/70 bg-card/90 p-6 md:p-8">
+            <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-foreground md:text-2xl">
+                  Event imagery
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Showcase the vibe—this artwork appears across the entire
+                  ticketing journey.
+                </p>
+              </div>
+            </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Event Image *
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center relative">
-                  {imagePreview ? (
-                    <div className="space-y-4">
-                      <img
-                        src={imagePreview}
-                        alt="Event preview"
-                        className="max-h-48 mx-auto rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImagePreview("");
-                          setFormData((prev) => ({ ...prev, image: null }));
-                        }}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                      >
-                        Remove Image
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-2">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-gray-500 text-sm">
-                        PNG, JPG, GIF up to 5MB
-                      </p>
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                </div>
-                {errors.image && (
-                  <p className="text-red-500 text-sm mt-1">{errors.image}</p>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Upload cover image *
+              </label>
+              <div className="relative overflow-hidden rounded-[1.75rem] border-2 border-dashed border-border/60 bg-background/60 p-6 text-center">
+                {imagePreview ? (
+                  <div className="space-y-4">
+                    <img
+                      src={imagePreview}
+                      alt="Event preview"
+                      className="mx-auto max-h-56 rounded-[1.5rem] border border-border/60 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImagePreview("");
+                        setFormData((prev) => ({ ...prev, image: null }));
+                      }}
+                      className="inline-flex items-center justify-center rounded-full border border-destructive/40 bg-destructive/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-destructive transition hover:bg-destructive/15"
+                    >
+                      Remove image
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <Upload className="mx-auto h-12 w-12 text-primary" />
+                    <p>Click to upload or drag and drop a high-res visual</p>
+                    <p className="text-xs">PNG, JPG, or GIF up to 5MB</p>
+                  </div>
                 )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                />
               </div>
+              {errors.image && (
+                <p className="text-sm font-semibold text-destructive">
+                  {errors.image}
+                </p>
+              )}
             </div>
           </div>
 
           {/* Ticket Configuration */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-bold mb-6">Ticket Configuration</h2>
+          <div className="glass-card rounded-[2rem] border border-border/70 bg-card/90 p-6 md:p-8">
+            <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-foreground md:text-2xl">
+                  Ticket configuration
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Define supply, tiers, and pricing for your universal passes.
+                </p>
+              </div>
+            </div>
 
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Total Supply *
                   </label>
                   <input
@@ -772,20 +846,22 @@ export const CreateEventPage = () => {
                     value={formData.totalSupply}
                     onChange={handleInputChange}
                     min="1"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.totalSupply ? "border-red-500" : "border-gray-300"
+                    className={`w-full rounded-2xl border bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                      errors.totalSupply
+                        ? "border-destructive/60 shadow-[0_0_0_1px_rgba(244,63,94,0.35)]"
+                        : "border-border/60"
                     }`}
                     placeholder="Total number of tickets"
                   />
                   {errors.totalSupply && (
-                    <p className="text-red-500 text-sm mt-1">
+                    <p className="mt-2 text-sm font-semibold text-destructive">
                       {errors.totalSupply}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Royalty (%)
                   </label>
                   <input
@@ -803,10 +879,10 @@ export const CreateEventPage = () => {
                     min="0"
                     max="10"
                     step="0.1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     placeholder="2.5"
                   />
-                  <p className="text-gray-500 text-xs mt-1">
+                  <p className="mt-2 text-xs text-muted-foreground">
                     Percentage you'll earn from secondary sales
                   </p>
                 </div>
@@ -814,20 +890,20 @@ export const CreateEventPage = () => {
 
               {/* Revenue Estimate */}
               {estimatedRevenue > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="rounded-[1.75rem] border border-emerald-500/40 bg-emerald-500/10 p-4 text-emerald-400">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-5 h-5 text-green-600" />
+                      <DollarSign className="h-5 w-5" />
                       <div>
-                        <h4 className="font-medium text-green-900">
-                          Estimated Revenue
+                        <h4 className="text-sm font-semibold uppercase tracking-wider">
+                          Estimated revenue
                         </h4>
-                        <p className="text-sm text-green-700">
-                          If all tickets are sold
+                        <p className="text-xs text-emerald-300">
+                          If every ticket sells out
                         </p>
                       </div>
                     </div>
-                    <p className="text-2xl font-bold text-green-900">
+                    <p className="text-2xl font-semibold text-emerald-200">
                       {formatPriceInCurrency(BigInt(estimatedRevenue), "PC")}
                     </p>
                   </div>
@@ -843,7 +919,7 @@ export const CreateEventPage = () => {
                   <button
                     type="button"
                     onClick={addTicketTypeField}
-                    className="flex items-center gap-1.5 md:gap-2 text-blue-600 hover:text-blue-800 text-xs md:text-sm font-medium touch-manipulation"
+                    className="flex items-center gap-1.5 md:gap-2 text-primary hover:text-accent text-xs md:text-sm font-medium touch-manipulation"
                   >
                     <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     <span className="hidden sm:inline">Add Ticket Type</span>
@@ -855,7 +931,7 @@ export const CreateEventPage = () => {
                   {ticketTypes.map((ticketType, index) => (
                     <div
                       key={index}
-                      className="border border-gray-200 rounded-lg p-3 md:p-4"
+                      className="rounded-[1.75rem] border border-border/60 bg-background/70 p-4 md:p-5"
                     >
                       <div className="flex items-center justify-between mb-3 md:mb-4">
                         <h4 className="text-sm md:text-base font-medium">
@@ -865,7 +941,7 @@ export const CreateEventPage = () => {
                           <button
                             type="button"
                             onClick={() => duplicateTicketType(index)}
-                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs md:text-sm touch-manipulation p-1"
+                            className="text-primary hover:text-accent flex items-center gap-1 text-xs md:text-sm touch-manipulation p-1"
                             title="Duplicate this ticket type"
                           >
                             <Copy className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -875,7 +951,7 @@ export const CreateEventPage = () => {
                             <button
                               type="button"
                               onClick={() => removeTicketType(index)}
-                              className="text-red-600 hover:text-red-800 touch-manipulation p-1"
+                              className="text-destructive hover:text-destructive touch-manipulation p-1"
                               title="Remove this ticket type"
                             >
                               <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -886,7 +962,7 @@ export const CreateEventPage = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                         <div>
-                          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
+                          <label className="block text-xs md:text-sm font-medium text-foreground/80 mb-1.5 md:mb-2">
                             Name *
                           </label>
                           <input
@@ -899,22 +975,22 @@ export const CreateEventPage = () => {
                                 e.target.value
                               )
                             }
-                            className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
+                            className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-[1.5rem] focus:ring-2 focus:ring-primary/40 focus:border-primary/50 touch-manipulation ${
                               errors[`ticketType${index}Name`]
-                                ? "border-red-500"
-                                : "border-gray-300"
+                                ? "border-destructive/60"
+                                : "border-border/60"
                             }`}
                             placeholder="e.g., VIP, General"
                           />
                           {errors[`ticketType${index}Name`] && (
-                            <p className="text-red-500 text-sm mt-1">
+                            <p className="text-destructive text-sm mt-1">
                               {errors[`ticketType${index}Name`]}
                             </p>
                           )}
                         </div>
 
                         <div>
-                          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
+                          <label className="block text-xs md:text-sm font-medium text-foreground/80 mb-1.5 md:mb-2">
                             Price (PC) *
                           </label>
                           <input
@@ -931,26 +1007,26 @@ export const CreateEventPage = () => {
                             }
                             min="0"
                             step="0.001"
-                            className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
+                            className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-[1.5rem] focus:ring-2 focus:ring-primary/40 focus:border-primary/50 touch-manipulation ${
                               errors[`ticketType${index}Price`]
-                                ? "border-red-500"
-                                : "border-gray-300"
+                                ? "border-destructive/60"
+                                : "border-border/60"
                             }`}
                             placeholder="10"
                           />
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             Price in PC (Push Chain tokens). Users can pay with
                             any supported currency.
                           </p>
                           {errors[`ticketType${index}Price`] && (
-                            <p className="text-red-500 text-sm mt-1">
+                            <p className="text-destructive text-sm mt-1">
                               {errors[`ticketType${index}Price`]}
                             </p>
                           )}
                         </div>
 
                         <div>
-                          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
+                          <label className="block text-xs md:text-sm font-medium text-foreground/80 mb-1.5 md:mb-2">
                             Supply *
                           </label>
                           <input
@@ -964,15 +1040,15 @@ export const CreateEventPage = () => {
                               )
                             }
                             min="1"
-                            className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent touch-manipulation ${
+                            className={`w-full px-3 py-2.5 md:py-2 text-base border rounded-[1.5rem] focus:ring-2 focus:ring-primary/40 focus:border-primary/50 touch-manipulation ${
                               errors[`ticketType${index}Supply`]
-                                ? "border-red-500"
-                                : "border-gray-300"
+                                ? "border-destructive/60"
+                                : "border-border/60"
                             }`}
                             placeholder="100"
                           />
                           {errors[`ticketType${index}Supply`] && (
-                            <p className="text-red-500 text-sm mt-1">
+                            <p className="text-destructive text-sm mt-1">
                               {errors[`ticketType${index}Supply`]}
                             </p>
                           )}
@@ -1007,14 +1083,14 @@ export const CreateEventPage = () => {
             <button
               type="button"
               onClick={() => navigate("/events")}
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+              className="rounded-full border border-border/60 bg-background/70 px-6 py-3 text-sm font-semibold text-muted-foreground transition hover:border-primary/40 hover:text-primary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || isCreatingEvent}
-              className="w-full sm:w-auto px-6 py-3.5 md:py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-base touch-manipulation"
+              className="w-full rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_60px_-25px_rgba(196,73,255,0.85)] transition hover:shadow-[0_28px_70px_-22px_rgba(196,73,255,0.95)] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground sm:w-auto"
             >
               {isSubmitting || isCreatingEvent ? (
                 <>
