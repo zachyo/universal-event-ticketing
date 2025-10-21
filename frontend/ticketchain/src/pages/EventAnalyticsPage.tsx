@@ -71,7 +71,7 @@ export default function EventAnalyticsPage() {
       <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <RefreshCw className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-4" />
+            <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading analytics...</p>
           </div>
         </div>
@@ -105,7 +105,7 @@ export default function EventAnalyticsPage() {
           </p>
           <Link
             to="/events"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Events
@@ -121,7 +121,7 @@ export default function EventAnalyticsPage() {
       <div className="mb-6 md:mb-8">
         <Link
           to={`/events/${eventId}`}
-          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 mb-4"
+          className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/90 mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Event
@@ -158,7 +158,7 @@ export default function EventAnalyticsPage() {
           value={analytics.totalSold}
           subtitle={`of ${analytics.totalCapacity} capacity`}
           icon={Ticket}
-          color="blue"
+          color="primary"
         />
         <StatsCard
           title="Sell Rate"
@@ -172,7 +172,7 @@ export default function EventAnalyticsPage() {
           value={`${formatPrice(analytics.primaryRevenue)} PC`}
           subtitle="Primary sales"
           icon={DollarSign}
-          color="purple"
+          color="primary"
         />
         <StatsCard
           title="Attendance"

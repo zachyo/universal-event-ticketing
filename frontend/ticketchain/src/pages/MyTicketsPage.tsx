@@ -85,7 +85,7 @@ function ListTicketModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="glass-card w-full max-w-lg rounded-[1.75rem] border border-border/70 bg-card/90 p-6 shadow-[0_32px_120px_-40px_rgba(129,54,255,0.6)]">
+      <div className="glass-card w-full max-w-lg rounded-[1.75rem] border border-border bg-card p-6 shadow-lg">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-foreground">
             List Ticket for Sale
@@ -127,14 +127,14 @@ function ListTicketModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-border/60 bg-background/70 px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+              className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary hover:text-primary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isListing || !price}
-              className="rounded-full bg-gradient-to-r from-primary via-primary to-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_18px_45px_-22px_rgba(196,73,255,0.75)] transition hover:shadow-[0_22px_55px_-20px_rgba(196,73,255,0.85)] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
             >
               {isListing ? "Listing..." : "List Ticket"}
             </button>
@@ -403,8 +403,8 @@ const MyTicketsPage = () => {
   if (!isConnected) {
     return (
       <div className="container px-4 py-16">
-        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border/70 bg-card/90 p-10 text-center shadow-[0_30px_100px_-40px_rgba(129,54,255,0.6)]">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-accent/20 text-primary">
+        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border bg-card p-10 text-center shadow-lg">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
             <AlertCircle className="h-9 w-9" />
           </div>
           <h1 className="text-2xl font-semibold text-foreground md:text-3xl">
@@ -415,7 +415,7 @@ const MyTicketsPage = () => {
             cross-chain ticket collection.
           </p>
           <button
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_50px_-25px_rgba(196,73,255,0.8)] transition hover:shadow-[0_26px_60px_-20px_rgba(196,73,255,0.95)]"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
             onClick={handleConnectToPushWallet}
           >
             Connect wallet
@@ -428,7 +428,7 @@ const MyTicketsPage = () => {
   if (isResolvingPushAccount) {
     return (
       <div className="container px-4 py-16">
-        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-primary/40 bg-primary/10 p-10 text-center text-primary shadow-[0_30px_100px_-40px_rgba(196,73,255,0.55)]">
+        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-primary/40 bg-primary/10 p-10 text-center text-primary shadow-xl">
           <div className="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
           <h1 className="text-2xl font-semibold md:text-3xl">
             Preparing your tickets
@@ -445,8 +445,8 @@ const MyTicketsPage = () => {
   if (!pushAccountAddress) {
     return (
       <div className="container px-4 py-16">
-        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border/70 bg-card/90 p-10 text-center shadow-[0_30px_100px_-40px_rgba(129,54,255,0.6)]">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-300/40 via-amber-200/20 to-rose-200/20 text-amber-500">
+        <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border bg-card p-10 text-center shadow-lg">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600">
             <AlertCircle className="h-9 w-9" />
           </div>
           <h1 className="text-2xl font-semibold text-foreground md:text-3xl">
@@ -457,7 +457,7 @@ const MyTicketsPage = () => {
               "We're finishing the Push Chain sync for your universal account. Give it a second and try reconnecting."}
           </p>
           <button
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_50px_-25px_rgba(196,73,255,0.8)] transition hover:shadow-[0_26px_60px_-20px_rgba(196,73,255,0.95)]"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
             onClick={handleConnectToPushWallet}
           >
             Retry connection
@@ -479,7 +479,7 @@ const MyTicketsPage = () => {
 
   return (
     <div className="container px-4 py-12 space-y-8">
-      <div className="glass-card rounded-[2.25rem] border border-border/70 bg-card/90 p-6 md:p-8 shadow-[0_30px_120px_-45px_rgba(129,54,255,0.6)]">
+      <div className="glass-card rounded-[2.25rem] border border-border bg-card p-6 md:p-8 shadow-lg">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -497,7 +497,7 @@ const MyTicketsPage = () => {
           {!isLoading && filteredTickets.length > 0 && (
             <button
               onClick={() => setShowBulkListModal(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary via-primary to-accent px-5 py-3 text-sm font-semibold text-white shadow-[0_22px_50px_-25px_rgba(196,73,255,0.8)] transition hover:shadow-[0_24px_60px_-22px_rgba(196,73,255,0.95)]"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
             >
               <Package className="h-5 w-5" />
               Bulk list tickets
@@ -553,7 +553,7 @@ const MyTicketsPage = () => {
         </div>
       </div>
 
-      <div className="glass-card rounded-[2rem] border border-border/70 bg-card/90 p-6 md:p-8">
+      <div className="glass-card rounded-[2rem] border border-border bg-card p-6 md:p-8">
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}

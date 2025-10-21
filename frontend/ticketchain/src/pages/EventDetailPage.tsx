@@ -358,8 +358,8 @@ const EventDetailPage = () => {
           Back to Events
         </Link>
 
-        <div className="relative overflow-hidden rounded-[2.5rem] border border-border/70 bg-card/85 shadow-[0_24px_80px_-32px_rgba(129,54,255,0.65)]">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-transparent to-accent/30" />
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-border bg-card shadow-lg">
+          <div className="absolute inset-0 bg-primary/10" />
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="relative">
               <div className="h-64 overflow-hidden rounded-[2.5rem] lg:h-full">
@@ -373,7 +373,7 @@ const EventDetailPage = () => {
                   }}
                 />
               </div>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-6 pb-6 pt-24 text-white">
+              <div className="absolute inset-x-0 bottom-0 bg-black/60 px-6 pb-6 pt-24 text-white">
                 <div className="flex flex-wrap items-center gap-3 pb-4">
                   <span
                     className={cn(
@@ -381,7 +381,7 @@ const EventDetailPage = () => {
                       status === "live"
                         ? "border-emerald-300 bg-emerald-400/20 text-emerald-100"
                         : status === "upcoming"
-                        ? "border-sky-300 bg-sky-400/20 text-sky-100"
+                        ? "border-primary/40 bg-primary/15 text-primary"
                         : status === "ended"
                         ? "border-zinc-300 bg-zinc-500/20 text-zinc-100"
                         : "border-rose-300 bg-rose-400/20 text-rose-100"
@@ -632,7 +632,7 @@ const EventDetailPage = () => {
                             disabled &&
                               "cursor-not-allowed opacity-60 hover:border-border/60",
                             isSelected
-                              ? "border-primary bg-primary/10 shadow-[0_16px_40px_-24px_rgba(196,73,255,0.6)]"
+                              ? "border-primary bg-primary/10 shadow-sm"
                               : "border-border/60 bg-background/70 hover:border-primary/40"
                           )}
                         >
@@ -689,7 +689,7 @@ const EventDetailPage = () => {
                     disabled={
                       isPurchasing || isGeneratingMetadata || !canPurchase
                     }
-                    className="w-full rounded-full bg-gradient-to-r from-primary via-primary to-accent px-5 py-3 text-sm font-semibold text-white shadow-[0_24px_60px_-24px_rgba(196,73,255,0.85)] transition hover:shadow-[0_26px_70px_-20px_rgba(196,73,255,0.95)] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+                    className="w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
                   >
                     {isPurchasing
                       ? "Processing purchase..."
@@ -785,7 +785,7 @@ const EventDetailPage = () => {
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-border">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary via-primary to-accent transition-all duration-300"
+                    className="h-full rounded-full bg-primary transition-all duration-300"
                     style={{
                       width: `${
                         (formattedEvent.sold / formattedEvent.totalSupply) * 100
@@ -852,7 +852,7 @@ const EventDetailPage = () => {
               type="button"
               onClick={handleConfirmQuickPurchase}
               disabled={isPurchasing || isGeneratingMetadata || !canPurchase}
-              className="w-full rounded-full bg-gradient-to-r from-primary via-primary to-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_18px_50px_-20px_rgba(196,73,255,0.85)] transition hover:shadow-[0_22px_60px_-18px_rgba(196,73,255,0.95)] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground sm:w-auto"
+              className="w-full rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary sm:w-auto"
             >
               {isPurchasing
                 ? "Processing..."

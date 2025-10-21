@@ -29,12 +29,9 @@ function hasTicketTypes(
   return "ticketTypes" in event && "minPrice" in event;
 }
 
-const statusStyles: Record<
-  ReturnType<typeof getEventStatus>,
-  string
-> = {
+const statusStyles: Record<ReturnType<typeof getEventStatus>, string> = {
   live: "border-emerald-300 bg-emerald-400/20 text-emerald-50",
-  upcoming: "border-sky-300 bg-sky-400/20 text-sky-50",
+  upcoming: "border-primary/40 bg-primary/15 text-primary",
   ended: "border-zinc-300 bg-zinc-500/20 text-zinc-50",
   inactive: "border-rose-300 bg-rose-400/20 text-rose-50",
 };
@@ -57,7 +54,7 @@ export function EventCard({
   const hasMultipleTiers = eventWithTypes?.hasMultipleTiers || false;
 
   return (
-    <div className="group relative overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 p-4 shadow-[0_20px_60px_-30px_rgba(129,54,255,0.55)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_32px_90px_-32px_rgba(196,73,255,0.65)]">
+    <div className="group relative overflow-hidden rounded-[2rem] border border-border bg-card p-4 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-md">
       <div className="relative h-48 overflow-hidden rounded-[1.8rem]">
         <img
           src={event.imageUrl || "/placeholder-event.jpg"}
@@ -68,7 +65,7 @@ export function EventCard({
             target.src = "/placeholder-event.jpg";
           }}
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/70" />
+        <div className="pointer-events-none absolute inset-0 bg-black/35" />
 
         <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2">
           <span
@@ -169,7 +166,7 @@ export function EventCard({
           {showPurchaseButton && status === "upcoming" && !isSoldOut && (
             <Link
               to={`/events/${event.eventId}`}
-              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_20px_40px_-24px_rgba(196,73,255,0.65)] transition hover:shadow-[0_24px_50px_-22px_rgba(196,73,255,0.75)]"
+              className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
             >
               Get Tickets
             </Link>
@@ -193,7 +190,7 @@ export function EventCard({
 
 export function EventCardSkeleton() {
   return (
-    <div className="glass-card rounded-[2rem] border border-border/70 bg-card/85 p-4 shadow-[0_20px_60px_-30px_rgba(129,54,255,0.35)]">
+    <div className="glass-card rounded-[2rem] border border-border bg-card p-4 shadow-sm">
       <div className="h-48 rounded-[1.8rem] bg-border/50" />
       <div className="mt-6 space-y-4">
         <div className="space-y-2">
@@ -226,7 +223,7 @@ export function EventsEmptyState({
   message?: string;
 }) {
   return (
-    <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border/70 bg-card/85 px-6 py-12 text-center">
+    <div className="glass-card mx-auto max-w-xl rounded-[2rem] border border-border bg-card px-6 py-12 text-center">
       <Calendar className="mx-auto mb-4 h-14 w-14 text-primary" />
       <h3 className="text-xl font-semibold text-foreground">No events</h3>
       <p className="mt-3 text-sm text-muted-foreground">{message}</p>

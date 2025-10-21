@@ -130,7 +130,7 @@ export function TicketCard({
   > = {
     upcoming: {
       label: "Upcoming",
-      className: "bg-blue-100 text-blue-800 border border-blue-200",
+      className: "bg-primary/10 text-primary border border-primary/30",
     },
     live: {
       label: "Live Now",
@@ -177,7 +177,7 @@ export function TicketCard({
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       {/* Tier Image Banner */}
-      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+      <div className="relative h-40 overflow-hidden bg-slate-100">
         <img
           src={tierImage}
           alt={tierName}
@@ -188,7 +188,7 @@ export function TicketCard({
           }}
         />
         {/* Gradient overlay for better text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/20 to-transparent"></div>
+        <div className="absolute inset-0 bg-slate-900/40"></div>
 
         {/* Tier badge */}
         <div className="absolute top-3 left-3">
@@ -202,13 +202,13 @@ export function TicketCard({
       <CardHeader className="gap-2 bg-slate-900 p-4 text-white">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-blue-200">
+            <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-primary/50">
               <Ticket className="h-3.5 w-3.5" /> Ticket #{ticket.tokenId}
             </span>
             <CardTitle className="text-lg font-bold text-white">
               {primaryEvent?.name || `Event #${ticket.eventId}`}
             </CardTitle>
-            <CardDescription className="text-[11px] text-blue-100">
+            <CardDescription className="text-[11px] text-primary/40">
               {primaryEvent
                 ? formatDateTime(primaryEvent.startTime)
                 : "Date coming soon"}
@@ -245,7 +245,7 @@ export function TicketCard({
                   {onViewQR && (
                     <button
                       onClick={() => onViewQR(ticket)}
-                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/90 transition-colors"
                     >
                       <QrCode className="h-3.5 w-3.5" />
                       View Full Size QR
@@ -413,7 +413,7 @@ export function TicketCard({
         {showQR && ticket.ticketStatus !== "used" && (
           <button
             onClick={() => setShowQRCode(!showQRCode)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
           >
             <QrCode className="h-4 w-4" />
             {showQRCode ? "Hide QR" : "Show QR"}

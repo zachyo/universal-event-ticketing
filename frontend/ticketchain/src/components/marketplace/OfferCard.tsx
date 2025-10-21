@@ -57,7 +57,7 @@ export function OfferCard({
     >
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="text-2xl font-bold text-blue-600">
+          <div className="text-2xl font-bold text-primary">
             {formatEther(offer.offerAmount)} ETH
           </div>
           <div className="text-xs text-gray-500 mt-1">
@@ -89,7 +89,7 @@ export function OfferCard({
             {offer.offerer.slice(0, 6)}...{offer.offerer.slice(-4)}
           </span>
           {isOfferer && (
-            <span className="text-xs text-blue-600 font-medium">(You)</span>
+            <span className="text-xs text-primary font-medium">(You)</span>
           )}
         </div>
 

@@ -90,7 +90,7 @@ export function QRScanner({ onScan, onError, className = "" }: QRScannerProps) {
         <div
           id={qrRegionId}
           className={`rounded-lg overflow-hidden ${
-            isScanning ? "border-4 border-blue-500" : "border-2 border-gray-300"
+            isScanning ? "border-4 border-primary" : "border-2 border-gray-300"
           }`}
         />
 
@@ -119,7 +119,7 @@ export function QRScanner({ onScan, onError, className = "" }: QRScannerProps) {
         {!isScanning ? (
           <button
             onClick={startScanning}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2 transition-colors"
           >
             <Camera className="w-5 h-5" />
             Start Scanning

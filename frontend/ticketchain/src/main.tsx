@@ -27,7 +27,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   position="top-right"
                   toastOptions={{
                     className:
-                      "border border-border/60 bg-card/85 text-card-foreground shadow-[0_20px_45px_-20px_rgba(129,54,255,0.45)] backdrop-blur-xl rounded-2xl px-4 py-3",
+                      "border border-border bg-card text-card-foreground shadow-lg backdrop-blur-xl rounded-2xl px-4 py-3",
                     style: {
                       background: "hsl(var(--card))",
                       color: "hsl(var(--card-foreground))",

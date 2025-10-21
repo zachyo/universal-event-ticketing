@@ -78,7 +78,7 @@ export function MyOffersPanel() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-          <div className="text-2xl font-bold text-blue-600">
+          <div className="text-2xl font-bold text-primary">
             {stats.totalMade}
           </div>
           <div className="text-sm text-gray-600">Offers Made</div>
@@ -90,7 +90,7 @@ export function MyOffersPanel() {
           <div className="text-sm text-gray-600">Active Made</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-          <div className="text-2xl font-bold text-purple-600">
+          <div className="text-2xl font-bold text-primary">
             {stats.totalReceived}
           </div>
           <div className="text-sm text-gray-600">Offers Received</div>
@@ -110,7 +110,7 @@ export function MyOffersPanel() {
             onClick={() => setActiveTab("made")}
             className={`px-4 py-2 font-medium transition-colors relative ${
               activeTab === "made"
-                ? "text-blue-600 border-b-2 border-blue-600"
+                ? "text-primary border-b-2 border-primary"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -121,7 +121,7 @@ export function MyOffersPanel() {
             onClick={() => setActiveTab("received")}
             className={`px-4 py-2 font-medium transition-colors relative ${
               activeTab === "received"
-                ? "text-purple-600 border-b-2 border-purple-600"
+                ? "text-primary border-b-2 border-primary"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -144,7 +144,7 @@ export function MyOffersPanel() {
               onClick={() => setStatusFilter(status as OfferStatusFilter)}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                 statusFilter === status
-                  ? "bg-blue-600 text-white"
+                  ? "bg-primary text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -157,7 +157,7 @@ export function MyOffersPanel() {
       {/* Offers List */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
           <p className="text-gray-600">Loading offers...</p>
         </div>
       ) : filteredOffers.length > 0 ? (
@@ -192,7 +192,7 @@ export function MyOffersPanel() {
       {(isWritePending || isConfirming) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-gray-700">
               {isWritePending ? "Preparing transaction..." : "Confirming..."}
             </p>

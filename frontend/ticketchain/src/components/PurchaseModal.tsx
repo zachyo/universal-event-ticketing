@@ -151,7 +151,7 @@ export function PurchaseModal({
                   key={`${ticketType.ticketTypeId?.toString()}-${i}`}
                   className={`border rounded-lg p-4 cursor-pointer transition-colors ${
                     isSelected
-                      ? "border-blue-500 bg-blue-50"
+                      ? "border-primary bg-primary/10"
                       : "border-gray-200 hover:border-gray-300"
                   } ${available === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => {
@@ -274,7 +274,7 @@ export function PurchaseModal({
                       onClick={() => setSelectedChain(chain.id)}
                       className={`p-2 rounded border text-left transition-colors text-xs ${
                         selectedChain === chain.id
-                          ? "border-blue-500 bg-blue-50"
+                          ? "border-primary bg-primary/10"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -353,7 +353,7 @@ export function PurchaseModal({
                 <button
                   onClick={handlePurchase}
                   disabled={isPending || chainMismatch}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3.5 md:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-base md:text-sm touch-manipulation"
+                  className="w-full bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white py-3.5 md:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-base md:text-sm touch-manipulation"
                 >
                   {" "}
                   {isPending ? (
@@ -373,7 +373,7 @@ export function PurchaseModal({
                   <p className="text-gray-600 mb-4">
                     Connect your wallet to purchase tickets
                   </p>
-                  <button className="text-blue-600 hover:text-blue-800 font-medium">
+                  <button className="text-primary hover:text-primary/80 font-medium">
                     Connect Wallet
                   </button>
                 </div>

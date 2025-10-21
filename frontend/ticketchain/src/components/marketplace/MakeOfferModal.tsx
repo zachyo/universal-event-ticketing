@@ -129,7 +129,7 @@ export function MakeOfferModal({
                 onChange={(e) => setOfferAmount(e.target.value)}
                 disabled={isWritePending || isConfirming}
                 placeholder="0.000"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-100"
               />
             </div>
             {suggestedPrice !== null && (
@@ -188,7 +188,7 @@ export function MakeOfferModal({
                   checked={noExpiration}
                   onChange={(e) => setNoExpiration(e.target.checked)}
                   disabled={isWritePending || isConfirming}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-primary rounded focus:ring-primary"
                 />
                 <span className="text-sm text-gray-700">No expiration</span>
               </label>
@@ -231,7 +231,7 @@ export function MakeOfferModal({
                 isWritePending ||
                 isConfirming
               }
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPreparing
                 ? "Preparing..."

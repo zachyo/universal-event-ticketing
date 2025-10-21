@@ -35,7 +35,7 @@ export function ListingCard({
 
   return (
     <div
-      className="glass-card rounded-[1.75rem] border border-border/70 bg-card/85 p-5 shadow-[0_18px_60px_-28px_rgba(129,54,255,0.55)] transition-transform duration-500 hover:-translate-y-1 hover:shadow-[0_24px_70px_-26px_rgba(196,73,255,0.65)]"
+      className="glass-card rounded-[1.75rem] border border-border bg-card p-5 shadow-sm transition-transform duration-500 hover:-translate-y-1 hover:shadow-md"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -104,11 +104,11 @@ export function ListingCard({
         ) : (
           <button
             onClick={() => onBuy(listing.listingId)}
-            className={`w-full rounded-full px-4 py-2 text-sm font-semibold text-white transition ${
+            className={`w-full rounded-full px-4 py-2 text-sm font-semibold text-primary-foreground transition ${
               isHovered
-                ? "scale-[1.02] bg-gradient-to-r from-primary to-accent shadow-[0_22px_60px_-22px_rgba(196,73,255,0.85)]"
-                : "bg-gradient-to-r from-primary via-primary to-accent shadow-[0_18px_50px_-24px_rgba(196,73,255,0.75)]"
-            }`}
+                ? "scale-[1.02] bg-primary shadow-md"
+                : "bg-primary shadow-sm"
+            } hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary`}
           >
             <ShoppingCart className="mr-2 inline h-4 w-4" />
             Buy now
@@ -131,7 +131,7 @@ export function ListingCard({
 
 export function ListingCardSkeleton() {
   return (
-    <div className="glass-card rounded-[1.75rem] border border-border/70 bg-card/85 p-5 shadow-[0_18px_60px_-28px_rgba(129,54,255,0.35)]">
+    <div className="glass-card rounded-[1.75rem] border border-border bg-card p-5 shadow-sm">
       <div className="h-28 rounded-2xl bg-border/50" />
       <div className="mt-4 space-y-3">
         <div className="h-4 w-2/3 rounded bg-border/50" />

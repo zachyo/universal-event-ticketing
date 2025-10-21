@@ -9,13 +9,11 @@ const footerLinks = [
 ];
 
 export const Footer = () => (
-  <footer className="relative mt-16 border-t border-border/70 bg-background/60 backdrop-blur-md">
-    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-    <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/10 via-background/40 to-background/80 dark:from-primary/20 dark:via-background/30 dark:to-background/90" />
+  <footer className="relative mt-16 border-t border-border bg-secondary/80">
     <div className="container px-4 py-12">
       <div className="grid gap-10 md:grid-cols-[1.75fr_1fr] md:items-start">
         <div className="space-y-4">
-          <div className="inline-flex items-center gap-3 rounded-full border border-border/70 bg-secondary/60 px-4 py-2 text-sm font-semibold text-foreground/90 shadow-[0_12px_40px_-22px_rgba(129,54,255,0.45)]">
+          <div className="inline-flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground/90 shadow-sm">
             <Ticket className="h-5 w-5 text-primary" />
             TicketChain
           </div>
@@ -52,7 +50,7 @@ export const Footer = () => (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="group flex items-center justify-between rounded-2xl border border-transparent bg-white/30 px-4 py-3 text-sm font-medium text-foreground/80 transition hover:border-primary/40 hover:bg-primary/10 hover:text-foreground dark:bg-white/5"
+                  className="group flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground/80 transition hover:border-primary hover:text-foreground"
                 >
                   <span>{link.label}</span>
                   <ExternalLink className="h-4 w-4 text-primary transition group-hover:translate-x-1" />

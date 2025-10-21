@@ -203,7 +203,7 @@ export function BulkListingModal({
               isWritePending ||
               isConfirming
             }
-            className="w-full mt-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 disabled:opacity-50 disabled:hover:border-gray-300 disabled:hover:text-gray-600 flex items-center justify-center gap-2"
+            className="w-full mt-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50 disabled:hover:border-gray-300 disabled:hover:text-gray-600 flex items-center justify-center gap-2"
           >
             <Plus className="w-5 h-5" />
             Add Ticket
@@ -222,7 +222,7 @@ export function BulkListingModal({
         <div className="p-6 border-t bg-gray-50">
           <div className="flex items-center justify-between mb-4">
             <span className="text-gray-600">Total Listing Value:</span>
-            <span className="text-2xl font-bold text-blue-600">
+            <span className="text-2xl font-bold text-primary">
               {totalListingValue.toFixed(4)} ETH
             </span>
           </div>
@@ -243,7 +243,7 @@ export function BulkListingModal({
                 isWritePending ||
                 isConfirming
               }
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPreparing
                 ? "Preparing..."

@@ -80,10 +80,8 @@ export function SearchBar({
       <form onSubmit={handleSubmit}>
         <div
           className={cn(
-            "flex items-center rounded-full border border-border/60 bg-background/70 px-4 py-2 transition-all",
-            "shadow-[0_12px_35px_-24px_rgba(129,54,255,0.5)]",
-            isFocused &&
-              "border-primary/60 shadow-[0_18px_55px_-18px_rgba(196,73,255,0.7)]"
+            "flex items-center rounded-full border border-border bg-background px-4 py-2 transition-all shadow-sm",
+            isFocused && "border-primary shadow-md"
           )}
         >
           <Search className="mr-3 h-5 w-5 text-primary" />
@@ -114,7 +112,7 @@ export function SearchBar({
       </form>
 
       {showSuggestions && showHistory && history.length > 0 && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-3 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card/90 backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(129,54,255,0.45)]">
+        <div className="absolute top-full left-0 right-0 z-50 mt-3 overflow-hidden rounded-[1.5rem] border border-border bg-card backdrop-blur-xl shadow-lg">
           <div className="px-4 py-3">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -153,7 +151,7 @@ export function SearchBar({
       )}
 
       {showSuggestions && !value && history.length === 0 && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-3 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card/90 backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(129,54,255,0.45)]">
+        <div className="absolute top-full left-0 right-0 z-50 mt-3 overflow-hidden rounded-[1.5rem] border border-border bg-card backdrop-blur-xl shadow-lg">
           <div className="px-4 py-3">
             <div className="mb-2 flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />

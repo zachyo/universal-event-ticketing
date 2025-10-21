@@ -60,7 +60,7 @@ export function TierPerformanceTable({ tiers }: TierPerformanceTableProps) {
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-[100px]">
                       <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
                         style={{ width: `${Math.min(tier.sellRate, 100)}%` }}
                       />
                     </div>
@@ -86,7 +86,7 @@ export function TierPerformanceTable({ tiers }: TierPerformanceTableProps) {
           <div key={index} className="p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-gray-900">{tier.name}</h3>
-              <span className="text-sm font-medium text-blue-600">
+              <span className="text-sm font-medium text-primary">
                 {formatPrice(tier.price)} PC
               </span>
             </div>
@@ -115,7 +115,7 @@ export function TierPerformanceTable({ tiers }: TierPerformanceTableProps) {
               </div>
               <div className="bg-gray-200 rounded-full h-2">
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(tier.sellRate, 100)}%` }}
                 />
               </div>

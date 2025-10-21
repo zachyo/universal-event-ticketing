@@ -37,7 +37,7 @@ export function EmptyState({
         className
       )}
     >
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-accent/20 text-primary shadow-[0_14px_35px_-22px_rgba(129,54,255,0.45)]">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary shadow-sm">
         <Icon className="h-10 w-10" />
       </div>
 
@@ -52,7 +52,7 @@ export function EmptyState({
       {action && (
         <button
           onClick={action.onClick}
-          className="rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_45px_-22px_rgba(196,73,255,0.75)] transition hover:shadow-[0_22px_55px_-20px_rgba(196,73,255,0.85)]"
+          className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
         >
           {action.label}
         </button>

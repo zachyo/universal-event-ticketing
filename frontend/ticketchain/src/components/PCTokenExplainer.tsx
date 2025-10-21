@@ -12,18 +12,18 @@ export const PCTokenExplainer = ({
   nativeCurrency,
 }: PCTokenExplainerProps) => {
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-4">
+    <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 p-4">
       <div className="flex items-start gap-3">
-        <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+        <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
         <div className="flex-1">
-          <h4 className="font-medium text-blue-900 mb-2">
+          <h4 className="mb-2 font-medium text-primary">
             How Push Chain Universal Payments Work
           </h4>
 
           <div className="space-y-3 text-sm">
             {/* Step 1 */}
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                 1
               </div>
               <span className="text-gray-700">
@@ -42,7 +42,7 @@ export const PCTokenExplainer = ({
 
             {/* Step 2 */}
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                 2
               </div>
               <span className="text-gray-700">
@@ -62,7 +62,7 @@ export const PCTokenExplainer = ({
 
             {/* Step 3 */}
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
                 3
               </div>
               <span className="text-gray-700">
@@ -72,8 +72,8 @@ export const PCTokenExplainer = ({
             </div>
 
             {/* Benefits */}
-            <div className="mt-4 p-3 bg-white/60 rounded border border-blue-100">
-              <p className="font-medium text-blue-900 mb-1">Benefits:</p>
+            <div className="mt-4 rounded border border-primary/25 bg-white p-3">
+              <p className="mb-1 font-medium text-primary">Benefits:</p>
               <ul className="text-xs text-gray-600 space-y-1">
                 <li>• Pay with any supported cryptocurrency</li>
                 <li>• No manual token swapping required</li>

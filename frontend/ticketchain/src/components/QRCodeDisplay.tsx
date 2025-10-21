@@ -85,7 +85,7 @@ export function QRCodeDisplay({
       {showDownload && (
         <button
           onClick={() => downloadQRCode(`ticket-${tokenId.toString()}.png`)}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+          className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2 transition-colors"
         >
           <Download className="w-4 h-4" />
           Download QR Code

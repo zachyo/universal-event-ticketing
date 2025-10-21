@@ -42,7 +42,7 @@ export function AttendanceTracker({
             </div>
             <div className="relative w-full bg-gray-200 rounded-full h-4 overflow-hidden">
               <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                className="absolute top-0 left-0 h-full bg-green-500 transition-all duration-500"
                 style={{ width: `${Math.min(scanRate, 100)}%` }}
               />
             </div>
@@ -89,8 +89,8 @@ export function AttendanceTracker({
 
           {/* Info Note */}
           {ticketsScanned === 0 && totalSold > 0 && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-3 bg-primary/10 border border-primary/30 rounded-lg">
+              <p className="text-sm text-primary/80">
                 <strong>Note:</strong> No tickets have been scanned yet.
                 Attendance data will be available once guests start checking in.
               </p>

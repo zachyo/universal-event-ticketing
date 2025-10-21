@@ -140,7 +140,7 @@ export const MarketplacePage = () => {
   if (error) {
     return (
       <div className="container px-4 py-16">
-        <div className="glass-card rounded-[2.25rem] border border-border/70 bg-card/85 p-10">
+        <div className="glass-card rounded-[2.25rem] border border-border bg-card p-10">
           <ErrorDisplay error={error} retry={refetch} />
         </div>
       </div>
@@ -150,7 +150,7 @@ export const MarketplacePage = () => {
   return (
     <div className="container px-4">
       <div className="space-y-8">
-        <section className="glass-card rounded-[2.25rem] border border-border/70 bg-card/85 px-6 py-6 md:px-9 md:py-10">
+        <section className="glass-card rounded-[2.25rem] border border-border bg-card px-6 py-6 md:px-9 md:py-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -168,7 +168,7 @@ export const MarketplacePage = () => {
             <button
               onClick={handleRefresh}
               disabled={loading || isRefreshing}
-              className="inline-flex items-center gap-2 self-start rounded-full border border-primary/30 bg-gradient-to-r from-primary via-primary to-accent px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_40px_-20px_rgba(196,73,255,0.75)] transition hover:shadow-[0_18px_48px_-18px_rgba(196,73,255,0.85)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 self-start rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
               <RefreshCw
                 className={cn(
@@ -182,30 +182,30 @@ export const MarketplacePage = () => {
 
           {!loading && listings.length > 0 && (
             <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-3xl border border-border/60 bg-card/70 px-5 py-4 text-sm shadow-[0_14px_36px_-22px_rgba(129,54,255,0.55)]">
+              <div className="rounded-3xl border border-border bg-card px-5 py-4 text-sm shadow-sm">
                 <span className="text-muted-foreground">Active Listings</span>
                 <div className="mt-2 text-2xl font-semibold text-foreground">
                   {listings.length}
                 </div>
               </div>
-              <div className="rounded-3xl border border-border/60 bg-card/70 px-5 py-4 text-sm shadow-[0_14px_36px_-22px_rgba(129,54,255,0.55)]">
+              <div className="rounded-3xl border border-border bg-card px-5 py-4 text-sm shadow-sm">
                 <span className="text-muted-foreground">Floor Price</span>
                 <div className="mt-2 text-2xl font-semibold text-primary">
                   {lowestPrice ? `${lowestPrice} PC` : "--"}
                 </div>
               </div>
-              <div className="rounded-3xl border border-border/60 bg-card/70 px-5 py-4 text-sm shadow-[0_14px_36px_-22px_rgba(129,54,255,0.55)]">
+              <div className="rounded-3xl border border-border bg-card px-5 py-4 text-sm shadow-sm">
                 <span className="text-muted-foreground">Top Listing</span>
                 <div className="mt-2 text-2xl font-semibold text-foreground">
                   {highestPrice ? `${highestPrice} PC` : "--"}
                 </div>
               </div>
-              <div className="rounded-3xl border border-primary/40 bg-gradient-to-br from-primary/15 via-transparent to-accent/20 px-5 py-4 text-sm text-white shadow-[0_20px_40px_-24px_rgba(196,73,255,0.7)]">
+              <div className="rounded-3xl border border-border bg-primary/10 px-5 py-4 text-sm text-foreground shadow-sm">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>Trending Collection</span>
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-primary">Trending Collection</span>
                 </div>
-                <p className="mt-2 text-xs uppercase tracking-wider text-white/70">
+                <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
                   {filteredListings[0]?.ticket?.event?.name ??
                     "Minted for discovery"}
                 </p>
@@ -214,7 +214,7 @@ export const MarketplacePage = () => {
           )}
         </section>
 
-        <section className="glass-card rounded-[2rem] border border-border/70 bg-card/85 px-6 py-6 md:px-8 md:py-8">
+        <section className="glass-card rounded-[2rem] border border-border bg-card px-6 py-6 md:px-8 md:py-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -254,10 +254,10 @@ export const MarketplacePage = () => {
                 key={filter.value}
                 onClick={() => setPriceRange(filter.value)}
                 className={cn(
-                  "rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all",
+                  "rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
                   priceRange === filter.value
-                    ? "bg-gradient-to-r from-primary via-primary to-accent text-white shadow-[0_12px_30px_-18px_rgba(196,73,255,0.75)]"
-                    : "border border-border/60 bg-background/60 text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                    : "border border-border bg-card text-muted-foreground hover:text-foreground"
                 )}
               >
                 {filter.label}
@@ -282,7 +282,6 @@ export const MarketplacePage = () => {
         )}
 
         <section className="relative">
-          <div className="absolute inset-x-0 -top-12 h-24 bg-gradient-to-b from-primary/12 via-transparent to-transparent blur-3xl" />
           {loading ? (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, index) => (
@@ -298,7 +297,7 @@ export const MarketplacePage = () => {
                 return (
                   <div
                     key={listing.listingId}
-                    className="glass-card rounded-[1.75rem] border border-border/70 bg-card/85 p-6 shadow-[0_20px_60px_-28px_rgba(129,54,255,0.55)]"
+                    className="glass-card rounded-[1.75rem] border border-border bg-card p-6 shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1">
@@ -393,7 +392,7 @@ export const MarketplacePage = () => {
                       ) : (
                         <button
                           onClick={() => handleBuyTicket(listing.listingId)}
-                          className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_36px_-20px_rgba(196,73,255,0.8)] transition hover:shadow-[0_18px_42px_-18px_rgba(196,73,255,0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                          className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
                         >
                           Secure Ticket
                         </button>
@@ -404,7 +403,7 @@ export const MarketplacePage = () => {
               })}
             </div>
           ) : (
-            <div className="glass-card relative rounded-[2.25rem] border border-border/70 bg-card/85 px-6 py-16 text-center">
+            <div className="glass-card relative rounded-[2.25rem] border border-border bg-card px-6 py-16 text-center">
               <Tag className="mx-auto h-12 w-12 text-primary" />
               <h3 className="mt-4 text-xl font-semibold text-foreground">
                 Marketplace is warming up

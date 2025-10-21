@@ -57,7 +57,7 @@ const EventsPage = () => {
   return (
     <div className="container px-4">
       <div className="space-y-8">
-        <div className="glass-card rounded-[2.25rem] border border-border/70 bg-card/85 px-6 py-6 md:px-8 md:py-10">
+        <div className="glass-card rounded-[2.25rem] border border-border bg-card px-6 py-6 md:px-8 md:py-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -75,11 +75,11 @@ const EventsPage = () => {
             <button
               onClick={handleRefresh}
               disabled={loading || isRefreshing}
-              className="inline-flex items-center gap-2 self-start rounded-full border border-primary/30 bg-gradient-to-r from-primary via-primary to-accent px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[0_16px_40px_-20px_rgba(196,73,255,0.75)] transition hover:shadow-[0_18px_48px_-18px_rgba(196,73,255,0.85)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 self-start rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
               <RefreshCw
                 className={cn(
-                  "h-4 w-4 text-white",
+                  "h-4 w-4 text-primary-foreground",
                   isRefreshing && "animate-spin"
                 )}
               />
@@ -94,7 +94,7 @@ const EventsPage = () => {
               filters={filters}
               onFiltersChange={setFilters}
               onClearFilters={clearFilters}
-              className="glass-card rounded-[1.75rem] border border-border/70 bg-card/80 p-6"
+              className="glass-card rounded-[1.75rem] border border-border bg-card p-6"
             />
           </aside>
 
@@ -103,7 +103,7 @@ const EventsPage = () => {
               value={searchQuery}
               onChange={setSearchQuery}
               isSearching={isSearching}
-              className="glass-card rounded-[1.75rem] border border-border/70 bg-card/80 p-1"
+              className="glass-card rounded-[1.75rem] border border-border bg-card p-1"
             />
 
             {!loading && (
@@ -140,7 +140,6 @@ const EventsPage = () => {
             )}
 
             <div className="relative">
-              <div className="absolute inset-x-0 -top-12 h-24 bg-gradient-to-b from-primary/10 via-transparent to-transparent blur-3xl" />
               {loading ? (
                 <EventGrid>
                   {Array.from({ length: 6 }).map((_, index) => (

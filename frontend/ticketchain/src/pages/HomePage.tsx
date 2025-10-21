@@ -62,14 +62,11 @@ const steps = [
 ];
 
 const HeroSection = () => (
-  <section className="relative overflow-hidden">
-    <div className="absolute inset-x-0 -top-48 h-[28rem] blur-3xl">
-      <div className="mx-auto h-full max-w-5xl rounded-full bg-gradient-to-r from-primary/25 via-primary/10 to-accent/30 opacity-60 dark:opacity-80" />
-    </div>
-    <div className="container relative px-4 pb-20 pt-10 md:pb-28 md:pt-16">
+  <section className="border-b border-border/70 bg-secondary/60">
+    <div className="container px-4 pb-20 pt-10 md:pb-24 md:pt-16">
       <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <div className="space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary">
             <Sparkles className="h-4 w-4" />
             Universal Event Ticketing
           </div>
@@ -86,14 +83,14 @@ const HeroSection = () => (
           <div className="flex flex-wrap gap-4">
             <Link
               to="/events"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_50px_-25px_rgba(196,73,255,0.8)] transition hover:shadow-[0_24px_60px_-22px_rgba(196,73,255,0.95)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
             >
               Discover Live Drops
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               to="/create-event"
-              className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-6 py-3 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
             >
               Launch on TicketChain
             </Link>
@@ -102,7 +99,7 @@ const HeroSection = () => (
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-3xl border border-border/60 bg-card/60 px-5 py-4 text-center shadow-[0_12px_30px_-22px_rgba(129,54,255,0.65)]"
+                className="rounded-2xl border border-border bg-card px-5 py-4 text-center shadow-sm"
               >
                 <div className="text-2xl font-semibold text-foreground">
                   {stat.value}
@@ -116,12 +113,9 @@ const HeroSection = () => (
         </div>
 
         <div className="relative">
-          <div className="absolute inset-0 -z-10 blur-3xl">
-            <div className="h-full w-full rounded-full bg-gradient-to-br from-primary/35 via-accent/30 to-transparent" />
-          </div>
-          <div className="glass-card rounded-[2.5rem] p-8 md:p-10">
+          <div className="glass-card rounded-[2.25rem] p-8 md:p-10">
             <div className="mb-6 flex items-center justify-between text-sm font-medium text-muted-foreground">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1">
+              <span className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1">
                 <Ticket className="h-4 w-4 text-primary" />
                 Live Ticket Feed
               </span>
@@ -147,11 +141,11 @@ const HeroSection = () => (
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-3xl border border-border/60 bg-card/70 p-4 shadow-[0_14px_34px_-20px_rgba(129,54,255,0.6)]"
+                  className="rounded-2xl border border-border bg-secondary/40 p-4"
                 >
                   <div className="flex items-center justify-between text-sm font-semibold text-foreground">
                     {item.title}
-                    <span className="rounded-full bg-primary/20 px-3 py-1 text-xs uppercase tracking-wide text-primary">
+                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs uppercase tracking-wide text-primary">
                       {item.status}
                     </span>
                   </div>
@@ -161,14 +155,14 @@ const HeroSection = () => (
                 </div>
               ))}
             </div>
-            <div className="mt-8 grid gap-4 rounded-3xl border border-primary/20 bg-primary/10 p-5 text-sm text-primary-foreground">
-              <div className="flex items-center gap-3 text-white">
-                <Rocket className="h-5 w-5" />
-                <span className="font-semibold tracking-wide">
+            <div className="mt-8 rounded-2xl border border-border bg-card p-5 text-sm">
+              <div className="flex items-center gap-3 text-foreground">
+                <Rocket className="h-5 w-5 text-primary" />
+                <span className="font-semibold">
                   Instant settlement across Push Chain ecosystems
                 </span>
               </div>
-              <p className="text-xs text-white/80">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Your collectors keep full sovereignty. You keep royalties forever.
               </p>
             </div>
@@ -180,11 +174,10 @@ const HeroSection = () => (
 );
 
 const FeaturesSection = () => (
-  <section className="relative py-20">
-    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+  <section className="py-20">
     <div className="container px-4">
       <div className="mx-auto mb-12 max-w-3xl text-center">
-        <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/60 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-foreground/80">
+        <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-foreground/80">
           <Users className="h-4 w-4 text-primary" />
           Built for fans & organizers
         </p>
@@ -203,16 +196,15 @@ const FeaturesSection = () => (
             key={title}
             className="group relative overflow-hidden rounded-[2rem]"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-accent/10 opacity-0 transition group-hover:opacity-100" />
-            <div className="glass-card rounded-[2rem] p-8">
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/80 to-accent text-primary-foreground shadow-[0_14px_44px_-20px_rgba(196,73,255,0.8)]">
+            <div className="glass-card rounded-[2rem] p-8 transition group-hover:shadow-md">
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <Icon className="h-6 w-6" />
               </div>
               <h3 className="mt-7 text-2xl font-semibold text-foreground">
                 {title}
               </h3>
               <p className="mt-3 text-sm text-muted-foreground">{description}</p>
-              <div className="mt-6 inline-flex rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
+              <div className="mt-6 inline-flex rounded-full border border-border bg-secondary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
                 {highlight}
               </div>
             </div>
@@ -224,13 +216,10 @@ const FeaturesSection = () => (
 );
 
 const HowItWorksSection = () => (
-  <section className="relative pb-24 pt-12">
-    <div className="absolute inset-x-0 top-0 h-[30rem] blur-[120px]">
-      <div className="mx-auto h-full max-w-5xl rounded-full bg-gradient-to-r from-accent/25 via-primary/25 to-transparent" />
-    </div>
-    <div className="container relative space-y-14 px-4">
+  <section className="bg-card pb-24 pt-12">
+    <div className="container space-y-14 px-4">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-foreground/80">
+        <p className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-foreground/80">
           <Sparkles className="h-4 w-4 text-primary" />
           Zero friction workflow
         </p>
@@ -247,9 +236,9 @@ const HowItWorksSection = () => (
         {steps.map((step) => (
           <div
             key={step.number}
-            className="glass-card rounded-[2rem] border border-border/70 bg-card/80 p-8"
+            className="glass-card rounded-[2rem] border border-border bg-card p-8"
           >
-            <div className="inline-flex items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary">
+            <div className="inline-flex items-center justify-center rounded-2xl border border-border bg-secondary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary">
               Step {step.number}
             </div>
             <h3 className="mt-5 text-xl font-semibold text-foreground">
@@ -262,8 +251,7 @@ const HowItWorksSection = () => (
         ))}
       </div>
 
-      <div className="glass-card relative overflow-hidden rounded-[2.5rem] border border-primary/25 bg-gradient-to-r from-primary/15 via-primary/5 to-accent/15 p-10 text-center">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(196,73,255,0.25),transparent_55%)]" />
+      <div className="glass-card rounded-[2.5rem] border border-border bg-secondary/60 p-10 text-center">
         <h3 className="text-2xl font-semibold text-foreground md:text-3xl">
           Ready to stun judges & fans alike?
         </h3>
@@ -274,14 +262,14 @@ const HowItWorksSection = () => (
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           <Link
             to="/marketplace"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary via-primary to-accent px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_50px_-25px_rgba(196,73,255,0.8)] transition hover:shadow-[0_24px_60px_-22px_rgba(196,73,255,0.95)]"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
             Explore Marketplace
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             to="/event-analytics/1"
-            className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-6 py-3 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
           >
             View Live Analytics
           </Link>

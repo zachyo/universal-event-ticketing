@@ -299,7 +299,7 @@ export function OrganizerVerificationPage() {
   if (!organizerAddress) {
     return (
       <div className="container flex min-h-screen items-center justify-center px-4 py-16">
-        <div className="glass-card w-full max-w-lg rounded-[2rem] border border-border/70 bg-card/90 p-8 text-center shadow-[0_32px_110px_-45px_rgba(129,54,255,0.65)]">
+        <div className="glass-card w-full max-w-lg rounded-[2rem] border border-border bg-card p-8 text-center shadow-xl">
           {isResolvingAddress ? (
             <>
               <div className="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
@@ -313,7 +313,7 @@ export function OrganizerVerificationPage() {
             </>
           ) : (
             <>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/25 via-primary/10 to-accent/20 text-primary">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <AlertCircle className="h-9 w-9" />
               </div>
               <h2 className="text-2xl font-semibold text-foreground">
@@ -333,9 +333,9 @@ export function OrganizerVerificationPage() {
   return (
     <div className="container px-4 py-12">
       <div className="mx-auto max-w-4xl space-y-6">
-        <div className="glass-card rounded-[2.25rem] border border-border/70 bg-card/90 p-6 md:p-8 shadow-[0_30px_120px_-40px_rgba(129,54,255,0.6)]">
+        <div className="glass-card rounded-[2.25rem] border border-border bg-card p-6 md:p-8 shadow-xl">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 via-primary/10 to-accent/20 text-primary">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Scan className="h-5 w-5" />
             </div>
             <div>

@@ -54,7 +54,7 @@ export function OfferHistoryModal({
         <div className="flex-1 overflow-y-auto p-6">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
               <p className="text-gray-600">Loading offers...</p>
             </div>
           ) : !offers || offers.length === 0 ? (

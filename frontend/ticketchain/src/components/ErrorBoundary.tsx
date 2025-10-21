@@ -132,7 +132,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={this.handleReset}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium transition-colors"
               >
                 <RefreshCw className="w-5 h-5" />
                 Try Again
@@ -160,7 +160,7 @@ export class ErrorBoundary extends Component<Props, State> {
               If this problem persists, please{" "}
               <a
                 href="mailto:support@ticketchain.com"
-                className="text-blue-600 hover:underline"
+                className="text-primary hover:underline"
               >
                 contact support
               </a>

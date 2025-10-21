@@ -73,11 +73,11 @@ export function toastInfo(message: string, options?: ToastOptions) {
   return toast(message, {
     ...defaultOptions,
     ...options,
-    icon: <Info className="w-5 h-5 text-blue-500" />,
+    icon: <Info className="w-5 h-5 text-primary" />,
     style: {
       ...defaultOptions.style,
       ...options?.style,
-      borderLeft: "4px solid #3b82f6",
+      borderLeft: "4px solid #DA76EC",
     },
   });
 }
@@ -90,11 +90,11 @@ export function toastLoading(message: string, options?: ToastOptions) {
     ...defaultOptions,
     duration: Infinity, // Loading toasts don't auto-dismiss
     ...options,
-    icon: <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />,
+    icon: <Loader2 className="w-5 h-5 text-primary animate-spin" />,
     style: {
       ...defaultOptions.style,
       ...options?.style,
-      borderLeft: "4px solid #3b82f6",
+      borderLeft: "4px solid #DA76EC",
     },
   });
 }
@@ -137,10 +137,10 @@ export function toastPromise<T>(
         duration: 6000,
       },
       loading: {
-        icon: <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />,
+        icon: <Loader2 className="w-5 h-5 text-primary animate-spin" />,
         style: {
           ...defaultOptions.style,
-          borderLeft: "4px solid #3b82f6",
+          borderLeft: "4px solid #DA76EC",
         },
       },
     }

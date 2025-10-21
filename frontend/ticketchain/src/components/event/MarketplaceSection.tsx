@@ -91,9 +91,9 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
 
   if (isLoading) {
     return (
-      <div className="glass-card rounded-[2rem] border border-border/70 bg-card/85 p-6 md:p-8">
+      <div className="glass-card rounded-[2rem] border border-border bg-card p-6 md:p-8">
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/80 to-accent text-white shadow-[0_18px_40px_-22px_rgba(196,73,255,0.65)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
             <Store className="h-5 w-5" />
           </div>
           <div>
@@ -116,7 +116,7 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
 
   if (error) {
     return (
-      <div className="glass-card rounded-[2rem] border border-border/70 bg-card/85 p-6 md:p-8">
+      <div className="glass-card rounded-[2rem] border border-border bg-card p-6 md:p-8">
         <ErrorDisplay error={error} retry={refetch} compact />
       </div>
     );
@@ -124,7 +124,7 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
 
   if (!eventListings.length) {
     return (
-      <div className="glass-card rounded-[2rem] border border-border/70 bg-card/85 p-6 md:p-8">
+      <div className="glass-card rounded-[2rem] border border-border bg-card p-6 md:p-8">
         <EmptyState
           icon={Store}
           title="No resale tickets"
@@ -136,10 +136,10 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
   }
 
   return (
-    <div className="glass-card rounded-[2rem] border border-border/70 bg-card/85 p-6 md:p-8 space-y-6">
+    <div className="glass-card rounded-[2rem] border border-border bg-card p-6 md:p-8 space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/80 to-accent text-white shadow-[0_18px_40px_-22px_rgba(196,73,255,0.65)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
             <Store className="h-5 w-5" />
           </div>
           <div>
@@ -176,13 +176,13 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
         </div>
       </div>
 
-      <div className="flex gap-3 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-primary-foreground">
-        <Clock className="mt-0.5 h-5 w-5" />
+      <div className="flex gap-3 rounded-2xl border border-border bg-secondary/60 p-4 text-sm text-foreground">
+        <Clock className="mt-0.5 h-5 w-5 text-primary" />
         <div>
           <p className="font-semibold tracking-wide">
             Buying from fans, verified on-chain
           </p>
-          <p className="text-xs text-primary-foreground/80">
+          <p className="text-xs text-muted-foreground">
             Each resale ticket keeps full Push Chain provenance. Organizers automatically earn royalties, and buyers receive instant settlement.
           </p>
         </div>
@@ -196,7 +196,7 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
           return (
             <div
               key={listing.listingId}
-              className="glass-card rounded-[1.75rem] border border-border/70 bg-card/85 p-5 shadow-[0_18px_60px_-28px_rgba(129,54,255,0.55)]"
+              className="glass-card rounded-[1.75rem] border border-border bg-card p-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -232,7 +232,7 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
               <div className="mt-5 flex flex-col gap-2">
                 <button
                   onClick={() => setSelectedTicketId(listing.tokenId)}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
                 >
                   <ExternalLink className="h-4 w-4" />
                   View ticket details
@@ -248,7 +248,7 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
                 ) : (
                   <button
                     onClick={() => handleBuyTicket(listing.listingId)}
-                    className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary via-primary to-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_16px_40px_-20px_rgba(196,73,255,0.8)] transition hover:shadow-[0_18px_46px_-18px_rgba(196,73,255,0.9)]"
+                    className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
                   >
                     Secure ticket
                   </button>

@@ -132,7 +132,7 @@ const VerifyPage = () => {
           <p className="text-gray-600 mb-6">
             You need to connect your wallet to verify tickets.
           </p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
+          <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium">
             Connect Wallet
           </button>
         </div>
@@ -157,7 +157,7 @@ const VerifyPage = () => {
           /* QR Code Input Section */
           <div className="bg-white rounded-lg shadow-sm p-8">
             <div className="text-center mb-8">
-              <QrCode className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+              <QrCode className="w-16 h-16 text-primary mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-2">Scan Ticket QR Code</h2>
               <p className="text-gray-600">
                 Choose how you'd like to input the QR code data
@@ -169,7 +169,7 @@ const VerifyPage = () => {
               <div className="text-center">
                 <button
                   onClick={() => setIsScanning(true)}
-                  className="w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  className="w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary/10 transition-colors"
                 >
                   <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="font-medium mb-2">Camera Scan</h3>
@@ -183,7 +183,7 @@ const VerifyPage = () => {
               <div className="text-center">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  className="w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary/10 transition-colors"
                 >
                   <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="font-medium mb-2">Upload Image</h3>
@@ -202,7 +202,7 @@ const VerifyPage = () => {
               <div className="text-center">
                 <button
                   onClick={() => setManualInput(true)}
-                  className="w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  className="w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary/10 transition-colors"
                 >
                   <Scan className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="font-medium mb-2">Manual Input</h3>
@@ -224,7 +224,7 @@ const VerifyPage = () => {
                       value={qrData}
                       onChange={(e) => setQrData(e.target.value)}
                       rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       placeholder='{"tokenId":"123","eventId":"456","timestamp":1234567890,"signature":"abc123"}'
                     />
                   </div>
@@ -238,7 +238,7 @@ const VerifyPage = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                      className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg"
                     >
                       Verify QR Code
                     </button>
@@ -258,7 +258,7 @@ const VerifyPage = () => {
                 </p>
                 <button
                   onClick={() => setIsScanning(false)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                  className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg"
                 >
                   Close Scanner
                 </button>
@@ -439,7 +439,7 @@ const VerifyPage = () => {
             <div className="flex justify-center">
               <button
                 onClick={resetValidation}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                className="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium transition-colors"
               >
                 Scan Another Ticket
               </button>

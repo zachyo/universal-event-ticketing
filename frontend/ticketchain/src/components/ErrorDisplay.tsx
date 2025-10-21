@@ -65,7 +65,7 @@ export function ErrorDisplay({
           {retry && (
             <button
               onClick={retry}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-destructive via-red-500 to-rose-500 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white shadow-[0_16px_40px_-24px_rgba(244,63,94,0.45)] transition hover:shadow-[0_20px_48px_-20px_rgba(244,63,94,0.6)]"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-xs font-semibold uppercase tracking-wider text-destructive-foreground transition hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-destructive/70"
             >
               <RefreshCw className="h-4 w-4" />
               Try Again

@@ -1,38 +1,41 @@
 import { MoonStar, Sun } from "lucide-react";
 import { useTheme } from "../providers/ThemeProvider";
 import { cn } from "../utils/cn";
+import { Switch } from "./ui/switch";
 
 interface ThemeToggleProps {
   className?: string;
 }
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
+
+  const handleCheckedChange = (checked: boolean) => {
+    setTheme(checked ? "dark" : "light");
+  };
 
   return (
-    <button
-      type="button"
-      onClick={toggleTheme}
-      className={cn(
-        "relative inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-white/80 text-foreground shadow-sm transition-all duration-300 hover:scale-[1.03] hover:border-primary/50 hover:shadow-lg dark:bg-white/10",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/60 focus-visible:ring-offset-background",
-        className
-      )}
-      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-accent/15 dark:from-primary/25 dark:via-transparent dark:to-accent/20" />
+    <div className={cn("flex items-center gap-2", className)}>
       <Sun
         className={cn(
-          "h-5 w-5 transition-all duration-300 text-primary",
-          theme === "dark" ? "scale-0 opacity-0" : "scale-100 opacity-100"
+          "h-4 w-4 transition-colors",
+          isDark ? "text-muted-foreground" : "text-primary"
         )}
+        aria-hidden="true"
+      />
+      <Switch
+        checked={isDark}
+        onCheckedChange={handleCheckedChange}
+        aria-label="Toggle dark mode"
       />
       <MoonStar
         className={cn(
-          "h-5 w-5 transition-all duration-300 text-accent",
-          theme === "dark" ? "scale-100 opacity-100" : "scale-0 opacity-0"
+          "h-4 w-4 transition-colors",
+          isDark ? "text-primary" : "text-muted-foreground"
         )}
+        aria-hidden="true"
       />
-    </button>
+    </div>
   );
 }

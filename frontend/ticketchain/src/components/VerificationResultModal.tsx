@@ -368,7 +368,7 @@ export function VerificationResultModal({
               )}
               {status === "success" && isMarking && (
                 <p className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                  <Loader2 className="w-4 h-4 text-primary animate-spin" />
                   <span>Marking ticket as used...</span>
                 </p>
               )}
@@ -394,7 +394,7 @@ export function VerificationResultModal({
                 isMarking
                   ? "bg-gray-400 cursor-not-allowed"
                   : hasMarked
-                  ? "bg-blue-600 hover:bg-blue-700"
+                  ? "bg-primary hover:bg-primary/90"
                   : config.buttonBg
               } text-white rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg disabled:shadow-none flex items-center justify-center gap-2`}
             >

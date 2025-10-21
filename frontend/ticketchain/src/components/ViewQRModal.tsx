@@ -27,7 +27,7 @@ export function ViewQRModal({ isOpen, onClose, ticket }: ViewQRModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
-      <div className="glass-card max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[2.25rem] border border-border/70 bg-card/90 shadow-[0_40px_120px_-40px_rgba(129,54,255,0.65)]">
+      <div className="glass-card max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[2.25rem] border border-border bg-card shadow-2xl">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/60 bg-card/95 px-6 py-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -65,16 +65,16 @@ export function ViewQRModal({ isOpen, onClose, ticket }: ViewQRModalProps) {
               )}
             </div>
 
-            <div className="rounded-[1.75rem] border border-primary/30 bg-primary/10 p-5 text-sm text-primary-foreground">
+            <div className="rounded-[1.75rem] border border-primary/40 bg-primary/5 p-5 text-sm text-foreground">
               <div className="flex gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/60 via-primary/30 to-accent/30 text-white shadow-[0_18px_40px_-22px_rgba(196,73,255,0.55)]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
                   <TicketIcon className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wider">
                     How to use this ticket
                   </h3>
-                  <ul className="mt-2 space-y-1 text-xs text-primary-foreground/85">
+                  <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                     <li>• Present this QR code at entry for instant scan</li>
                     <li>• Download a backup for offline access</li>
                     <li>• Keep it private to maintain ownership</li>

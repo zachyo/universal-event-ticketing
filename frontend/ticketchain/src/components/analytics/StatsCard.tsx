@@ -5,7 +5,7 @@ interface StatsCardProps {
   value: string | number;
   subtitle?: string;
   icon: LucideIcon;
-  color: "blue" | "green" | "purple" | "orange" | "red";
+  color: "primary" | "green" | "orange" | "red";
   trend?: {
     value: number;
     label: string;
@@ -13,32 +13,23 @@ interface StatsCardProps {
 }
 
 const colorThemes = {
-  blue: {
-    background: "from-sky-500/80 via-sky-400/80 to-cyan-300/70",
-    text: "text-sky-50",
-    shadow: "shadow-[0_14px_40px_-20px_rgba(56,189,248,0.55)]",
-  },
   green: {
-    background: "from-emerald-500/80 via-emerald-400/80 to-lime-300/70",
-    text: "text-emerald-50",
-    shadow: "shadow-[0_14px_40px_-20px_rgba(16,185,129,0.55)]",
+    iconBg: "bg-emerald-100",
+    iconText: "text-emerald-700",
   },
-  purple: {
-    background: "from-primary/80 via-primary/70 to-accent/70",
-    text: "text-white",
-    shadow: "shadow-[0_14px_40px_-20px_rgba(196,73,255,0.6)]",
+  primary: {
+    iconBg: "bg-primary/10",
+    iconText: "text-primary",
   },
   orange: {
-    background: "from-orange-500/80 via-amber-400/80 to-yellow-300/70",
-    text: "text-amber-50",
-    shadow: "shadow-[0_14px_40px_-20px_rgba(251,191,36,0.55)]",
+    iconBg: "bg-amber-100",
+    iconText: "text-amber-700",
   },
   red: {
-    background: "from-rose-500/80 via-rose-400/80 to-pink-300/70",
-    text: "text-rose-50",
-    shadow: "shadow-[0_14px_40px_-20px_rgba(244,63,94,0.55)]",
+    iconBg: "bg-rose-100",
+    iconText: "text-rose-700",
   },
-};
+} as const;
 
 export function StatsCard({
   title,
@@ -51,7 +42,7 @@ export function StatsCard({
   const theme = colorThemes[color];
 
   return (
-    <div className="glass-card rounded-[1.75rem] border border-border/70 bg-card/85 p-5">
+    <div className="glass-card rounded-[1.75rem] border border-border bg-card p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -82,9 +73,9 @@ export function StatsCard({
           )}
         </div>
         <div
-          className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${theme.background} ${theme.shadow}`}
+          className={`flex h-11 w-11 items-center justify-center rounded-xl ${theme.iconBg}`}
         >
-          <Icon className={`h-5 w-5 ${theme.text}`} />
+          <Icon className={`h-5 w-5 ${theme.iconText}`} />
         </div>
       </div>
     </div>

@@ -242,7 +242,7 @@ export function TicketDetailsModal({
         <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
-            className="rounded-full bg-gradient-to-r from-primary via-primary to-accent px-5 py-2 text-sm font-semibold text-white shadow-[0_16px_40px_-22px_rgba(196,73,255,0.75)] transition hover:shadow-[0_18px_48px_-20px_rgba(196,73,255,0.85)]"
+            className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
             Close
           </button>
