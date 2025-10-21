@@ -27,9 +27,6 @@ export const Footer = () => (
           </p>
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
-              Built for Hackathons
-            </span>
-            <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
               Powered by Push Chain
             </span>
             <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
