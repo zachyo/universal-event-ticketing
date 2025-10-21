@@ -1,13 +1,13 @@
 import { http, createConfig } from "wagmi";
 
-// Define Push Chain testnet
+// Define Push Chain testnet (chainId 42101)
 export const pushTestnet = {
-  id: 111557560,
+  id: 42101,
   name: "Push Chain Testnet",
   nativeCurrency: {
     decimals: 18,
-    name: "Push Token",
-    symbol: "PUSH",
+    name: "Push Chain",
+    symbol: "PC",
   },
   rpcUrls: {
     default: {
@@ -16,7 +16,7 @@ export const pushTestnet = {
   },
   blockExplorers: {
     default: {
-      name: "Push Chain Explorer",
+      name: "Push Scan",
       url: "https://donut.push.network/",
     },
   },
