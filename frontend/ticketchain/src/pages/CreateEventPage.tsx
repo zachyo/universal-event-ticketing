@@ -477,8 +477,7 @@ export const CreateEventPage = () => {
               </h1>
               <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
                 Design every tier, automate royalty splits, and launch an
-                on-chain event that dazzles attendees and hackathon judges
-                alike.
+                on-chain event that dazzles attendees.
               </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-background/70 px-5 py-4 text-xs text-muted-foreground">
