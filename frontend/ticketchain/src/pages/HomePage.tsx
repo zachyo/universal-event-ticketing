@@ -253,11 +253,11 @@ const HowItWorksSection = () => (
 
       <div className="glass-card rounded-[2.5rem] border border-border bg-secondary/60 p-10 text-center">
         <h3 className="text-2xl font-semibold text-foreground md:text-3xl">
-          Ready to stun judges & fans alike?
+          Ready to revolutionize event ticketing?
         </h3>
         <p className="mt-4 text-base text-muted-foreground">
-          Ship a hackathon-ready demo with production polish. TicketChain’s UX
-          is designed to wow on every screen.
+          Experience the future of event management with TicketChain's production-ready platform. 
+          Built for real-world events with enterprise-grade reliability and user experience.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           <Link
@@ -266,12 +266,6 @@ const HowItWorksSection = () => (
           >
             Explore Marketplace
             <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            to="/event-analytics/1"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
-          >
-            View Live Analytics
           </Link>
         </div>
       </div>

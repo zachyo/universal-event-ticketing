@@ -410,9 +410,9 @@ const EventDetailPage = () => {
 
         <div className="relative overflow-hidden rounded-[2.5rem] border border-border bg-card shadow-lg">
           <div className="absolute inset-0 bg-primary/10" />
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="relative">
-              <div className="h-64 overflow-hidden rounded-[2.5rem] lg:h-full">
+              <div className="h-64 overflow-hidden rounded-[2.5rem] lg:h-full lg:rounded-r-none">
                 <img
                   src={formattedEvent.imageUrl || "/placeholder-event.jpg"}
                   alt={formattedEvent.name}
@@ -465,7 +465,7 @@ const EventDetailPage = () => {
               </div>
             </div>
 
-            <div className="relative flex flex-col justify-between gap-6 border-t border-t-border/30 bg-card/85 px-6 py-6 lg:border-l lg:border-t-0">
+            <div className="relative flex flex-col justify-between gap-6 border-t border-t-border/30 bg-card/85 px-6 py-6 lg:border-l lg:border-t-0 lg:rounded-r-[2.5rem]">
               {isOrganizer && (
                 <Link
                   to={`/event-analytics/${eventId}`}
@@ -739,7 +739,7 @@ const EventDetailPage = () => {
                     disabled={
                       isPurchasing || isGeneratingMetadata || !canPurchase
                     }
-                    className="w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+                    className="w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary my-4"
                   >
                     {isPurchasing
                       ? "Processing purchase..."

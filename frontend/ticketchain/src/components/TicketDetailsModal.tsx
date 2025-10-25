@@ -266,14 +266,6 @@ export function TicketDetailsModal({
               />
             </div>
 
-            <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                QR Code Hash
-              </p>
-              <p className="mt-2 break-words font-mono text-xs text-foreground/80">
-                {metadata.qrCodeHash}
-              </p>
-            </div>
           </div>
         ) : (
           <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-6 text-center text-sm text-muted-foreground">

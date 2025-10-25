@@ -68,7 +68,14 @@ export function QRScanner({ onScan, onError, className = "" }: QRScannerProps) {
         await scannerRef.current.stop();
         setIsScanning(false);
       } catch (err) {
-        console.error("Error stopping QR scanner:", err);
+        // Ignore "scanner is not running" errors
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        if (!errorMessage.includes('scanner is not running') && 
+            !errorMessage.includes('not running or paused')) {
+          console.error("Error stopping QR scanner:", err);
+        }
+        // Always set scanning to false even if stop fails
+        setIsScanning(false);
       }
     }
   };
@@ -77,11 +84,27 @@ export function QRScanner({ onScan, onError, className = "" }: QRScannerProps) {
     return () => {
       // Cleanup on unmount
       if (scannerRef.current) {
-        scannerRef.current.stop().catch(console.error);
-        scannerRef.current.clear();
+        try {
+          // Only try to stop if we think it's running
+          if (isScanning) {
+            scannerRef.current.stop().catch((err) => {
+              // Ignore "scanner is not running" errors during cleanup
+              const errorMessage = err instanceof Error ? err.message : String(err);
+              if (!errorMessage.includes('scanner is not running') && 
+                  !errorMessage.includes('not running or paused')) {
+                console.error("Error stopping QR scanner during cleanup:", err);
+              }
+            });
+          }
+          // Always clear the scanner
+          scannerRef.current.clear();
+        } catch (err) {
+          // Ignore cleanup errors
+          console.log("Scanner cleanup completed");
+        }
       }
     };
-  }, []);
+  }, [isScanning]);
 
   return (
     <div className={`flex flex-col items-center ${className}`}>

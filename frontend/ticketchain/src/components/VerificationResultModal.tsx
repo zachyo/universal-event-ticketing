@@ -122,32 +122,32 @@ export function VerificationResultModal({
   // Status-based styling
   const statusConfig = {
     success: {
-      bgColor: "bg-green-50",
-      borderColor: "border-green-500",
-      textColor: "text-green-700",
-      iconBgColor: "bg-green-100",
+      bgColor: "bg-green-500/10",
+      borderColor: "border-green-500/30",
+      textColor: "text-green-400",
+      iconBgColor: "bg-green-500/20",
       icon: CheckCircle2,
-      iconColor: "text-green-600",
+      iconColor: "text-green-500",
       buttonBg: "bg-green-600 hover:bg-green-700",
       buttonText: "Grant Entry & Continue",
     },
     error: {
-      bgColor: "bg-red-50",
-      borderColor: "border-red-500",
-      textColor: "text-red-700",
-      iconBgColor: "bg-red-100",
+      bgColor: "bg-red-500/10",
+      borderColor: "border-red-500/30",
+      textColor: "text-red-400",
+      iconBgColor: "bg-red-500/20",
       icon: XCircle,
-      iconColor: "text-red-600",
+      iconColor: "text-red-500",
       buttonBg: "bg-red-600 hover:bg-red-700",
       buttonText: "Deny Entry & Continue",
     },
     warning: {
-      bgColor: "bg-yellow-50",
-      borderColor: "border-yellow-500",
-      textColor: "text-yellow-700",
-      iconBgColor: "bg-yellow-100",
+      bgColor: "bg-yellow-500/10",
+      borderColor: "border-yellow-500/30",
+      textColor: "text-yellow-400",
+      iconBgColor: "bg-yellow-500/20",
       icon: AlertCircle,
-      iconColor: "text-yellow-600",
+      iconColor: "text-yellow-500",
       buttonBg: "bg-yellow-600 hover:bg-yellow-700",
       buttonText: "Review & Continue",
     },
@@ -162,7 +162,7 @@ export function VerificationResultModal({
       onClick={handleBackdropClick}
     >
       <div
-        className={`bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] shadow-2xl border-4 ${config.borderColor} overflow-hidden flex flex-col`}
+        className={`bg-card rounded-2xl max-w-2xl w-full max-h-[90vh] shadow-2xl border-4 ${config.borderColor} overflow-hidden flex flex-col`}
         onClick={handleModalClick}
       >
         {/* Header with Status */}
@@ -183,7 +183,7 @@ export function VerificationResultModal({
             </h2>
 
             {/* Subtitle based on status */}
-            <p className="text-gray-600 text-sm">
+            <p className="text-muted-foreground text-sm">
               {status === "success" && "All verification checks passed"}
               {status === "error" && "Verification failed - Do not grant entry"}
               {status === "warning" &&
@@ -197,7 +197,7 @@ export function VerificationResultModal({
           {/* Verification Checks */}
           {details && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Shield className="w-5 h-5" />
                 Security Checks
               </h3>
@@ -206,21 +206,21 @@ export function VerificationResultModal({
                 <div
                   className={`flex items-center justify-between p-4 rounded-lg border-2 ${
                     details.isOrganizerValid
-                      ? "bg-green-50 border-green-200"
-                      : "bg-red-50 border-red-200"
+                      ? "bg-green-500/10 border-green-500/30"
+                      : "bg-red-500/10 border-red-500/30"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     {details.isOrganizerValid ? (
-                      <ShieldCheck className="w-6 h-6 text-green-600" />
+                      <ShieldCheck className="w-6 h-6 text-green-500" />
                     ) : (
-                      <ShieldAlert className="w-6 h-6 text-red-600" />
+                      <ShieldAlert className="w-6 h-6 text-red-500" />
                     )}
                     <div>
-                      <p className="font-semibold text-gray-800">
+                      <p className="font-semibold text-foreground">
                         Organizer Authorization
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         {details.isOrganizerValid
                           ? "You are authorized for this event"
                           : "You are NOT the event organizer"}
@@ -228,9 +228,9 @@ export function VerificationResultModal({
                     </div>
                   </div>
                   {details.isOrganizerValid ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    <CheckCircle2 className="w-6 h-6 text-green-500" />
                   ) : (
-                    <XCircle className="w-6 h-6 text-red-600" />
+                    <XCircle className="w-6 h-6 text-red-500" />
                   )}
                 </div>
 
@@ -238,17 +238,17 @@ export function VerificationResultModal({
                 <div
                   className={`flex items-center justify-between p-4 rounded-lg border-2 ${
                     details.isOwnerValid
-                      ? "bg-green-50 border-green-200"
-                      : "bg-yellow-50 border-yellow-200"
+                      ? "bg-green-500/10 border-green-500/30"
+                      : "bg-yellow-500/10 border-yellow-500/30"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <User className="w-6 h-6 text-gray-600" />
+                    <User className="w-6 h-6 text-muted-foreground" />
                     <div>
-                      <p className="font-semibold text-gray-800">
+                      <p className="font-semibold text-foreground">
                         Owner Verification
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         {details.isOwnerValid
                           ? "QR code owner matches blockchain"
                           : "Owner mismatch - ticket may have been transferred"}
@@ -256,9 +256,9 @@ export function VerificationResultModal({
                     </div>
                   </div>
                   {details.isOwnerValid ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    <CheckCircle2 className="w-6 h-6 text-green-500" />
                   ) : (
-                    <AlertCircle className="w-6 h-6 text-yellow-600" />
+                    <AlertCircle className="w-6 h-6 text-yellow-500" />
                   )}
                 </div>
 
@@ -295,37 +295,37 @@ export function VerificationResultModal({
 
           {/* Ticket Information */}
           {data && (
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <div className="border-t border-border pt-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
                 Ticket Information
               </h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 text-gray-600 mb-1">
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <TicketIcon className="w-4 h-4" />
                     <span className="text-sm font-medium">Ticket ID</span>
                   </div>
-                  <p className="text-lg font-bold text-gray-900">
+                  <p className="text-lg font-bold text-foreground">
                     #{data.tokenId.toString()}
                   </p>
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 text-gray-600 mb-1">
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Calendar className="w-4 h-4" />
                     <span className="text-sm font-medium">Event ID</span>
                   </div>
-                  <p className="text-lg font-bold text-gray-900">
+                  <p className="text-lg font-bold text-foreground">
                     #{data.eventId.toString()}
                   </p>
                 </div>
 
-                <div className="col-span-2 bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 text-gray-600 mb-1">
+                <div className="col-span-2 bg-muted/50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <User className="w-4 h-4" />
                     <span className="text-sm font-medium">Ticket Holder</span>
                   </div>
-                  <p className="text-xs font-mono text-gray-900 break-all">
+                  <p className="text-xs font-mono text-foreground break-all">
                     {data.owner}
                   </p>
                 </div>
@@ -336,8 +336,8 @@ export function VerificationResultModal({
 
         {/* Error Message Display */}
         {markError && (
-          <div className="px-6 py-4 bg-red-50 border-t border-red-200">
-            <div className="flex items-center gap-2 text-red-700">
+          <div className="px-6 py-4 bg-red-500/10 border-t border-red-500/30">
+            <div className="flex items-center gap-2 text-red-400">
               <XCircle className="w-5 h-5" />
               <div>
                 <p className="font-semibold">Failed to mark ticket as used</p>
@@ -348,19 +348,19 @@ export function VerificationResultModal({
         )}
 
         {/* Footer with Action Button - Fixed at bottom */}
-        <div className="px-6 py-4 bg-gray-50 border-t flex-shrink-0">
+        <div className="px-6 py-4 bg-muted/50 border-t border-border flex-shrink-0">
           <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
             {/* Action Indicator */}
-            <div className="text-sm text-gray-600 text-center sm:text-left">
+            <div className="text-sm text-muted-foreground text-center sm:text-left">
               {status === "success" && !hasMarked && (
                 <p className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
                   <span>Verified - Ready to grant entry</span>
                 </p>
               )}
               {status === "success" && hasMarked && (
                 <p className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
                   <span className="font-semibold">
                     ✅ Entry Granted - Ticket Marked as Used
                   </span>
@@ -374,13 +374,13 @@ export function VerificationResultModal({
               )}
               {status === "error" && (
                 <p className="flex items-center gap-2">
-                  <XCircle className="w-4 h-4 text-red-600" />
+                  <XCircle className="w-4 h-4 text-red-500" />
                   <span>Failed - Do NOT allow entry</span>
                 </p>
               )}
               {status === "warning" && (
                 <p className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-yellow-600" />
+                  <AlertCircle className="w-4 h-4 text-yellow-500" />
                   <span>Warning - Use caution</span>
                 </p>
               )}
@@ -392,7 +392,7 @@ export function VerificationResultModal({
               disabled={isMarking}
               className={`w-full sm:w-auto px-6 py-3 ${
                 isMarking
-                  ? "bg-gray-400 cursor-not-allowed"
+                  ? "bg-muted cursor-not-allowed"
                   : hasMarked
                   ? "bg-primary hover:bg-primary/90"
                   : config.buttonBg
