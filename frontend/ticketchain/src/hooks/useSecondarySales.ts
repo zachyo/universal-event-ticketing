@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { useReadContract, usePublicClient } from "wagmi";
-import { parseAbiItem } from "viem";
 import { useEvent } from "./useContracts";
 import TicketMarketplaceABI from "../lib/abi/TicketMarketplace.json";
 

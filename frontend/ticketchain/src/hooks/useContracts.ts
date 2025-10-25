@@ -70,7 +70,7 @@ export function useCreateEvent() {
 
       // Upload all tier images in parallel
       const tierImageHashes = await Promise.all(
-        initialTicketTypes.map(async (tt, index) => {
+        initialTicketTypes.map(async (tt) => {
           const hash = await uploadToIPFS(tt.image!);
           return hash;
         })

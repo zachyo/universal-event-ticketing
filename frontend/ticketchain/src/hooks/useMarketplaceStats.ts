@@ -25,8 +25,8 @@ export function useMarketplaceStats(eventId: number) {
 
 
   return {
-    secondarySales: data ? Number(data[0]) : 0,
-    royaltiesCollected: data ? data[1] : BigInt(0),
+    secondarySales: data ? Number((data as readonly [bigint, bigint])[0]) : 0,
+    royaltiesCollected: data ? (data as readonly [bigint, bigint])[1] : BigInt(0),
     isLoading,
     error,
     refetch,

@@ -127,7 +127,7 @@ export function DebugRoyaltyInfo({ eventId }: DebugRoyaltyInfoProps) {
         <div className="border-t pt-2">
           <strong>Secondary Sales Tracking:</strong>
           {secondarySalesLoading && <div>Loading secondary sales...</div>}
-          {secondarySalesError && <div className="text-red-600">Error: {secondarySalesError instanceof Error ? secondarySalesError.message : secondarySalesError}</div>}
+          {secondarySalesError && <div className="text-red-600">Error: {secondarySalesError instanceof Error ? secondarySalesError.message : String(secondarySalesError)}</div>}
           {secondarySalesData && (
             <div className="ml-2">
               <div className="text-green-700 font-bold">Total Sales: {secondarySalesData.totalSales}</div>

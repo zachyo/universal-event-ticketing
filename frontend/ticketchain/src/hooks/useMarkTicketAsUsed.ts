@@ -55,7 +55,7 @@ export function useMarkTicketAsUsed() {
       setTransactionHash(tx.hash);
 
       // Wait for transaction confirmation
-      const receipt = await tx.wait();
+      await tx.wait();
 
       setIsConfirmed(true);
     } catch (err) {
