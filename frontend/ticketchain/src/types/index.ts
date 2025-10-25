@@ -11,6 +11,7 @@ export interface Event {
   totalSupply: bigint;
   sold: bigint;
   active: boolean;
+  royaltyBps: bigint; // Royalty percentage in basis points (e.g., 250 = 2.5%)
 }
 
 // Ticket type structure for different tiers (VIP, General, etc.)
@@ -21,6 +22,7 @@ export interface TicketType {
   price: bigint;
   supply: bigint;
   sold: bigint;
+  imageIpfsHash?: string; // Tier-specific image (optional for backward compatibility)
 }
 
 // NFT ticket metadata structure
@@ -57,6 +59,7 @@ export interface EventInput {
   image: File;
   totalSupply: bigint;
   royaltyBps: bigint;
+  initialTicketTypes?: TicketTypeInput[]; // Optional array of ticket types to add during creation
 }
 
 // Form input types for creating ticket types
@@ -64,6 +67,8 @@ export interface TicketTypeInput {
   name: string;
   price: bigint;
   supply: bigint;
+  image: File | null; // Tier-specific image file
+  imagePreview?: string; // Preview URL for UI (data URL or blob URL)
 }
 
 // IPFS metadata structure for NFTs
@@ -110,29 +115,29 @@ export interface UseEventsReturn {
   events: Event[];
   loading: boolean;
   error: string | null;
-  refetch: any
+  refetch: () => Promise<unknown>;
 }
 
 export interface UseTicketsReturn {
   tickets: TicketNFT[];
   loading: boolean;
   error: string | null;
-  refetch: any
+  refetch: () => Promise<unknown>;
 }
 
 export interface UseListingsReturn {
   listings: Listing[];
   loading: boolean;
   error: string | null;
-  refetch: any
+  refetch: () => Promise<unknown>;
 }
 
 // Purchase transaction types
 export interface PurchaseParams {
   eventId: bigint;
   ticketTypeId: bigint;
-  price: bigint;        // amount of native currency to send (price per ticket)
-  quantity?: number;    // number of tickets to purchase (defaults to 1)
+  price: bigint; // amount of native currency to send (price per ticket)
+  quantity?: number; // number of tickets to purchase (defaults to 1)
   chain?: string;
 }
 
@@ -148,7 +153,11 @@ export interface BuyTicketParams {
 }
 
 // Utility types for formatting
-export interface FormattedEvent extends Omit<Event, 'eventId' | 'startTime' | 'endTime' | 'totalSupply' | 'sold'> {
+export interface FormattedEvent
+  extends Omit<
+    Event,
+    "eventId" | "startTime" | "endTime" | "totalSupply" | "sold"
+  > {
   eventId: number;
   startTime: Date;
   endTime: Date;
@@ -157,15 +166,25 @@ export interface FormattedEvent extends Omit<Event, 'eventId' | 'startTime' | 'e
   imageUrl: string;
 }
 
-export interface FormattedTicket extends Omit<TicketNFT, 'tokenId' | 'eventId' | 'ticketTypeId' | 'purchasePrice'> {
+import type { SupportedChain } from "./chains";
+
+export interface FormattedTicket
+  extends Omit<
+    TicketNFT,
+    "tokenId" | "eventId" | "ticketTypeId" | "purchasePrice"
+  > {
   tokenId: number;
   eventId: number;
   ticketTypeId: number;
-  purchasePrice: number;
+  purchasePrice: bigint;
   event?: FormattedEvent;
+  purchaseChainMeta?: SupportedChain | ChainConfig | null;
+  isOriginalOwner: boolean;
+  ticketStatus: "valid" | "used";
 }
 
-export interface FormattedListing extends Omit<Listing, 'listingId' | 'tokenId' | 'price' | 'createdAt'> {
+export interface FormattedListing
+  extends Omit<Listing, "listingId" | "tokenId" | "price" | "createdAt"> {
   listingId: number;
   tokenId: number;
   price: number;
@@ -202,7 +221,7 @@ export interface QRCodeProps {
 export interface ContractError {
   message: string;
   code?: string;
-  data?: any;
+  data?: unknown;
 }
 
 // Chain configuration
@@ -216,12 +235,17 @@ export interface ChainConfig {
 
 // Constants
 export const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-export const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
+export const IPFS_GATEWAY = "https://gateway.pinata.cloud/ipfs/";
 
 // Utility function types
 export type FormatEventFunction = (event: Event) => FormattedEvent;
-export type FormatTicketFunction = (ticket: TicketNFT) => FormattedTicket;
+export type FormatTicketFunction = (
+  ticket: TicketNFT,
+  event?: FormattedEvent
+) => FormattedTicket;
 export type FormatListingFunction = (listing: Listing) => FormattedListing;
 export type GetIPFSUrlFunction = (hash: string) => string;
 export type UploadToIPFSFunction = (file: File) => Promise<string>;
-export type UploadJSONToIPFSFunction = (json: object) => Promise<string>;
+export type UploadJSONToIPFSFunction = (
+  json: Record<string, unknown>
+) => Promise<string>;

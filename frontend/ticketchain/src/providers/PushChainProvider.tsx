@@ -7,10 +7,10 @@ import {
 
 /**
  * PushChainProviders Component
- * 
+ *
  * This component wraps your entire application with Push Chain's Universal Wallet Provider.
  * It configures the wallet connection options, network settings, and app metadata.
- * 
+ *
  * Configuration Guide:
  * - network: Choose between MAINNET, TESTNET, or DEV
  * - login: Configure authentication methods (email, google, wallet)
@@ -24,44 +24,50 @@ const PushChainProviders = ({ children }: { children: React.ReactNode }) => {
   const walletConfig: ProviderConfigProps = {
     // Network selection: MAINNET for production, TESTNET for development
     network: PushUI.CONSTANTS.PUSH_NETWORK.TESTNET,
-    
+
     // Login options - enable/disable authentication methods
     login: {
-      email: true,        // Allow email authentication
-      google: true,       // Allow Google OAuth
+      email: true, // Allow email authentication
+      google: true, // Allow Google OAuth
       wallet: {
-        enabled: true,    // Allow wallet connection (MetaMask, etc.)
+        enabled: true, // Allow wallet connection (MetaMask, etc.)
       },
-      appPreview: true,   // Show app preview in login modal
+      appPreview: true, // Show app preview in login modal
     },
-    
+
     // Modal UI customization
     modal: {
       // Layout: SPLIT (side-by-side) or STACKED (vertical)
       loginLayout: PushUI.CONSTANTS.LOGIN.LAYOUT.SPLIT,
-      
+
       // Connected wallet display: HOVER (on hover) or FULL (always visible)
       connectedLayout: PushUI.CONSTANTS.CONNECTED.LAYOUT.HOVER,
-      
+
       // Show app preview in modals
       appPreview: true,
-      
+
       // Background interaction when modal is open: BLUR or NONE
       connectedInteraction: PushUI.CONSTANTS.CONNECTED.INTERACTION.BLUR,
     },
-    
+
     // Chain configuration - add your custom RPC endpoints here
     chainConfig: {
-      rpcUrls: {       
+      rpcUrls: {
         // Ethereum Sepolia testnet (for testing)
-        "eip155:11155111": ["https://sepolia.gateway.tenderly.co/", "https://rpc.sepolia.org"],
+        "eip155:11155111": [
+          "https://sepolia.gateway.tenderly.co/",
+          "https://rpc.sepolia.org",
+        ],
 
-        // Solana Testnet
-        "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": ["https://api.testnet.solana.com"],
+        // Solana Push Testnet (fee-locker lives on devnet)
+        "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": [
+          "https://api.devnet.solana.com",
+        ],
 
-        // Solana Devnet
-        "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": ["https://api.devnet.solana.com"],
-        
+        // Solana Devnet (standard cluster id)
+        "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": [
+          "https://api.devnet.solana.com",
+        ],
       },
     },
   };

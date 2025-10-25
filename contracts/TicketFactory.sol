@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.22;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -46,6 +46,18 @@ contract TicketFactory is Ownable, ReentrancyGuard {
         uint256 price;   // In native currency for MVP
         uint256 supply;  // Max supply for this ticket type
         uint256 sold;    // Number sold for this ticket type
+        string imageIpfsHash; // IPFS hash for tier-specific NFT image
+    }
+
+    /**
+     * @notice Input struct for creating ticket types
+     * @dev Used when creating multiple ticket types at once
+     */
+    struct TicketTypeInput {
+        string name;
+        uint256 price;
+        uint256 supply;
+        string imageIpfsHash; // IPFS hash for tier-specific NFT image
     }
 
     // ========= Storage =========
@@ -72,6 +84,7 @@ contract TicketFactory is Ownable, ReentrancyGuard {
     error InvalidInput();
     error InvalidEvent();
     error NotOrganizer();
+    error Unauthorized();
     error EventInactive();
     error EventNotLive();
     error SoldOut();
@@ -151,7 +164,7 @@ contract TicketFactory is Ownable, ReentrancyGuard {
     // ========= Event Management =========
 
     /**
-     * @notice Create a new event
+     * @notice Create a new event with optional initial ticket types
      * @param name_ Name of the event
      * @param description_ Description of the event
      * @param startTime_ Start time (unix)
@@ -160,6 +173,7 @@ contract TicketFactory is Ownable, ReentrancyGuard {
      * @param imageIpfsHash_ IPFS hash for the event image
      * @param totalSupply_ Global cap across all ticket types (must be > 0)
      * @param royaltyBps_ Default royalty (basis points) for NFTs minted for this event
+     * @param initialTicketTypes_ Array of ticket types to add during event creation (can be empty)
      * @return eventId The id of the created event
      */
     function createEvent(
@@ -170,7 +184,8 @@ contract TicketFactory is Ownable, ReentrancyGuard {
         string memory venue_,
         string memory imageIpfsHash_,
         uint256 totalSupply_,
-        uint96 royaltyBps_
+        uint96 royaltyBps_,
+        TicketTypeInput[] memory initialTicketTypes_
     ) external returns (uint256 eventId) {
         if (
             bytes(name_).length == 0 ||
@@ -203,6 +218,27 @@ contract TicketFactory is Ownable, ReentrancyGuard {
         _organizerEvents[msg.sender].push(eventId);
 
         emit EventCreated(eventId, msg.sender, name_, startTime_, endTime_, totalSupply_, royaltyBps_);
+
+        // Add initial ticket types if provided
+        for (uint256 i = 0; i < initialTicketTypes_.length; i++) {
+            TicketTypeInput memory input = initialTicketTypes_[i];
+            if (bytes(input.name).length == 0 || input.price == 0 || input.supply == 0 || bytes(input.imageIpfsHash).length == 0) {
+                revert InvalidInput();
+            }
+
+            TicketType memory tt = TicketType({
+                eventId: eventId,
+                name: input.name,
+                price: input.price,
+                supply: input.supply,
+                sold: 0,
+                imageIpfsHash: input.imageIpfsHash
+            });
+
+            _ticketTypes[eventId].push(tt);
+            
+            emit TicketTypeAdded(eventId, i, input.name, input.price, input.supply);
+        }
     }
 
     /**
@@ -211,21 +247,24 @@ contract TicketFactory is Ownable, ReentrancyGuard {
      * @param name_ Ticket type name
      * @param price_ Price in native currency
      * @param supply_ Supply cap for this ticket type
+     * @param imageIpfsHash_ IPFS hash for tier-specific NFT image
      * @return ticketTypeId Index of the newly created ticket type
      */
     function addTicketType(
         uint256 eventId,
         string memory name_,
         uint256 price_,
-        uint256 supply_
+        uint256 supply_,
+        string memory imageIpfsHash_
     ) external validEvent(eventId) onlyOrganizer(eventId) returns (uint256 ticketTypeId) {
-        if (bytes(name_).length == 0 || price_ == 0 || supply_ == 0) revert InvalidInput();
+        if (bytes(name_).length == 0 || price_ == 0 || supply_ == 0 || bytes(imageIpfsHash_).length == 0) revert InvalidInput();
         TicketType memory tt = TicketType({
             eventId: eventId,
             name: name_,
             price: price_,
             supply: supply_,
-            sold: 0
+            sold: 0,
+            imageIpfsHash: imageIpfsHash_
         });
 
         _ticketTypes[eventId].push(tt);
@@ -432,6 +471,33 @@ contract TicketFactory is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Get multiple events in a single call
+     * @dev Optimized for frontend: fetch all events needed for ticket display at once
+     * @param eventIds Array of event IDs to retrieve
+     * @return eventsData Array of event data (same order as input)
+     * @return validFlags Array indicating which events exist (true) or don't exist (false)
+     */
+    function getEventsBatch(uint256[] calldata eventIds) 
+        external 
+        view 
+        returns (EventData[] memory eventsData, bool[] memory validFlags) 
+    {
+        eventsData = new EventData[](eventIds.length);
+        validFlags = new bool[](eventIds.length);
+
+        for (uint256 i = 0; i < eventIds.length; i++) {
+            uint256 eventId = eventIds[i];
+            // Check if event exists (eventId > 0 and <= eventCounter)
+            if (eventId > 0 && eventId <= eventCounter) {
+                eventsData[i] = events[eventId];
+                validFlags[i] = true;
+            } else {
+                validFlags[i] = false;
+            }
+        }
+    }
+
+    /**
      * @notice Get all ticket types for an event
      */
     function getTicketTypes(uint256 eventId) external view validEvent(eventId) returns (TicketType[] memory) {
@@ -439,10 +505,50 @@ contract TicketFactory is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Get ticket types for multiple events in a single call
+     * @dev Optimized for frontend: fetch all ticket types needed at once
+     * @param eventIds Array of event IDs
+     * @return ticketTypesArray Array of ticket type arrays (same order as input)
+     */
+    function getTicketTypesBatch(uint256[] calldata eventIds)
+        external
+        view
+        returns (TicketType[][] memory ticketTypesArray)
+    {
+        ticketTypesArray = new TicketType[][](eventIds.length);
+
+        for (uint256 i = 0; i < eventIds.length; i++) {
+            uint256 eventId = eventIds[i];
+            // Only return ticket types for valid events
+            if (eventId > 0 && eventId <= eventCounter) {
+                ticketTypesArray[i] = _ticketTypes[eventId];
+            } else {
+                // Return empty array for invalid events
+                ticketTypesArray[i] = new TicketType[](0);
+            }
+        }
+    }
+
+    /**
      * @notice Get events created by an organizer
      */
     function getOrganizerEvents(address organizer) external view returns (uint256[] memory) {
         return _organizerEvents[organizer];
+    }
+
+    /**
+     * @notice Check if an address is the organizer of an event
+     * @param eventId The event id to check
+     * @param addr The address to check
+     * @return bool True if the address is the event organizer
+     */
+    function isEventOrganizer(uint256 eventId, address addr) 
+        external 
+        view 
+        validEvent(eventId) 
+        returns (bool) 
+    {
+        return events[eventId].organizer == addr;
     }
 
     /**
@@ -461,6 +567,51 @@ contract TicketFactory is Ownable, ReentrancyGuard {
         if (evId != eventId) revert InvalidEvent();
         
         ticketNFT.validateTicket(tokenId);
+    }
+
+    /**
+     * @notice Set or update the tokenURI (metadata) for a ticket
+     * @dev Can be called by ticket owner or event organizer to add/update metadata post-purchase
+     * @param tokenId The token id to update
+     * @param tokenURI_ New IPFS metadata URI (e.g., ipfs://CID)
+     */
+    function setTicketURI(uint256 tokenId, string memory tokenURI_) external {
+        if (bytes(tokenURI_).length == 0) revert InvalidInput();
+        
+        // Get ticket owner and event info
+        address owner = ticketNFT.ownerOf(tokenId);
+        (uint256 eventId,,,,,,) = ticketNFT.ticketDetails(tokenId);
+        
+        // Only ticket owner or event organizer can set metadata
+        if (msg.sender != owner && msg.sender != events[eventId].organizer) {
+            revert Unauthorized();
+        }
+        
+        ticketNFT.setTokenURI(tokenId, tokenURI_);
+    }
+
+    /**
+     * @notice Batch set tokenURIs for multiple tickets (gas-efficient for organizers)
+     * @dev Useful for organizers to add metadata to multiple tickets at once
+     * @param tokenIds Array of token IDs
+     * @param tokenURIs Array of IPFS URIs (must match tokenIds length)
+     */
+    function setTicketURIBatch(uint256[] calldata tokenIds, string[] calldata tokenURIs) external {
+        if (tokenIds.length != tokenURIs.length) revert InvalidInput();
+        
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            if (bytes(tokenURIs[i]).length == 0) revert InvalidInput();
+            
+            address owner = ticketNFT.ownerOf(tokenIds[i]);
+            (uint256 eventId,,,,,,) = ticketNFT.ticketDetails(tokenIds[i]);
+            
+            // Only ticket owner or event organizer can set metadata
+            if (msg.sender != owner && msg.sender != events[eventId].organizer) {
+                revert Unauthorized();
+            }
+            
+            ticketNFT.setTokenURI(tokenIds[i], tokenURIs[i]);
+        }
     }
 
     // ========= Internal Utilities =========

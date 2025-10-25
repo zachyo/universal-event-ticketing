@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.22;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -123,7 +123,18 @@ contract TicketNFT is ERC721, Ownable, ERC2981 {
 
         tokenId = ++tokenCounter;
 
-        _safeMint(to, tokenId);
+        // Universal Execution Accounts are deployed as contracts on Push Chain but
+        // they don't currently implement IERC721Receiver. When a user purchases
+        // from an external chain (e.g. Ethereum), the factory mints directly to
+        // their UEA which would fail the `_safeMint` receiver check. To support
+        // these multi-chain flows we allow minting to contract recipients by
+        // falling back to the plain `_mint` for contract addresses while keeping
+        // the safety check for EOAs.
+        if (to.code.length > 0) {
+            _mint(to, tokenId);
+        } else {
+            _safeMint(to, tokenId);
+        }
         ticketDetails[tokenId] = meta;
         _tokenURIs[tokenId] = tokenURI_;
 
@@ -188,6 +199,41 @@ contract TicketNFT is ERC721, Ownable, ERC2981 {
         for (uint256 i = 1; i <= tokenCounter; i++) {
             if (_ownerOf(i) == owner) {
                 tokenIds[idx] = i;
+                unchecked { ++idx; }
+            }
+        }
+    }
+
+    /**
+     * @notice Get all ticket details (with metadata) owned by a given address in one call
+     * @dev Optimized for frontend: single call replaces getUserTickets + N * ticketDetails calls
+     * @param owner Address to query
+     * @return tickets Array of ticket metadata with embedded token IDs
+     * @return tokenIds Array of corresponding token IDs (same order as tickets)
+     */
+    function getUserTicketsWithDetails(address owner) 
+        external 
+        view 
+        returns (TicketMetadata[] memory tickets, uint256[] memory tokenIds) 
+    {
+        // First pass: count tickets
+        uint256 count;
+        for (uint256 i = 1; i <= tokenCounter; i++) {
+            if (_ownerOf(i) == owner) {
+                unchecked { ++count; }
+            }
+        }
+
+        // Allocate arrays
+        tickets = new TicketMetadata[](count);
+        tokenIds = new uint256[](count);
+
+        // Second pass: collect ticket details
+        uint256 idx;
+        for (uint256 i = 1; i <= tokenCounter; i++) {
+            if (_ownerOf(i) == owner) {
+                tokenIds[idx] = i;
+                tickets[idx] = ticketDetails[i];
                 unchecked { ++idx; }
             }
         }

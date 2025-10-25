@@ -1,220 +1,172 @@
-import { useState, useMemo } from 'react';
-import { Search, Calendar, MapPin, SlidersHorizontal } from 'lucide-react';
-import { useEvents } from '../hooks/useContracts';
-import { EventCard, EventCardSkeleton, EventGrid, EventsEmptyState } from '../components/EventCard';
-import { formatEvent, sortEventsByDate, filterEventsByStatus, searchEvents } from '../lib/formatters';
+import { useState } from "react";
+import { RefreshCw } from "lucide-react";
+import { useEventsWithTicketTypes } from "../hooks/useEventsWithTicketTypes";
+import {
+  EventCard,
+  EventCardSkeleton,
+  EventGrid,
+  EventsEmptyState,
+} from "../components/EventCard";
+import { useEventSearch } from "../hooks/useEventSearch";
+import { SearchBar } from "../components/search/SearchBar";
+import { FilterPanel } from "../components/search/FilterPanel";
+import { ErrorDisplay } from "../components/ErrorDisplay";
+import { cn } from "../utils/cn";
 
 const EventsPage = () => {
-  const { events, loading, error } = useEvents();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'live' | 'ended'>('all');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [showFilters, setShowFilters] = useState(false);
+  const {
+    events: formattedEvents,
+    loading,
+    error,
+    refetch,
+  } = useEventsWithTicketTypes();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Format and filter events
-  const filteredEvents = useMemo(() => {
-    if (!events.length) return [];
+  // Use search hook
+  const {
+    filteredEvents,
+    isSearching,
+    searchQuery,
+    setSearchQuery,
+    filters,
+    setFilters,
+    clearFilters,
+    resultCount,
+  } = useEventSearch(formattedEvents);
 
-    let formattedEvents = events.map(formatEvent);
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      formattedEvents = searchEvents(formattedEvents, searchQuery);
+  const handleRefresh = async () => {
+    if (!refetch) return;
+    try {
+      setIsRefreshing(true);
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
     }
-
-    // Apply status filter
-    formattedEvents = filterEventsByStatus(formattedEvents, statusFilter);
-
-    // Apply sorting
-    formattedEvents = sortEventsByDate(formattedEvents, sortOrder === 'asc');
-
-    return formattedEvents;
-  }, [events, searchQuery, statusFilter, sortOrder]);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleStatusFilterChange = (status: 'all' | 'upcoming' | 'live' | 'ended') => {
-    setStatusFilter(status);
-  };
-
-  const handleSortOrderChange = (order: 'asc' | 'desc') => {
-    setSortOrder(order);
   };
 
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <div className="text-red-600 mb-4">
-            <Calendar className="w-16 h-16 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Error Loading Events</h3>
-            <p>{error}</p>
-          </div>
+          <ErrorDisplay error={error} retry={handleRefresh} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Events</h1>
-        <p className="text-gray-600">Discover amazing events happening around the world</p>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="mb-8">
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search events by name, venue, or description..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-4">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filters
-          </button>
-
-          {/* Quick Status Filters */}
-          <div className="flex gap-2">
-            {[
-              { key: 'all', label: 'All Events' },
-              { key: 'upcoming', label: 'Upcoming' },
-              { key: 'live', label: 'Live' },
-              { key: 'ended', label: 'Ended' },
-            ].map((filter) => (
-              <button
-                key={filter.key}
-                onClick={() => handleStatusFilterChange(filter.key as any)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  statusFilter === filter.key
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort Order */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleSortOrderChange('asc')}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                sortOrder === 'asc'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Earliest First
-            </button>
-            <button
-              onClick={() => handleSortOrderChange('desc')}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                sortOrder === 'desc'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Latest First
-            </button>
-          </div>
-        </div>
-
-        {/* Extended Filters */}
-        {showFilters && (
-          <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location
-                </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Filter by venue..."
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+    <div className="container px-4">
+      <div className="space-y-8">
+        <div className="glass-card rounded-[2.25rem] border border-border bg-card px-6 py-6 md:px-8 md:py-10">
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                Discover
               </div>
+              <h1 className="text-3xl font-semibold text-foreground md:text-4xl">
+                Explore experiences across every chain.
+              </h1>
+              <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+                Browse curated drops, IRL festivals, and community gatherings.
+                Filter by status, price tiers, and momentum to craft the perfect
+                night out.
+              </p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={loading || isRefreshing}
+              className="inline-flex items-center gap-2 self-start rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshCw
+                className={cn(
+                  "h-4 w-4 text-primary-foreground",
+                  isRefreshing && "animate-spin"
+                )}
+              />
+              {isRefreshing ? "Refreshing" : "Refresh feed"}
+            </button>
+          </div>
+        </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date Range
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+          <aside className="lg:sticky lg:top-32">
+            <FilterPanel
+              filters={filters}
+              onFiltersChange={setFilters}
+              onClearFilters={clearFilters}
+              className="glass-card rounded-[1.75rem] border border-border bg-card p-6"
+            />
+          </aside>
+
+          <div className="space-y-5">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              isSearching={isSearching}
+              className="glass-card rounded-[1.75rem] border border-border bg-card p-1"
+            />
+
+            {!loading && (
+              <div className="flex flex-col gap-2 rounded-[1.5rem] border border-border/60 bg-secondary/60 px-5 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                  <strong className="text-foreground">{resultCount}</strong>{" "}
+                  event{resultCount !== 1 ? "s" : ""} live
+                  {searchQuery && (
+                    <>
+                      {" "}
+                      for <span className="text-foreground">"{searchQuery}"</span>
+                    </>
+                  )}
+                </span>
+                {resultCount > 0 && (
+                  <span className="text-xs uppercase tracking-wider text-foreground/60">
+                    Sorted by{" "}
+                    <strong className="text-foreground">
+                      {filters.sortBy === "date"
+                        ? "Date (Nearest)"
+                        : filters.sortBy === "newest"
+                        ? "Newest"
+                        : filters.sortBy === "popular"
+                        ? "Popularity"
+                        : filters.sortBy === "price-asc"
+                        ? "Lowest price"
+                        : filters.sortBy === "price-desc"
+                        ? "Highest price"
+                        : filters.sortBy}
+                    </strong>
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div className="relative">
+              {loading ? (
+                <EventGrid>
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <EventCardSkeleton key={index} />
+                  ))}
+                </EventGrid>
+              ) : filteredEvents.length > 0 ? (
+                <EventGrid>
+                  {filteredEvents.map((event) => (
+                    <EventCard key={event.eventId} event={event} />
+                  ))}
+                </EventGrid>
+              ) : (
+                <EventsEmptyState
+                  message={
+                    searchQuery
+                      ? `No events found matching "${searchQuery}"`
+                      : filters.status !== "all"
+                      ? `No ${filters.status} events found`
+                      : "No events available at the moment"
+                  }
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price Range
-                </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Any Price</option>
-                  <option value="free">Free</option>
-                  <option value="0-0.1">0 - 0.1 ETH</option>
-                  <option value="0.1-0.5">0.1 - 0.5 ETH</option>
-                  <option value="0.5+">0.5+ ETH</option>
-                </select>
-              </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Results Count */}
-      {!loading && (
-        <div className="mb-6">
-          <p className="text-gray-600">
-            {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
-            {searchQuery && ` for "${searchQuery}"`}
-          </p>
         </div>
-      )}
-
-      {/* Events Grid */}
-      {loading ? (
-        <EventGrid>
-          {Array.from({ length: 6 }).map((_, index) => (
-            <EventCardSkeleton key={index} />
-          ))}
-        </EventGrid>
-      ) : filteredEvents.length > 0 ? (
-        <EventGrid>
-          {filteredEvents.map((event) => (
-            <EventCard key={event.eventId} event={event} />
-          ))}
-        </EventGrid>
-      ) : (
-        <EventsEmptyState
-          message={
-            searchQuery
-              ? `No events found matching "${searchQuery}"`
-              : statusFilter !== 'all'
-              ? `No ${statusFilter} events found`
-              : "No events available at the moment"
-          }
-        />
-      )}
+      </div>
     </div>
   );
 };
