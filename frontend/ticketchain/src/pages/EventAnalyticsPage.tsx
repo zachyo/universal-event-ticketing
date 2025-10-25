@@ -21,6 +21,46 @@ import {
 } from "../components/analytics";
 import { ErrorDisplay } from "../components/ErrorDisplay";
 import { usePushWalletContext, usePushChain } from "@pushchain/ui-kit";
+import { DebugRoyaltyInfo } from "../components/DebugRoyaltyInfo";
+
+// Debug component for organizer detection
+function DebugOrganizerButton({ 
+  eventOrganizer, 
+  walletAddress, 
+  pushAccountAddress, 
+  ueaAddress, 
+  isOrganizer,
+  isResolving
+}: {
+  eventOrganizer?: string;
+  walletAddress?: string;
+  pushAccountAddress?: string;
+  ueaAddress?: string | null;
+  isOrganizer: boolean;
+  isResolving: boolean;
+}) {
+  return (
+    <div className="fixed bottom-4 right-4 z-50 max-w-sm rounded-lg border border-green-300 bg-green-50 p-4 shadow-lg text-xs">
+      <h3 className="mb-2 font-bold text-green-800">🔍 Analytics Organizer Debug</h3>
+      <div className="space-y-1 text-green-700">
+        <div><strong>Event Organizer:</strong> {eventOrganizer}</div>
+        <div><strong>Wallet Address:</strong> {walletAddress}</div>
+        <div><strong>Push Account:</strong> {pushAccountAddress}</div>
+        <div><strong>UEA Address:</strong> {isResolving ? "Resolving..." : (ueaAddress || "Not resolved")}</div>
+        <div><strong>Is Organizer:</strong> {isOrganizer ? "✅ YES" : "❌ NO"}</div>
+        <div><strong>Matches:</strong></div>
+        <div className="ml-2">
+          <div>Wallet: {walletAddress && eventOrganizer?.toLowerCase() === walletAddress ? "✅" : "❌"}</div>
+          <div>Push: {pushAccountAddress && eventOrganizer?.toLowerCase() === pushAccountAddress ? "✅" : "❌"}</div>
+          <div>UEA: {ueaAddress && eventOrganizer?.toLowerCase() === ueaAddress.toLowerCase() ? "✅" : "❌"}</div>
+        </div>
+        {isResolving && (
+          <div className="text-blue-600">🔄 Resolving UEA...</div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function EventAnalyticsPage() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -44,55 +84,70 @@ export default function EventAnalyticsPage() {
 
   // UEA resolution state
   const [ueaAddress, setUeaAddress] = useState<string | null>(null);
-  const [ueaLoading, setUeaLoading] = useState(false);
+  const [isResolvingUEA, setIsResolvingUEA] = useState(false);
 
-  const loading = eventLoading || analyticsLoading || ueaLoading;
+  // Resolve UEA address for proper organizer comparison
+  useEffect(() => {
+    const resolveExecutorAddress = async () => {
+      if (!event?.organizer) return;
+
+      // Fallback if Push Chain not available
+      if (!universalAccount || !PushChain) {
+        console.log("Push Chain not available, using origin address");
+        setUeaAddress(address || null);
+        return;
+      }
+
+      setIsResolvingUEA(true);
+      try {
+        console.log("Resolving UEA from origin:", universalAccount.address);
+
+        // Convert origin address to UEA
+        const executorInfo = await PushChain.utils.account.convertOriginToExecutor(
+          universalAccount,
+          { onlyCompute: true }
+        );
+
+        const executorAddress = executorInfo.address;
+        console.log("Resolved UEA:", executorAddress);
+        setUeaAddress(executorAddress);
+      } catch (err) {
+        console.error("Failed to resolve executor address:", err);
+        // Fallback to origin address
+        setUeaAddress(address || null);
+      } finally {
+        setIsResolvingUEA(false);
+      }
+    };
+
+    resolveExecutorAddress();
+  }, [universalAccount, PushChain, address, event?.organizer]);
+
+  const loading = eventLoading || analyticsLoading || isResolvingUEA;
   const error = eventError || analyticsError;
 
-  // Resolve UEA address for Push Universal Account users
-  useEffect(() => {
-    if (universalAccount && PushChain && !ueaAddress && !ueaLoading) {
-      setUeaLoading(true);
-      PushChain.utils.account.convertOriginToExecutor(
-        universalAccount,
-        { onlyCompute: true }
-      )
-        .then((uea) => {
-          setUeaAddress(uea.address);
-          setUeaLoading(false);
-        })
-        .catch((error) => {
-          console.warn("UEA resolution failed:", error);
-          setUeaLoading(false);
-        });
-    }
-  }, [universalAccount, PushChain, ueaAddress, ueaLoading]);
-
-  // Check if user is the organizer
-  // This includes checking UEA (Universal Executor Account) for Push Universal Account users
+  // Check if user is the organizer using UEA
   const isOrganizer = useMemo(() => {
-    if (!event?.organizer) return false;
+    if (!event?.organizer || !ueaAddress) return false;
     
     const organizerAddress = event.organizer.toLowerCase();
-    const walletAddress = address?.toLowerCase();
-    const pushAccountAddress = universalAccount?.address?.toLowerCase();
+    const myUEA = ueaAddress.toLowerCase();
     
-    // Direct address matches
-    if (walletAddress && organizerAddress === walletAddress) return true;
-    if (pushAccountAddress && organizerAddress === pushAccountAddress) return true;
+    console.log("🔍 Analytics Organizer Check (UEA):", {
+      organizerAddress,
+      myUEA,
+      isMatch: organizerAddress === myUEA
+    });
     
-    // UEA address match
-    if (ueaAddress && organizerAddress === ueaAddress.toLowerCase()) return true;
-    
-    return false;
-  }, [event?.organizer, address, universalAccount, ueaAddress]);
+    return organizerAddress === myUEA;
+  }, [event?.organizer, ueaAddress]);
 
   useEffect(() => {
-    if (!loading && !ueaLoading && !isOrganizer && event) {
+    if (!loading && !isOrganizer && event) {
       // Redirect if not organizer
       navigate("/events");
     }
-  }, [loading, isOrganizer, event, navigate, ueaLoading]);
+  }, [loading, isOrganizer, event, navigate]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -110,7 +165,7 @@ export default function EventAnalyticsPage() {
             <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading analytics...</p>
             <p className="text-sm text-gray-500 mt-2">
-              {ueaLoading ? "Resolving UEA address..." : "Loading event data..."}
+              Loading event data...
             </p>
           </div>
         </div>
@@ -254,6 +309,19 @@ export default function EventAnalyticsPage() {
         ticketsScanned={analytics.ticketsScanned}
         scanRate={analytics.scanRate}
         noShowRate={analytics.noShowRate}
+      />
+
+      {/* Debug Component - Remove after debugging */}
+      <DebugRoyaltyInfo eventId={eventIdNum} />
+      
+      {/* Debug Organizer Component - Remove after debugging */}
+      <DebugOrganizerButton
+        eventOrganizer={event?.organizer}
+        walletAddress={address}
+        pushAccountAddress={universalAccount?.address}
+        ueaAddress={ueaAddress}
+        isOrganizer={isOrganizer}
+        isResolving={isResolvingUEA}
       />
 
     </div>

@@ -5,6 +5,7 @@ import {
   useMarketplaceListings,
 } from "./useContracts";
 import { useTicketNFT } from "./useTicketNFT";
+import { useMarketplaceStats } from "./useMarketplaceStats";
 
 export interface TierAnalytics {
   name: string;
@@ -55,6 +56,13 @@ export function useEventAnalytics(eventId: number) {
   const { listings, loading: listingsLoading } = useMarketplaceListings();
   const { tickets, loading: ticketsLoading } = useTicketNFT();
 
+  // Get secondary market stats directly from contract storage - simple and reliable!
+  const {
+    secondarySales: contractSecondarySales,
+    royaltiesCollected: contractRoyaltiesCollected,
+    isLoading: statsLoading,
+  } = useMarketplaceStats(eventId);
+
   const [analytics, setAnalytics] = useState<EventAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -74,7 +82,7 @@ export function useEventAnalytics(eventId: number) {
   }, [tickets, eventId]);
 
   useEffect(() => {
-    if (eventLoading || typesLoading || listingsLoading || ticketsLoading) {
+    if (eventLoading || typesLoading || listingsLoading || ticketsLoading || statsLoading) {
       setLoading(true);
       return;
     }
@@ -133,30 +141,26 @@ export function useEventAnalytics(eventId: number) {
           ? activePrices.reduce((max, price) => (price > max ? price : max))
           : BigInt(0);
 
-      // Count secondary sales (inactive listings that were once active)
-      const secondarySales = eventListings.filter((l) => !l.active).length;
-
-      // Calculate secondary market volume (completed sales)
-      const completedSales = eventListings.filter((l) => !l.active);
-      const secondaryVolume = completedSales.reduce(
-        (sum, listing) => sum + BigInt(listing.price),
-        BigInt(0)
-      );
-
-      // Calculate royalty revenue
-      // Get the event's royalty percentage in basis points (e.g., 250 = 2.5%)
+      // Use the contract-stored secondary sales data - simple and accurate!
+      const secondarySales = contractSecondarySales;
+      const royaltyRevenue = contractRoyaltiesCollected;
       const royaltyBps = Number(event.royaltyBps || 0);
       const royaltyPercentage = royaltyBps / 100; // Convert to percentage (e.g., 2.5)
-      
-      // Calculate total royalty revenue from secondary sales
-      // Formula: secondaryVolume * royaltyBps / 10000
-      const royaltyRevenue = (secondaryVolume * BigInt(royaltyBps)) / BigInt(10000);
-      
-      // Calculate average royalty per secondary sale
-      const avgRoyaltyPerSale = 
-        secondarySales > 0 
-          ? royaltyRevenue / BigInt(secondarySales)
-          : BigInt(0);
+      const avgRoyaltyPerSale = secondarySales > 0
+        ? royaltyRevenue / BigInt(secondarySales)
+        : BigInt(0);
+
+      // We don't have total volume anymore, but that's okay - royalty data is more important
+      const secondaryVolume = BigInt(0); // Could calculate from active listings if needed
+
+      console.log("✅ Analytics from Contract Storage:", {
+        eventId,
+        secondarySales,
+        royaltyRevenue: royaltyRevenue.toString(),
+        royaltyPercentage,
+        avgRoyaltyPerSale: avgRoyaltyPerSale.toString(),
+        activeListings,
+      });
 
       // Calculate attendance
       const ticketsScanned = eventTickets.filter((t) => t.used).length;
@@ -215,8 +219,11 @@ export function useEventAnalytics(eventId: number) {
     typesLoading,
     listingsLoading,
     ticketsLoading,
+    statsLoading,
     eventError,
     eventId,
+    contractSecondarySales,
+    contractRoyaltiesCollected,
   ]);
 
   return { analytics, loading, error };

@@ -59,6 +59,14 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
     /// @notice NFT contract
     TicketNFT public immutable ticketNFT;
 
+    /// @notice Track secondary sales count per event
+    /// @dev eventId => number of completed secondary sales
+    mapping(uint256 => uint256) public eventSecondarySales;
+
+    /// @notice Track total royalties collected per event
+    /// @dev eventId => total royalty amount collected in wei
+    mapping(uint256 => uint256) public eventRoyaltiesCollected;
+
     // ========= Custom Errors =========
     error InvalidInput();
     error NotSeller();
@@ -181,6 +189,9 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
         if (!lst.active) revert NotActive();
         if (msg.value != lst.price) revert InvalidInput();
 
+        // Get the event ID from the ticket
+        (uint256 eventId,,,,,,) = ticketNFT.ticketDetails(lst.tokenId);
+
         // Compute royalty, if any
         (address royaltyReceiver, uint256 royaltyAmount) = ticketNFT.royaltyInfo(lst.tokenId, lst.price);
 
@@ -192,6 +203,9 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
             // Pay royalty
             (bool okR, ) = payable(royaltyReceiver).call{value: royaltyAmount}("");
             if (!okR) revert TransferFailed();
+
+            // Track royalty collected for this event
+            eventRoyaltiesCollected[eventId] += royaltyAmount;
         }
 
         // Pay seller
@@ -200,6 +214,9 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
 
         // Transfer NFT from escrow to buyer
         ticketNFT.transferFrom(address(this), msg.sender, lst.tokenId);
+
+        // Track secondary sale for this event
+        eventSecondarySales[eventId] += 1;
 
         // Close listing
         lst.active = false;
@@ -364,29 +381,38 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
             tokenToListing[tokenId] = 0;
         }
         
+        // Get the event ID from the ticket
+        (uint256 eventId,,,,,,) = ticketNFT.ticketDetails(tokenId);
+
         // Calculate royalty
         (address royaltyReceiver, uint256 royaltyAmount) = ticketNFT.royaltyInfo(tokenId, offer.offerAmount);
-        
+
         uint256 sellerAmount = offer.offerAmount;
-        
+
         if (royaltyReceiver != address(0) && royaltyAmount > 0 && royaltyAmount <= offer.offerAmount) {
             sellerAmount = offer.offerAmount - royaltyAmount;
-            
+
             // Pay royalty
             (bool okR, ) = payable(royaltyReceiver).call{value: royaltyAmount}("");
             if (!okR) revert TransferFailed();
+
+            // Track royalty collected for this event
+            eventRoyaltiesCollected[eventId] += royaltyAmount;
         }
-        
+
         // Pay seller
         (bool okS, ) = payable(msg.sender).call{value: sellerAmount}("");
         if (!okS) revert TransferFailed();
-        
+
         // Transfer NFT to offerer
         ticketNFT.transferFrom(msg.sender, offer.offerer, tokenId);
-        
+
+        // Track secondary sale for this event
+        eventSecondarySales[eventId] += 1;
+
         // Close offer
         offer.active = false;
-        
+
         emit OfferAccepted(offerId, tokenId, msg.sender, offer.offerer, offer.offerAmount);
     }
 
@@ -527,6 +553,20 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
      */
     function getOffer(uint256 offerId) external view returns (Offer memory offer) {
         return offers[offerId];
+    }
+
+    /**
+     * @notice Get secondary market analytics for an event
+     * @param eventId Event id to query
+     * @return salesCount Number of completed secondary sales
+     * @return royaltiesCollected Total royalties collected in wei
+     */
+    function getEventSecondaryMarketStats(uint256 eventId)
+        external
+        view
+        returns (uint256 salesCount, uint256 royaltiesCollected)
+    {
+        return (eventSecondarySales[eventId], eventRoyaltiesCollected[eventId]);
     }
 
     // ========= Fallbacks =========
