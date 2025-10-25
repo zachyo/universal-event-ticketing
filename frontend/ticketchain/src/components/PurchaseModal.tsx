@@ -152,7 +152,7 @@ export function PurchaseModal({
                   className={`border rounded-lg p-4 cursor-pointer transition-colors ${
                     isSelected
                       ? "border-primary bg-primary/10"
-                      : "border-gray-200 hover:border-gray-300"
+                      : "border-border hover:border-border/60"
                   } ${available === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => {
                     if (available > 0) {

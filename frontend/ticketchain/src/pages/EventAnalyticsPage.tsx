@@ -21,46 +21,7 @@ import {
 } from "../components/analytics";
 import { ErrorDisplay } from "../components/ErrorDisplay";
 import { usePushWalletContext, usePushChain } from "@pushchain/ui-kit";
-import { DebugRoyaltyInfo } from "../components/DebugRoyaltyInfo";
 
-// Debug component for organizer detection
-function DebugOrganizerButton({ 
-  eventOrganizer, 
-  walletAddress, 
-  pushAccountAddress, 
-  ueaAddress, 
-  isOrganizer,
-  isResolving
-}: {
-  eventOrganizer?: string;
-  walletAddress?: string;
-  pushAccountAddress?: string;
-  ueaAddress?: string | null;
-  isOrganizer: boolean;
-  isResolving: boolean;
-}) {
-  return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-sm rounded-lg border border-green-300 bg-green-50 p-4 shadow-lg text-xs">
-      <h3 className="mb-2 font-bold text-green-800">🔍 Analytics Organizer Debug</h3>
-      <div className="space-y-1 text-green-700">
-        <div><strong>Event Organizer:</strong> {eventOrganizer}</div>
-        <div><strong>Wallet Address:</strong> {walletAddress}</div>
-        <div><strong>Push Account:</strong> {pushAccountAddress}</div>
-        <div><strong>UEA Address:</strong> {isResolving ? "Resolving..." : (ueaAddress || "Not resolved")}</div>
-        <div><strong>Is Organizer:</strong> {isOrganizer ? "✅ YES" : "❌ NO"}</div>
-        <div><strong>Matches:</strong></div>
-        <div className="ml-2">
-          <div>Wallet: {walletAddress && eventOrganizer?.toLowerCase() === walletAddress ? "✅" : "❌"}</div>
-          <div>Push: {pushAccountAddress && eventOrganizer?.toLowerCase() === pushAccountAddress ? "✅" : "❌"}</div>
-          <div>UEA: {ueaAddress && eventOrganizer?.toLowerCase() === ueaAddress.toLowerCase() ? "✅" : "❌"}</div>
-        </div>
-        {isResolving && (
-          <div className="text-blue-600">🔄 Resolving UEA...</div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default function EventAnalyticsPage() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -311,18 +272,6 @@ export default function EventAnalyticsPage() {
         noShowRate={analytics.noShowRate}
       />
 
-      {/* Debug Component - Remove after debugging */}
-      <DebugRoyaltyInfo eventId={eventIdNum} />
-      
-      {/* Debug Organizer Component - Remove after debugging */}
-      <DebugOrganizerButton
-        eventOrganizer={event?.organizer}
-        walletAddress={address}
-        pushAccountAddress={universalAccount?.address}
-        ueaAddress={ueaAddress}
-        isOrganizer={isOrganizer}
-        isResolving={isResolvingUEA}
-      />
 
     </div>
   );

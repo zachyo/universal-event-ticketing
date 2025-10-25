@@ -175,9 +175,9 @@ export function TicketCard({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-card border-border">
       {/* Tier Image Banner */}
-      <div className="relative h-40 overflow-hidden bg-slate-100">
+      <div className="relative h-40 overflow-hidden bg-muted">
         <img
           src={tierImage}
           alt={tierName}
@@ -188,27 +188,27 @@ export function TicketCard({
           }}
         />
         {/* Gradient overlay for better text visibility */}
-        <div className="absolute inset-0 bg-slate-900/40"></div>
+        <div className="absolute inset-0 bg-black/40"></div>
 
         {/* Tier badge */}
         <div className="absolute top-3 left-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/90 text-slate-900 backdrop-blur-sm shadow-sm">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-background/90 text-foreground backdrop-blur-sm shadow-sm border border-border">
             <Ticket className="h-3.5 w-3.5" />
             {tierName}
           </span>
         </div>
       </div>
 
-      <CardHeader className="gap-2 bg-slate-900 p-4 text-white">
+      <CardHeader className="gap-2 bg-card p-4 text-foreground border-b border-border">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-primary/50">
+            <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
               <Ticket className="h-3.5 w-3.5" /> Ticket #{ticket.tokenId}
             </span>
-            <CardTitle className="text-lg font-bold text-white">
+            <CardTitle className="text-lg font-bold text-foreground">
               {primaryEvent?.name || `Event #${ticket.eventId}`}
             </CardTitle>
-            <CardDescription className="text-[11px] text-primary/40">
+            <CardDescription className="text-[11px] text-muted-foreground">
               {primaryEvent
                 ? formatDateTime(primaryEvent.startTime)
                 : "Date coming soon"}
@@ -223,7 +223,7 @@ export function TicketCard({
               </span>
             )}
             {showListingBadge && isListed && (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold bg-green-100 text-green-800 border border-green-200">
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
                 <Tag className="h-3 w-3" /> Listed
               </span>
             )}
@@ -232,13 +232,13 @@ export function TicketCard({
       </CardHeader>
 
       {hasCardBodyContent && (
-        <CardContent className="space-y-4 p-4">
+        <CardContent className="space-y-4 p-4 bg-card">
           {shouldShowQRCodeSection && (
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-lg border border-border bg-muted/50 p-4">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="text-sm text-slate-700">
-                  <p className="font-semibold text-slate-900">Entry QR Code</p>
-                  <p className="text-xs text-slate-500">
+                <div className="text-sm text-muted-foreground">
+                  <p className="font-semibold text-foreground">Entry QR Code</p>
+                  <p className="text-xs text-muted-foreground">
                     Present this code at the event entrance to verify ownership
                     on Push Chain.
                   </p>
@@ -252,7 +252,7 @@ export function TicketCard({
                     </button>
                   )}
                 </div>
-                <div className="self-center rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                <div className="self-center rounded-xl border border-border bg-background p-3 shadow-sm">
                   <QRCodeDisplay
                     tokenId={BigInt(ticket.tokenId)}
                     eventId={BigInt(ticket.eventId)}
@@ -266,13 +266,13 @@ export function TicketCard({
           )}
 
           {shouldShowUsedNotice && (
-            <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
               <div className="flex items-start gap-2">
                 <ShieldCheck className="h-4 w-4" />
                 <div>
-                  <p className="font-semibold">Used Ticket</p>
-                  <p className="text-xs text-red-600">
-                    This ticket has already been validated and can’t be used for
+                  <p className="font-semibold text-red-300">Used Ticket</p>
+                  <p className="text-xs text-red-400">
+                    This ticket has already been validated and can't be used for
                     another entry.
                   </p>
                 </div>
@@ -282,10 +282,10 @@ export function TicketCard({
         </CardContent>
       )}
 
-      <CardFooter className="flex flex-wrap gap-2 border-t border-slate-200 bg-slate-50 p-4">
+      <CardFooter className="flex flex-wrap gap-2 border-t border-border bg-muted/50 p-4">
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
           <DialogTrigger asChild>
-            <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
+            <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted">
               <Info className="h-4 w-4" />
               View Details
             </button>
@@ -300,31 +300,31 @@ export function TicketCard({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-5 text-sm text-slate-700">
-              <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center gap-2 text-slate-900">
+            <div className="space-y-5 text-sm text-muted-foreground">
+              <div className="space-y-3 rounded-lg border border-border bg-muted/50 p-4">
+                <div className="flex items-center gap-2 text-foreground">
                   <CalendarDays className="h-4 w-4" />
                   <span className="font-semibold">Event Details</span>
                 </div>
 
                 {isDialogEventLoading ? (
                   <div className="space-y-2 animate-pulse">
-                    <div className="h-4 rounded bg-slate-200" />
-                    <div className="h-4 rounded bg-slate-200" />
-                    <div className="h-4 rounded bg-slate-200" />
-                    <div className="h-20 rounded bg-slate-200" />
+                    <div className="h-4 rounded bg-muted" />
+                    <div className="h-4 rounded bg-muted" />
+                    <div className="h-4 rounded bg-muted" />
+                    <div className="h-20 rounded bg-muted" />
                   </div>
                 ) : dialogErrorMessage ? (
-                  <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                  <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
                     Unable to load event details.{" "}
                     {dialogErrorMessage || "Please try again later."}
                   </div>
                 ) : hasValidEventId && primaryEvent ? (
-                  <div className="space-y-2 text-slate-600">
+                  <div className="space-y-2 text-muted-foreground">
                     <div className="flex items-start gap-2">
-                      <Clock className="mt-0.5 h-4 w-4 text-slate-500" />
+                      <Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="font-medium text-slate-900">Start Time</p>
+                        <p className="font-medium text-foreground">Start Time</p>
                         <p className="text-sm">
                           {formatDateTime(primaryEvent.startTime)}
                         </p>
@@ -332,9 +332,9 @@ export function TicketCard({
                     </div>
                     {primaryEvent.endTime && (
                       <div className="flex items-start gap-2">
-                        <Clock className="mt-0.5 h-4 w-4 text-slate-500" />
+                        <Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
                         <div>
-                          <p className="font-medium text-slate-900">End Time</p>
+                          <p className="font-medium text-foreground">End Time</p>
                           <p className="text-sm">
                             {formatDateTime(primaryEvent.endTime)}
                           </p>
@@ -343,22 +343,22 @@ export function TicketCard({
                     )}
                     {primaryEvent.venue && (
                       <div className="flex items-start gap-2">
-                        <MapPin className="mt-0.5 h-4 w-4 text-slate-500" />
+                        <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
                         <div>
-                          <p className="font-medium text-slate-900">Venue</p>
+                          <p className="font-medium text-foreground">Venue</p>
                           <p className="text-sm">{primaryEvent.venue}</p>
                         </div>
                       </div>
                     )}
                     {primaryEvent.description && (
-                      <div className="rounded-md bg-white/60 p-3 text-sm text-slate-600">
+                      <div className="rounded-md bg-background/60 p-3 text-sm text-muted-foreground">
                         {primaryEvent.description}
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500">
-                    Event metadata isn’t available yet.{" "}
+                  <p className="text-sm text-muted-foreground">
+                    Event metadata isn't available yet.{" "}
                     {hasValidEventId
                       ? "Check back soon."
                       : "This ticket isn't linked to a published event."}
@@ -366,33 +366,33 @@ export function TicketCard({
                 )}
               </div>
 
-              <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center gap-2 text-slate-900">
+              <div className="space-y-3 rounded-lg border border-border bg-muted/50 p-4">
+                <div className="flex items-center gap-2 text-foreground">
                   <Ticket className="h-4 w-4" />
                   <span className="font-semibold">Ticket Information</span>
                 </div>
-                <dl className="grid gap-3 text-sm text-slate-600">
-                  <div className="flex items-center justify-between rounded-md bg-white/60 px-3 py-2">
-                    <span className="text-xs uppercase tracking-wide text-slate-500">
+                <dl className="grid gap-3 text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between rounded-md bg-background/60 px-3 py-2">
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground">
                       Tier
                     </span>
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium text-foreground">
                       {tierName}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between rounded-md bg-white/60 px-3 py-2">
-                    <span className="text-xs uppercase tracking-wide text-slate-500">
+                  <div className="flex items-center justify-between rounded-md bg-background/60 px-3 py-2">
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground">
                       Price
                     </span>
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium text-foreground">
                       {formattedPurchasePrice}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between rounded-md bg-white/60 px-3 py-2">
-                    <span className="text-xs uppercase tracking-wide text-slate-500">
+                  <div className="flex items-center justify-between rounded-md bg-background/60 px-3 py-2">
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground">
                       Network
                     </span>
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium text-foreground">
                       {purchaseChainLabel}
                     </span>
                   </div>
@@ -402,7 +402,7 @@ export function TicketCard({
 
             <DialogFooter>
               <DialogClose asChild>
-                <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800">
+                <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
                   Close
                 </button>
               </DialogClose>
@@ -413,7 +413,7 @@ export function TicketCard({
         {showQR && ticket.ticketStatus !== "used" && (
           <button
             onClick={() => setShowQRCode(!showQRCode)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <QrCode className="h-4 w-4" />
             {showQRCode ? "Hide QR" : "Show QR"}
@@ -433,7 +433,7 @@ export function TicketCard({
         {ticket.event && (
           <Link
             to={`/events/${ticket.event.eventId}`}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
             <ArrowRight className="h-4 w-4" />
             Event Page
@@ -445,7 +445,7 @@ export function TicketCard({
             href={ticket.tokenURI}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
             <ExternalLink className="h-4 w-4" />
             Metadata

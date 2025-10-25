@@ -266,17 +266,17 @@ export function VerificationResultModal({
                 <div
                   className={`flex items-center justify-between p-4 rounded-lg border-2 ${
                     !details.isTicketUsed
-                      ? "bg-green-50 border-green-200"
-                      : "bg-red-50 border-red-200"
+                      ? "bg-green-500/10 border-green-500/30"
+                      : "bg-red-500/10 border-red-500/30"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <TicketIcon className="w-6 h-6 text-gray-600" />
+                    <TicketIcon className="w-6 h-6 text-muted-foreground" />
                     <div>
-                      <p className="font-semibold text-gray-800">
+                      <p className="font-semibold text-foreground">
                         Ticket Status
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         {!details.isTicketUsed
                           ? "Ticket is unused and valid"
                           : "Ticket has already been used"}
@@ -284,9 +284,9 @@ export function VerificationResultModal({
                     </div>
                   </div>
                   {!details.isTicketUsed ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    <CheckCircle2 className="w-6 h-6 text-green-500" />
                   ) : (
-                    <XCircle className="w-6 h-6 text-red-600" />
+                    <XCircle className="w-6 h-6 text-red-500" />
                   )}
                 </div>
               </div>
