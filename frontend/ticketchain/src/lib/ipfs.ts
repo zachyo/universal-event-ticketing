@@ -7,7 +7,11 @@ const PINATA_GATEWAY = "https://gateway.pinata.cloud/ipfs/";
 export async function uploadToIPFS(file: File): Promise<string> {
   if (!PINATA_JWT) {
     console.warn("PINATA_JWT not configured, using placeholder hash");
-    return `Qm${Math.random().toString(36).substring(2, 15)}`;
+    // Generate a proper-length IPFS hash (44 characters after Qm)
+    const randomPart1 = Math.random().toString(36).substring(2);
+    const randomPart2 = Math.random().toString(36).substring(2);
+    const randomPart3 = Math.random().toString(36).substring(2);
+    return `Qm${randomPart1}${randomPart2}${randomPart3}`.substring(0, 46);
   }
 
   try {
@@ -37,10 +41,20 @@ export async function uploadToIPFS(file: File): Promise<string> {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to upload to IPFS: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error("Pinata API Error:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+        url: `${PINATA_API_URL}/pinning/pinFileToIPFS`,
+        hasJWT: !!PINATA_JWT,
+        jwtLength: PINATA_JWT?.length
+      });
+      throw new Error(`Failed to upload to IPFS: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const result = await response.json();
+    console.log("IPFS upload successful:", result);
     return result.IpfsHash;
   } catch (error) {
     console.error("Error uploading to IPFS:", error);
@@ -54,7 +68,11 @@ export async function uploadJSONToIPFS(
 ): Promise<string> {
   if (!PINATA_JWT) {
     console.warn("PINATA_JWT not configured, using placeholder hash");
-    return `Qm${Math.random().toString(36).substring(2, 15)}`;
+    // Generate a proper-length IPFS hash (44 characters after Qm)
+    const randomPart1 = Math.random().toString(36).substring(2);
+    const randomPart2 = Math.random().toString(36).substring(2);
+    const randomPart3 = Math.random().toString(36).substring(2);
+    return `Qm${randomPart1}${randomPart2}${randomPart3}`.substring(0, 46);
   }
 
   try {
@@ -77,10 +95,20 @@ export async function uploadJSONToIPFS(
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to upload JSON to IPFS: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error("Pinata JSON API Error:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+        url: `${PINATA_API_URL}/pinning/pinJSONToIPFS`,
+        hasJWT: !!PINATA_JWT,
+        jwtLength: PINATA_JWT?.length
+      });
+      throw new Error(`Failed to upload JSON to IPFS: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const result = await response.json();
+    console.log("IPFS JSON upload successful:", result);
     return result.IpfsHash;
   } catch (error) {
     console.error("Error uploading JSON to IPFS:", error);
