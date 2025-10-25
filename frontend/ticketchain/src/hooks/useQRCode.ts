@@ -38,13 +38,6 @@ export function useQRCode(data: QRCodeData | null) {
           signature: generateSimpleHash(data),
         });
 
-        console.log("Generating QR Code with data:", {
-          tokenId: data.tokenId.toString(),
-          eventId: data.eventId.toString(),
-          owner: data.owner,
-          ownerType: typeof data.owner,
-          ownerLength: data.owner?.length,
-        });
 
         // Generate QR code as data URL
         const url = await QRCode.toDataURL(qrData, {

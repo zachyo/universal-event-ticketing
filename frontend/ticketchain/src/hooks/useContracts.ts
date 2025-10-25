@@ -69,14 +69,9 @@ export function useCreateEvent() {
       }
 
       // Upload all tier images in parallel
-      console.log(
-        `Uploading ${initialTicketTypes.length} tier images to IPFS...`
-      );
       const tierImageHashes = await Promise.all(
         initialTicketTypes.map(async (tt, index) => {
-          console.log(`Uploading tier ${index + 1}: ${tt.name}`);
           const hash = await uploadToIPFS(tt.image!);
-          console.log(`Tier ${index + 1} uploaded: ${hash}`);
           return hash;
         })
       );
@@ -89,7 +84,6 @@ export function useCreateEvent() {
         imageIpfsHash: tierImageHashes[index],
       }));
 
-      console.log("Creating event with ticket types:", ticketTypesForContract);
 
       const tx = await pushChainClient.universal.sendTransaction({
         to: TICKET_FACTORY_ADDRESS,
@@ -116,7 +110,6 @@ export function useCreateEvent() {
       localStorage.removeItem("ticketchain_draft_event");
       localStorage.removeItem("ticketchain_cache");
 
-      console.log("Event created successfully!");
 
       // Dismiss loading and show success
       if (toastId) toastDismiss(toastId);
@@ -313,9 +306,7 @@ export function useAddTicketType() {
       setIsPending(true);
 
       // Upload tier image to IPFS
-      console.log(`Uploading tier image for: ${ticketType.name}`);
       const imageIpfsHash = await uploadToIPFS(ticketType.image);
-      console.log(`Tier image uploaded: ${imageIpfsHash}`);
 
       const tx = await pushChainClient.universal.sendTransaction({
         to: TICKET_FACTORY_ADDRESS,
@@ -376,16 +367,6 @@ export function usePurchaseTicket() {
           : "Purchasing ticket..."
       );
 
-      // Enhanced debugging
-      console.log("Purchase parameters:", {
-        params,
-        eventId: params.eventId.toString(),
-        ticketTypeId: params.ticketTypeId.toString(),
-        price: params.price.toString(),
-        quantity,
-        totalPrice: totalPrice.toString(),
-        factoryAddress: TICKET_FACTORY_ADDRESS,
-      });
 
       const txData = PushChain.utils.helpers.encodeTxData({
         abi: Array.from(TicketFactoryABI),
@@ -396,18 +377,6 @@ export function usePurchaseTicket() {
       // Value must be specified in destination chain native token (PC on PushChain)
       const valuePC = totalPrice;
 
-      console.log("Transaction data:", {
-        to: TICKET_FACTORY_ADDRESS,
-        data: txData,
-        value: valuePC.toString(),
-        args: [
-          params.eventId.toString(),
-          params.ticketTypeId.toString(),
-          quantity.toString(),
-        ],
-        chain: params.chain,
-        note: "Value specified in destination chain native token (PC). Universal accounts handle cross-chain conversion from user's origin chain.",
-      });
 
       if (totalPrice <= 0n) {
         throw new Error("Invalid total price: must be greater than 0");
@@ -419,9 +388,7 @@ export function usePurchaseTicket() {
         value: valuePC,
       });
 
-      console.log("Transaction sent:", tx.hash);
       await tx.wait();
-      console.log("Transaction confirmed:", tx.hash);
 
       // Clear cache to refresh data
       localStorage.removeItem("ticketchain_cache");

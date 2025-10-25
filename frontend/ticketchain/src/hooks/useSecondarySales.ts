@@ -28,22 +28,12 @@ export interface SecondarySalesData {
 }
 
 export function useSecondarySales(eventId: number) {
-  console.log("🎯 useSecondarySales (EVENT-BASED) called with eventId:", eventId);
-
   const [sales, setSales] = useState<SecondarySale[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const { event, isLoading: eventLoading, error: eventError } = useEvent(eventId);
   const publicClient = usePublicClient();
-
-  console.log("🔍 Hook state:", {
-    eventId,
-    hasEvent: !!event,
-    hasPublicClient: !!publicClient,
-    eventLoading,
-    marketplaceAddress: MARKETPLACE_ADDRESS,
-  });
 
   // Get all listings for this event from the contract
   const {
@@ -81,7 +71,6 @@ export function useSecondarySales(eventId: number) {
     async function analyzeSales() {
       try {
         if (!event || !publicClient) {
-          console.log("⚠️ Missing event or publicClient");
           setSales([]);
           setLoading(false);
           return;
@@ -90,25 +79,15 @@ export function useSecondarySales(eventId: number) {
         // Get the event's royalty percentage
         const royaltyBps = Number(event.royaltyBps || 0);
 
-        console.log("🔍 Starting secondary sales analysis for event", eventId);
-        console.log("Event details:", {
-          eventId,
-          organizer: event.organizer,
-          royaltyBps,
-          royaltyPercentage: royaltyBps / 100,
-        });
 
         // Fetch TicketPurchased events from the contract
         // This is the most accurate way to track actual sales (not cancellations)
-        console.log("🔍 Fetching TicketPurchased events from blockchain...");
-        console.log("Marketplace address:", MARKETPLACE_ADDRESS);
 
         let purchasedEvents: any[] = [];
         try {
           // Push Chain RPC has a 10,000 block limit per request
           // We need to fetch in chunks
           const currentBlock = await publicClient.getBlockNumber();
-          console.log("Current block:", currentBlock);
 
           const CHUNK_SIZE = 9999; // Stay under 10000 limit
           const allEvents: any[] = [];

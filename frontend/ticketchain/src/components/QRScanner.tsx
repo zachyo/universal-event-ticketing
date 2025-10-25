@@ -98,10 +98,9 @@ export function QRScanner({ onScan, onError, className = "" }: QRScannerProps) {
           }
           // Always clear the scanner
           scannerRef.current.clear();
-        } catch (err) {
-          // Ignore cleanup errors
-          console.log("Scanner cleanup completed");
-        }
+          } catch (err) {
+            // Ignore cleanup errors
+          }
       }
     };
   }, [isScanning]);

@@ -153,14 +153,6 @@ export function useEventAnalytics(eventId: number) {
       // We don't have total volume anymore, but that's okay - royalty data is more important
       const secondaryVolume = BigInt(0); // Could calculate from active listings if needed
 
-      console.log("✅ Analytics from Contract Storage:", {
-        eventId,
-        secondarySales,
-        royaltyRevenue: royaltyRevenue.toString(),
-        royaltyPercentage,
-        avgRoyaltyPerSale: avgRoyaltyPerSale.toString(),
-        activeListings,
-      });
 
       // Calculate attendance
       const ticketsScanned = eventTickets.filter((t) => t.used).length;

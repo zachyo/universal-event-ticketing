@@ -64,10 +64,6 @@ export function OrganizerVerificationPage() {
 
       setIsResolvingAddress(true);
       try {
-        console.log(
-          "Resolving organizer UEA from origin:",
-          universalAccount.address
-        );
 
         const executorInfo =
           await PushChain.utils.account.convertOriginToExecutor(
@@ -76,7 +72,6 @@ export function OrganizerVerificationPage() {
           );
 
         const executorAddress = executorInfo.address;
-        console.log("Resolved organizer UEA:", executorAddress);
         setOrganizerAddress(executorAddress);
       } catch (error) {
         console.error("Failed to resolve executor address:", error);
@@ -176,14 +171,6 @@ export function OrganizerVerificationPage() {
       ];
       const [eventId, , , , , isUsed] = details;
 
-      // Debug: Log all data
-      console.log("Verification Data:", {
-        ticketDetails: details,
-        eventDetails,
-        currentOwner,
-        scannedData,
-        organizerAddress,
-      });
 
       // Parse event details - wagmi returns struct as object with named fields
       // Structure: { eventId, organizer, name, description, startTime, endTime, venue, imageIpfsHash, totalSupply, sold, active, royaltyBps }
@@ -204,14 +191,6 @@ export function OrganizerVerificationPage() {
         return;
       }
 
-      // Debug: Log owner comparison
-      console.log("Owner Verification:", {
-        currentOwnerFromContract: currentOwner,
-        ownerFromQRCode: scannedData.owner,
-        areEqual:
-          (currentOwner as string)?.toLowerCase() ===
-          scannedData.owner?.toLowerCase(),
-      });
 
       const isOwnerValid =
         currentOwner && scannedData.owner

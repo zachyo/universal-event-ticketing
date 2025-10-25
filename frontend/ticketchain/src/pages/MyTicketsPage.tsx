@@ -218,8 +218,6 @@ const MyTicketsPage = () => {
     };
   }, [PushChain, universalAccount, evmAddress]);
 
-  console.log("origin account:", universalAccount?.address ?? evmAddress);
-  console.log("resolved push account:", pushAccountAddress);
 
   const { tickets, loading, error, refetch } =
     useUserTickets(pushAccountAddress);
@@ -250,15 +248,9 @@ const MyTicketsPage = () => {
     if (!tickets.length) return [];
 
     const formatted = tickets.map((ticket) => {
-      console.log("Raw ticket from contract:", {
-        tokenId: ticket.tokenId,
-        currentOwner: ticket.currentOwner,
-        originalOwner: ticket.originalOwner,
-      });
       return formatTicket(ticket, eventsById.get(Number(ticket.eventId)));
     });
 
-    console.log("Formatted tickets:", formatted);
     return formatted;
   }, [tickets, eventsById]);
 

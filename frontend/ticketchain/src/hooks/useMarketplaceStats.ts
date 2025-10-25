@@ -23,14 +23,6 @@ export function useMarketplaceStats(eventId: number) {
     },
   });
 
-  console.log("📊 Marketplace Stats from Contract:", {
-    eventId,
-    rawData: data,
-    salesCount: data ? data[0]?.toString() : "loading...",
-    royaltiesCollected: data ? data[1]?.toString() : "loading...",
-    isLoading,
-    error: error?.message,
-  });
 
   return {
     secondarySales: data ? Number(data[0]) : 0,

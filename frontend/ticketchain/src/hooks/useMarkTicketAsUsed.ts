@@ -41,10 +41,6 @@ export function useMarkTicketAsUsed() {
       setError(null);
       setTransactionHash(null);
 
-      console.log("Marking ticket as used:", {
-        eventId: eventId.toString(),
-        tokenId: tokenId.toString(),
-      });
 
       // Call validateTicket on TicketFactory via Push Chain
       const tx = await pushChainClient.universal.sendTransaction({
@@ -56,12 +52,10 @@ export function useMarkTicketAsUsed() {
         }),
       });
 
-      console.log("Transaction submitted:", tx.hash);
       setTransactionHash(tx.hash);
 
       // Wait for transaction confirmation
       const receipt = await tx.wait();
-      console.log("Transaction confirmed:", receipt);
 
       setIsConfirmed(true);
     } catch (err) {

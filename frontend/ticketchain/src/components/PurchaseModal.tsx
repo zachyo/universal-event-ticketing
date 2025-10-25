@@ -41,7 +41,6 @@ export function PurchaseModal({
   );
 
   // Debug ticket types received
-  // console.log("PurchaseModal received ticket types:", ticketTypes);
   ticketTypes?.forEach((tt, i) => debugTicketType(tt, i));
 
   const handlePurchase = async () => {
@@ -156,7 +155,6 @@ export function PurchaseModal({
                   } ${available === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => {
                     if (available > 0) {
-                      console.log("Selecting ticket type:");
                       debugTicketType(ticketType, i);
 
                       // Validate before selecting

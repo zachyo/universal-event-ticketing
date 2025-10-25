@@ -39,13 +39,6 @@ export function VerificationResultModal({
   data,
   details,
 }: VerificationResultModalProps) {
-  // Debug: Log when component renders
-  console.log("VerificationResultModal rendering:", {
-    isOpen,
-    status,
-    data,
-    details,
-  });
 
   const { markAsUsed, isMarking, isConfirmed, errorMessage } =
     useMarkTicketAsUsed();
@@ -108,16 +101,6 @@ export function VerificationResultModal({
     }
   };
 
-  // Debug logging
-  console.log("VerificationResultModal Debug:", {
-    isOpen,
-    status,
-    hasMarked,
-    isMarking,
-    data: data
-      ? { tokenId: data.tokenId.toString(), eventId: data.eventId.toString() }
-      : null,
-  });
 
   // Status-based styling
   const statusConfig = {

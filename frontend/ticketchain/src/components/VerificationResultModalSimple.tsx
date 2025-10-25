@@ -15,7 +15,6 @@ export function VerificationResultModalSimple({
 }: VerificationResultModalSimpleProps) {
   if (!isOpen) return null;
 
-  console.log("Simple Modal Rendering:", { isOpen, status, message });
 
   const Icon =
     status === "success"

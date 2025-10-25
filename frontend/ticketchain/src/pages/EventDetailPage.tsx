@@ -108,14 +108,11 @@ const EventDetailPage = () => {
 
       // Fallback if Push Chain not available
       if (!universalAccount || !PushChain) {
-        console.log("Push Chain not available, using origin address");
         setUeaAddress(address || null);
         return;
       }
 
       try {
-        console.log("Resolving UEA from origin:", universalAccount.address);
-
         // Convert origin address to UEA
         const executorInfo = await PushChain.utils.account.convertOriginToExecutor(
           universalAccount,
@@ -123,7 +120,6 @@ const EventDetailPage = () => {
         );
 
         const executorAddress = executorInfo.address;
-        console.log("Resolved UEA:", executorAddress);
         setUeaAddress(executorAddress);
       } catch (err) {
         console.error("Failed to resolve executor address:", err);
@@ -141,12 +137,6 @@ const EventDetailPage = () => {
     
     const organizerAddress = event.organizer.toLowerCase();
     const myUEA = ueaAddress.toLowerCase();
-    
-    console.log("🔍 Organizer Check (UEA):", {
-      organizerAddress,
-      myUEA,
-      isMatch: organizerAddress === myUEA
-    });
     
     return organizerAddress === myUEA;
   }, [event?.organizer, ueaAddress]);

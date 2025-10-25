@@ -101,7 +101,6 @@ export function TicketDetailsModal({
           metadataUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
         }
 
-        console.log("Fetching metadata from:", metadataUrl);
         const response = await fetch(metadataUrl);
         
         if (!response.ok) {
@@ -109,7 +108,6 @@ export function TicketDetailsModal({
         }
 
         const metadata = await response.json();
-        console.log("Fetched metadata:", metadata);
         setMetadataJson(metadata);
 
         // Extract image URL from metadata
@@ -122,7 +120,6 @@ export function TicketDetailsModal({
             imageUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
           }
           
-          console.log("Extracted image URL:", imageUrl);
           setImageUrl(imageUrl);
         } else {
           console.warn("No image found in metadata");
