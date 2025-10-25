@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAccount } from "wagmi";
 import {
@@ -20,13 +20,14 @@ import {
   SecondaryMarketStats,
 } from "../components/analytics";
 import { ErrorDisplay } from "../components/ErrorDisplay";
-import { usePushWalletContext } from "@pushchain/ui-kit";
+import { usePushWalletContext, usePushChain } from "@pushchain/ui-kit";
 
 export default function EventAnalyticsPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { address } = useAccount();
   const { universalAccount } = usePushWalletContext();
+  const { PushChain } = usePushChain();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const eventIdNum = eventId ? parseInt(eventId, 10) : 0;
@@ -41,22 +42,57 @@ export default function EventAnalyticsPage() {
     error: analyticsError,
   } = useEventAnalytics(eventIdNum);
 
-  const loading = eventLoading || analyticsLoading;
+  // UEA resolution state
+  const [ueaAddress, setUeaAddress] = useState<string | null>(null);
+  const [ueaLoading, setUeaLoading] = useState(false);
+
+  const loading = eventLoading || analyticsLoading || ueaLoading;
   const error = eventError || analyticsError;
 
+  // Resolve UEA address for Push Universal Account users
+  useEffect(() => {
+    if (universalAccount && PushChain && !ueaAddress && !ueaLoading) {
+      setUeaLoading(true);
+      PushChain.utils.account.convertOriginToExecutor(
+        universalAccount,
+        { onlyCompute: true }
+      )
+        .then((uea) => {
+          setUeaAddress(uea.address);
+          setUeaLoading(false);
+        })
+        .catch((error) => {
+          console.warn("UEA resolution failed:", error);
+          setUeaLoading(false);
+        });
+    }
+  }, [universalAccount, PushChain, ueaAddress, ueaLoading]);
+
   // Check if user is the organizer
-  const isOrganizer =
-    event &&
-    (event.organizer.toLowerCase() === address?.toLowerCase() ||
-      event.organizer.toLowerCase() ===
-        universalAccount?.address?.toLowerCase());
+  // This includes checking UEA (Universal Executor Account) for Push Universal Account users
+  const isOrganizer = useMemo(() => {
+    if (!event?.organizer) return false;
+    
+    const organizerAddress = event.organizer.toLowerCase();
+    const walletAddress = address?.toLowerCase();
+    const pushAccountAddress = universalAccount?.address?.toLowerCase();
+    
+    // Direct address matches
+    if (walletAddress && organizerAddress === walletAddress) return true;
+    if (pushAccountAddress && organizerAddress === pushAccountAddress) return true;
+    
+    // UEA address match
+    if (ueaAddress && organizerAddress === ueaAddress.toLowerCase()) return true;
+    
+    return false;
+  }, [event?.organizer, address, universalAccount, ueaAddress]);
 
   useEffect(() => {
-    if (!loading && !isOrganizer && event) {
+    if (!loading && !ueaLoading && !isOrganizer && event) {
       // Redirect if not organizer
       navigate("/events");
     }
-  }, [loading, isOrganizer, event, navigate]);
+  }, [loading, isOrganizer, event, navigate, ueaLoading]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -73,6 +109,9 @@ export default function EventAnalyticsPage() {
           <div className="text-center">
             <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading analytics...</p>
+            <p className="text-sm text-gray-500 mt-2">
+              {ueaLoading ? "Resolving UEA address..." : "Loading event data..."}
+            </p>
           </div>
         </div>
       </div>
@@ -203,6 +242,9 @@ export default function EventAnalyticsPage() {
           lowestPrice={analytics.lowestPrice}
           highestPrice={analytics.highestPrice}
           secondarySales={analytics.secondarySales}
+          secondaryVolume={analytics.secondaryVolume}
+          royaltyRevenue={analytics.royaltyRevenue}
+          royaltyPercentage={analytics.royaltyPercentage}
         />
       </div>
 
@@ -213,6 +255,7 @@ export default function EventAnalyticsPage() {
         scanRate={analytics.scanRate}
         noShowRate={analytics.noShowRate}
       />
+
     </div>
   );
 }

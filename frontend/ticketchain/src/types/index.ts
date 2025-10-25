@@ -11,6 +11,7 @@ export interface Event {
   totalSupply: bigint;
   sold: bigint;
   active: boolean;
+  royaltyBps: bigint; // Royalty percentage in basis points (e.g., 250 = 2.5%)
 }
 
 // Ticket type structure for different tiers (VIP, General, etc.)

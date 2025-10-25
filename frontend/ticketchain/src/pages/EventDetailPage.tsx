@@ -72,6 +72,10 @@ const EventDetailPage = () => {
     string | null
   >(null);
 
+  // UEA resolution state - must be at top level
+  const [ueaAddress, setUeaAddress] = useState<string | null>(null);
+  const [ueaLoading, setUeaLoading] = useState(false);
+
   const {
     event,
     isLoading: eventLoading,
@@ -94,6 +98,43 @@ const EventDetailPage = () => {
   const { connectionStatus, handleConnectToPushWallet, universalAccount } =
     usePushWalletContext();
   const { PushChain } = usePushChain();
+
+  // Resolve UEA address for Push Universal Account users
+  useEffect(() => {
+    if (universalAccount && PushChain && !ueaAddress && !ueaLoading) {
+      setUeaLoading(true);
+      PushChain.utils.account.convertOriginToExecutor(
+        universalAccount,
+        { onlyCompute: true }
+      )
+        .then((uea) => {
+          setUeaAddress(uea.address);
+          setUeaLoading(false);
+        })
+        .catch((error) => {
+          console.warn("UEA resolution failed:", error);
+          setUeaLoading(false);
+        });
+    }
+  }, [universalAccount, PushChain, ueaAddress, ueaLoading]);
+
+  // Check if current user is the organizer - must be at top level
+  const isOrganizer = useMemo(() => {
+    if (!event?.organizer) return false;
+    
+    const organizerAddress = event.organizer.toLowerCase();
+    const walletAddress = address?.toLowerCase();
+    const pushAccountAddress = universalAccount?.address?.toLowerCase();
+    
+    // Direct address matches
+    if (walletAddress && organizerAddress === walletAddress) return true;
+    if (pushAccountAddress && organizerAddress === pushAccountAddress) return true;
+    
+    // UEA address match
+    if (ueaAddress && organizerAddress === ueaAddress.toLowerCase()) return true;
+    
+    return false;
+  }, [event?.organizer, address, universalAccount, ueaAddress]);
 
   const ticketTypeOptions = useMemo<TicketTypeOption[]>(() => {
     if (!ticketTypes) return [];
@@ -202,12 +243,6 @@ const EventDetailPage = () => {
     formattedEvent.totalSupply
   );
   const isSoldOut = formattedEvent.sold >= formattedEvent.totalSupply;
-
-  // Check if current user is the organizer
-  const isOrganizer =
-    formattedEvent.organizer.toLowerCase() === address?.toLowerCase() ||
-    formattedEvent.organizer.toLowerCase() ===
-      universalAccount?.address?.toLowerCase();
 
   const priceRange = ticketTypes
     ? getPriceRange(ticketTypes)

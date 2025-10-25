@@ -171,7 +171,7 @@ export function useEvent(eventId: number) {
   } = useReadContract({
     address: TICKET_FACTORY_ADDRESS as `0x${string}`,
     abi: TicketFactoryABI,
-    functionName: "events",
+    functionName: "getEvent",
     args: [BigInt(eventId)],
   });
 

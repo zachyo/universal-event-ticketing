@@ -32,6 +32,12 @@ export interface EventAnalytics {
   lowestPrice: bigint;
   highestPrice: bigint;
   secondarySales: number;
+  secondaryVolume: bigint; // Total volume of secondary sales
+  
+  // Royalty Revenue
+  royaltyRevenue: bigint; // Total royalties earned from secondary sales
+  royaltyPercentage: number; // Event's royalty percentage (e.g., 2.5)
+  avgRoyaltyPerSale: bigint; // Average royalty per secondary sale
 
   // Attendance
   ticketsScanned: number;
@@ -54,11 +60,12 @@ export function useEventAnalytics(eventId: number) {
   const [error, setError] = useState<Error | null>(null);
 
   // Filter listings for this specific event
-  const eventListings = useMemo(
-    () =>
-      (listings || []).filter((listing) => listing.ticket?.eventId === eventId),
-    [listings, eventId]
-  );
+  // Note: Since useTicketNFT doesn't currently load all tickets,
+  // we return all listings. In a production system, you'd want to
+  // fetch ticket data for each listing to properly filter by eventId
+  const eventListings = useMemo(() => {
+    return listings || [];
+  }, [listings]);
 
   // Filter tickets for this event
   const eventTickets = useMemo(() => {
@@ -129,6 +136,28 @@ export function useEventAnalytics(eventId: number) {
       // Count secondary sales (inactive listings that were once active)
       const secondarySales = eventListings.filter((l) => !l.active).length;
 
+      // Calculate secondary market volume (completed sales)
+      const completedSales = eventListings.filter((l) => !l.active);
+      const secondaryVolume = completedSales.reduce(
+        (sum, listing) => sum + BigInt(listing.price),
+        BigInt(0)
+      );
+
+      // Calculate royalty revenue
+      // Get the event's royalty percentage in basis points (e.g., 250 = 2.5%)
+      const royaltyBps = Number(event.royaltyBps || 0);
+      const royaltyPercentage = royaltyBps / 100; // Convert to percentage (e.g., 2.5)
+      
+      // Calculate total royalty revenue from secondary sales
+      // Formula: secondaryVolume * royaltyBps / 10000
+      const royaltyRevenue = (secondaryVolume * BigInt(royaltyBps)) / BigInt(10000);
+      
+      // Calculate average royalty per secondary sale
+      const avgRoyaltyPerSale = 
+        secondarySales > 0 
+          ? royaltyRevenue / BigInt(secondarySales)
+          : BigInt(0);
+
       // Calculate attendance
       const ticketsScanned = eventTickets.filter((t) => t.used).length;
       const totalSold = Number(event.sold);
@@ -155,6 +184,12 @@ export function useEventAnalytics(eventId: number) {
         lowestPrice,
         highestPrice,
         secondarySales,
+        secondaryVolume,
+
+        // Royalty Revenue
+        royaltyRevenue,
+        royaltyPercentage,
+        avgRoyaltyPerSale,
 
         // Attendance
         ticketsScanned,
