@@ -10,7 +10,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { useMarketplaceListings, useBuyTicket } from "../hooks/useContracts";
-import { usePushWalletContext } from "@pushchain/ui-kit";
+import { usePushWalletContext, PushUI } from "@pushchain/ui-kit";
 import { useAccount } from "wagmi";
 import { formatListing, formatPrice } from "../lib/formatters";
 import type { FormattedListing } from "../types";
@@ -23,7 +23,7 @@ type SortOption = "price-low" | "price-high" | "newest" | "oldest";
 type PriceFilter = "all" | "0-0.1" | "0.1-0.5" | "0.5+";
 
 export const MarketplacePage = () => {
-  const { connectionStatus } = usePushWalletContext();
+  const { connectionStatus, handleConnectToPushWallet } = usePushWalletContext();
   const { address } = useAccount();
   const { listings, loading, error, refetch } = useMarketplaceListings();
   const { buyTicket } = useBuyTicket();
@@ -117,8 +117,8 @@ export const MarketplacePage = () => {
       : null;
 
   const handleBuyTicket = async (listingId: number) => {
-    if (connectionStatus !== "connected") {
-      alert("Please connect your wallet to buy tickets");
+    if (connectionStatus !== PushUI.CONSTANTS.CONNECTION.STATUS.CONNECTED) {
+      handleConnectToPushWallet();
       return;
     }
 
