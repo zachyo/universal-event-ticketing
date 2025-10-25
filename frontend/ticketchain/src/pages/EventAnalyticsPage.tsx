@@ -124,8 +124,8 @@ export default function EventAnalyticsPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Loading analytics...</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-foreground">Loading analytics...</p>
+            <p className="text-sm text-muted-foreground mt-2">
               Loading event data...
             </p>
           </div>
@@ -151,11 +151,11 @@ export default function EventAnalyticsPage() {
     return (
       <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
         <div className="text-center py-12">
-          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             Access Denied
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Only event organizers can view analytics
           </p>
           <Link
@@ -184,11 +184,11 @@ export default function EventAnalyticsPage() {
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
               Event Analytics
             </h1>
-            <p className="text-base md:text-lg text-gray-600">{event.name}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-base md:text-lg text-muted-foreground">{event.name}</p>
+            <p className="text-sm text-muted-foreground">
               {formatDateTime(new Date(Number(event.startTime) * 1000))}
             </p>
           </div>
@@ -196,7 +196,7 @@ export default function EventAnalyticsPage() {
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="flex items-center gap-2 px-4 py-2.5 md:py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm touch-manipulation"
+            className="flex items-center gap-2 px-4 py-2.5 md:py-2 bg-card border border-border rounded-lg hover:bg-muted/50 transition-colors text-sm touch-manipulation text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw
               className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -240,7 +240,7 @@ export default function EventAnalyticsPage() {
 
       {/* Tier Performance */}
       <div className="mb-6 md:mb-8">
-        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg md:text-xl font-semibold text-foreground mb-4">
           Ticket Type Performance
         </h2>
         <TierPerformanceTable tiers={analytics.tierBreakdown} />
