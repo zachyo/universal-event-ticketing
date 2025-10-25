@@ -102,14 +102,14 @@ export function BulkListingModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-card rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-border">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold">Batch List Tickets</h2>
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h2 className="text-2xl font-bold text-foreground">Batch List Tickets</h2>
           <button
             onClick={handleClose}
             disabled={isWritePending || isConfirming}
-            className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+            className="text-muted-foreground hover:text-foreground disabled:opacity-50"
           >
             <X className="w-6 h-6" />
           </button>
@@ -118,10 +118,10 @@ export function BulkListingModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {selectedItems.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <DollarSign className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-lg mb-2">No tickets selected</p>
-              <p className="text-sm">Click "Add Ticket" to start listing</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <DollarSign className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+              <p className="text-lg mb-2 text-foreground">No tickets selected</p>
+              <p className="text-sm text-muted-foreground">Click "Add Ticket" to start listing</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -133,7 +133,7 @@ export function BulkListingModal({
                 return (
                   <div
                     key={index}
-                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                    className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border"
                   >
                     <div className="flex-1">
                       <select
@@ -142,7 +142,7 @@ export function BulkListingModal({
                           updateItem(index, "tokenId", BigInt(e.target.value))
                         }
                         disabled={isWritePending || isConfirming}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-border rounded-md mb-2 bg-background text-foreground disabled:bg-muted disabled:text-muted-foreground"
                       >
                         {/* Current selection */}
                         {ticket && (
@@ -164,7 +164,7 @@ export function BulkListingModal({
                       </select>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-muted-foreground">
                           Price (ETH):
                         </span>
                         <input
@@ -177,7 +177,7 @@ export function BulkListingModal({
                           }
                           disabled={isWritePending || isConfirming}
                           placeholder="0.00"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
+                          className="flex-1 px-3 py-2 border border-border rounded-md bg-background text-foreground disabled:bg-muted disabled:text-muted-foreground"
                         />
                       </div>
                     </div>
@@ -185,7 +185,7 @@ export function BulkListingModal({
                     <button
                       onClick={() => removeItem(index)}
                       disabled={isWritePending || isConfirming}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg disabled:opacity-50"
+                      className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg disabled:opacity-50"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -203,15 +203,15 @@ export function BulkListingModal({
               isWritePending ||
               isConfirming
             }
-            className="w-full mt-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50 disabled:hover:border-gray-300 disabled:hover:text-gray-600 flex items-center justify-center gap-2"
+            className="w-full mt-4 py-3 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-50 disabled:hover:border-border disabled:hover:text-muted-foreground flex items-center justify-center gap-2"
           >
             <Plus className="w-5 h-5" />
             Add Ticket
           </button>
 
           {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">
+            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-sm text-red-500">
                 Error: {error.message || "Failed to list tickets"}
               </p>
             </div>
@@ -219,9 +219,9 @@ export function BulkListingModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t bg-gray-50">
+        <div className="p-6 border-t border-border bg-muted/50">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-gray-600">Total Listing Value:</span>
+            <span className="text-muted-foreground">Total Listing Value:</span>
             <span className="text-2xl font-bold text-primary">
               {totalListingValue.toFixed(4)} ETH
             </span>
@@ -231,7 +231,7 @@ export function BulkListingModal({
             <button
               onClick={handleClose}
               disabled={isWritePending || isConfirming}
-              className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+              className="flex-1 px-6 py-3 bg-muted text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -243,7 +243,7 @@ export function BulkListingModal({
                 isWritePending ||
                 isConfirming
               }
-              className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPreparing
                 ? "Preparing..."
