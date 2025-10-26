@@ -98,6 +98,7 @@ const PushChainProviders = ({ children }: { children: React.ReactNode }) => {
         '--pw-core-text-primary-color': '#FFFFFF',
         '--pw-core-text-secondary-color': '#A3A3A3',
         '--pw-core-text-tertiary-color': '#737373',
+        // @ts-expect-error - Push Wallet types incomplete
         '--pw-core-border-primary-color': '#404040',
         '--pw-core-border-secondary-color': '#262626',
         '--pw-core-btn-primary-bg-color': '#8B5CF6',
