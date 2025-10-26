@@ -33,6 +33,7 @@ import { BulkListingModal } from "../components/marketplace/BulkListingModal";
 import { BulkCancelListingModal } from "../components/marketplace/BulkCancelListingModal";
 import { ErrorDisplay } from "../components/ErrorDisplay";
 import { SearchBar } from "../components/search/SearchBar";
+import { useNFTApproval } from "../hooks/useNFTApproval";
 
 interface ListTicketModalProps {
   isOpen: boolean;
@@ -52,6 +53,15 @@ function ListTicketModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const pcSymbol = PC_TOKEN.symbol;
 
+  // Use approval hook to check if marketplace is approved for this token
+  const {
+    isApproved,
+    isCheckingApproval,
+    isApproving,
+    error: approvalError,
+    approve,
+  } = useNFTApproval(BigInt(tokenId));
+
   useEffect(() => {
     if (!isOpen) {
       setErrorMessage(null);
@@ -60,7 +70,21 @@ function ListTicketModal({
     }
   }, [isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleApprove = async () => {
+    try {
+      await approve();
+      // Approval successful - user can now proceed to list
+    } catch (error) {
+      console.error("Failed to approve:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to approve marketplace. Please try again.";
+      setErrorMessage(message);
+    }
+  };
+
+  const handleList = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!price || parseFloat(price) <= 0) return;
 
@@ -84,6 +108,13 @@ function ListTicketModal({
 
   if (!isOpen) return null;
 
+  // Show loading state while checking approval
+  const showLoading = isCheckingApproval;
+
+  // Determine which button to show
+  const showApproveButton = !isApproved && !showLoading;
+  const showListButton = isApproved && !showLoading;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
       <div className="glass-card w-full max-w-lg rounded-[1.75rem] border border-border bg-card p-6 shadow-lg">
@@ -94,51 +125,169 @@ function ListTicketModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-border/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:border-primary/50 hover:text-primary"
+            disabled={isApproving || isListing}
+            className="rounded-full border border-border/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:border-primary/50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Close
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="mt-5 space-y-5">
-          <div className="space-y-3">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Price ({pcSymbol})
-            </label>
-            <input
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              min="0"
-              step="0.001"
-              className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm font-medium text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
-              placeholder="100"
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Push Chain automatically handles cross-chain settlement; simply
-              set your desired amount in PC tokens.
-            </p>
-            {errorMessage && (
-              <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive">
-                {errorMessage}
-              </p>
-            )}
+
+        {/* Step indicator */}
+        <div className="mt-4 mb-2">
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
+                !isApproved
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-primary/20 text-primary"
+              }`}
+            >
+              1
+            </div>
+            <span
+              className={`text-xs font-semibold ${
+                !isApproved ? "text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              Approve Marketplace
+            </span>
+            <div className="flex-1 h-px bg-border mx-2" />
+            <div
+              className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
+                isApproved
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              2
+            </div>
+            <span
+              className={`text-xs font-semibold ${
+                isApproved ? "text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              List Ticket
+            </span>
           </div>
+        </div>
+
+        <form onSubmit={handleList} className="mt-5 space-y-5">
+          {/* Approval Step */}
+          {showApproveButton && (
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-primary/40 bg-primary/10 px-4 py-3">
+                <p className="text-sm font-semibold text-foreground mb-1">
+                  Step 1: Approve Marketplace
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  First, grant the marketplace permission to list this ticket.
+                  This is a one-time approval per ticket.
+                </p>
+              </div>
+              {(errorMessage || approvalError) && (
+                <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive">
+                  {errorMessage || approvalError}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Listing Step */}
+          {showListButton && (
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-green-500/40 bg-green-500/10 px-4 py-2 text-sm">
+                <p className="text-green-600 dark:text-green-400 font-semibold mb-1">
+                  ✓ Marketplace Approved
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Now set your listing price below.
+                </p>
+              </div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Price ({pcSymbol})
+              </label>
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                min="0"
+                step="0.001"
+                className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm font-medium text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                placeholder="100"
+                required
+                disabled={isListing}
+              />
+              <p className="text-xs text-muted-foreground">
+                Push Chain automatically handles cross-chain settlement; simply
+                set your desired amount in PC tokens.
+              </p>
+              {errorMessage && (
+                <p className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive">
+                  {errorMessage}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Loading State */}
+          {showLoading && (
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-border/40 bg-muted/50 px-4 py-3 flex items-center gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                <p className="text-sm text-muted-foreground">
+                  Checking approval status...
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary hover:text-primary"
+              disabled={isApproving || isListing}
+              className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isListing || !price}
-              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
-            >
-              {isListing ? "Listing..." : "List Ticket"}
-            </button>
+
+            {showApproveButton && (
+              <button
+                type="button"
+                onClick={handleApprove}
+                disabled={isApproving}
+                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary flex items-center justify-center gap-2"
+              >
+                {isApproving && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent"></div>
+                )}
+                {isApproving ? "Approving..." : "Approve Marketplace"}
+              </button>
+            )}
+
+            {showListButton && (
+              <button
+                type="submit"
+                disabled={isListing || !price}
+                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary flex items-center justify-center gap-2"
+              >
+                {isListing && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent"></div>
+                )}
+                {isListing ? "Listing..." : "List Ticket"}
+              </button>
+            )}
+
+            {showLoading && (
+              <button
+                type="button"
+                disabled
+                className="rounded-full bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground cursor-not-allowed"
+              >
+                Loading...
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -275,10 +424,21 @@ const MyTicketsPage = () => {
         const ticket = formattedTickets.find(
           (t) => t.tokenId === Number(listing.tokenId)
         );
+
+        // Try multiple fallbacks to get the event name
+        let eventName = "Unknown Event";
+        if (ticket?.event?.name) {
+          eventName = ticket.event.name;
+        } else if (ticket?.eventId) {
+          eventName = `Event #${ticket.eventId}`;
+        } else if (listing.eventId) {
+          eventName = `Event #${listing.eventId}`;
+        }
+
         return {
           listingId: Number(listing.listingId),
           tokenId: Number(listing.tokenId),
-          eventName: ticket?.event?.name || `Event #${ticket?.eventId || "Unknown"}`,
+          eventName,
           price: listing.price,
         };
       });
