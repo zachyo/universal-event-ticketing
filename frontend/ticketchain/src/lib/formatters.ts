@@ -153,13 +153,13 @@ export function formatPrice(
   const fractionalPart = price % divisor;
 
   if (fractionalPart === BigInt(0)) {
-    return wholePart.toString();
+    return Number(wholePart).toLocaleString("en-US");
   }
 
   const fractionalStr = fractionalPart.toString().padStart(decimals, "0");
   const trimmedFractional = fractionalStr.replace(/0+$/, "");
 
-  return `${wholePart}.${trimmedFractional}`;
+  return Number(`${wholePart}.${trimmedFractional}`).toLocaleString("en-US");
 }
 
 // Format price with currency symbol

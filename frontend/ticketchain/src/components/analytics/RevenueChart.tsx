@@ -86,7 +86,7 @@ export function RevenueChart({ tiers }: RevenueChartProps) {
           <Bar 
             dataKey="sold" 
             name="Tickets Sold" 
-            fill="hsl(var(--primary) / 0.6)" 
+            fill="hsl(var(--primary) / 0.4)" 
             radius={[4, 4, 0, 0]}
           />
         </BarChart>

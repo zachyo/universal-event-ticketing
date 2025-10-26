@@ -245,14 +245,14 @@ export function TicketCard({
                   {onViewQR && (
                     <button
                       onClick={() => onViewQR(ticket)}
-                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/90 transition-colors"
+                      className="mt-2 hover:underline inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/90 transition-colors"
                     >
                       <QrCode className="h-3.5 w-3.5" />
-                      View Full Size QR
+                      View QR
                     </button>
                   )}
                 </div>
-                <div className="self-center rounded-xl border border-border bg-background p-3 shadow-sm">
+                <div className="self-center rounded-xl border border-border bg-background p-3 shadow-sm hidden">
                   <QRCodeDisplay
                     tokenId={BigInt(ticket.tokenId)}
                     eventId={BigInt(ticket.eventId)}

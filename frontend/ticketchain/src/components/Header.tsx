@@ -4,7 +4,7 @@ import {
   usePushWalletContext,
 } from "@pushchain/ui-kit";
 
-import { Ticket, Menu, X } from "lucide-react";
+import { Ticket, Menu, X, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "../utils/cn";
@@ -28,7 +28,7 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
-      <div className="container px-4 py-4">
+      <div className="container px-1.5 lg:px-4 py-4">
         <div className="flex items-center gap-3 rounded-full border border-border bg-card px-4 py-3 shadow-sm transition-colors duration-300">
           <div className="flex items-center gap-2">
             <Link
@@ -36,7 +36,7 @@ export const Header = () => {
               className="flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 font-semibold text-foreground/90 transition hover:bg-secondary/80 hover:text-foreground"
             >
               <Ticket className="h-5 w-5 text-primary" />
-              TicketChain
+              <span className="hidden md:block">TicketChain</span>
             </Link>
           </div>
 
@@ -61,7 +61,7 @@ export const Header = () => {
               to="/create-event"
               className="ml-2 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
             >
-              Launch Event
+              Launch Event <ChevronRight className="animate animate-pulse" />
             </Link>
           </nav>
 
@@ -93,8 +93,8 @@ export const Header = () => {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="md:hidden">
-          <div className="container px-4 pb-6">
+        <div className="md:hidden relative bg-red-400">
+          <div className="container px-4 pb-6 absolute">
             <div className="glass-card rounded-3xl px-5 py-6">
               <div className="relative z-[1] flex flex-col gap-4 text-base">
                 {[...primaryLinks, ...authenticatedLinks].map((link) => (

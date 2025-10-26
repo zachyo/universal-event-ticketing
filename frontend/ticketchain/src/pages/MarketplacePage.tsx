@@ -133,7 +133,7 @@ export const MarketplacePage = () => {
       await refetch(); // Refresh listings
     } catch (error) {
       console.error("Failed to buy ticket:", error);
-      alert("Failed to buy ticket. Please try again.");
+      // alert("Failed to buy ticket. Please try again.");
     }
   };
 

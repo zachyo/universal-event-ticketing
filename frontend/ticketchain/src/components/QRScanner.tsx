@@ -112,7 +112,7 @@ export function QRScanner({ onScan, onError, className = "" }: QRScannerProps) {
         <div
           id={qrRegionId}
           className={`rounded-lg overflow-hidden ${
-            isScanning ? "border-4 border-primary" : "border-2 border-gray-300"
+            isScanning ? "border-4 border-primary" : ""
           }`}
         />
 

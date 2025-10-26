@@ -1089,16 +1089,16 @@ export const CreateEventPage = () => {
             <button
               type="submit"
               disabled={isSubmitting || isCreatingEvent}
-              className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary sm:w-auto"
+              className="w-full flex items-cener gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary sm:w-auto"
             >
-              {isSubmitting || isCreatingEvent ? (
+              {(isSubmitting || isCreatingEvent) ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="animate-spin"  size={20}/>
                   <span>Creating Event...</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-4 h-4" />
+                  <CheckCircle className="" size={20} />
                   <span>Create Event</span>
                 </>
               )}

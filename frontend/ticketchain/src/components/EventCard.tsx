@@ -115,7 +115,7 @@ export function EventCard({
         {minPrice !== null && minPrice !== undefined && minPrice > 0 && (
           <div className="mt-6 rounded-2xl border border-border/60 bg-background/70 px-5 py-4">
             <div className="flex items-end justify-between gap-3">
-              <div>
+              <div className="flex justify-between items-center w-full flex-wrap gap-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Starting from
                 </p>
