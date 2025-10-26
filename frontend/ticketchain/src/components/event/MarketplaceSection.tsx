@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import { Store, Clock, ShieldCheck, ExternalLink } from "lucide-react";
-import { useBuyTicket } from "../../hooks/useContracts";
+import { useMemo, useState, useEffect } from "react";
+import { Store, Clock, ShieldCheck, ExternalLink, X } from "lucide-react";
+import { useBuyTicket, useCancelListing } from "../../hooks/useContracts";
 import { useReadContract } from "wagmi";
 import { MARKETPLACE_ADDRESS, TicketMarketplaceABI } from "../../lib/contracts";
 import { formatPrice } from "../../lib/formatters";
@@ -8,7 +8,7 @@ import type { Listing } from "../../types";
 import { ListingCardSkeleton } from "../marketplace";
 import { EmptyState } from "../EmptyState";
 import { ErrorDisplay } from "../ErrorDisplay";
-import { usePushWalletContext } from "@pushchain/ui-kit";
+import { usePushWalletContext, usePushChain } from "@pushchain/ui-kit";
 import { useAccount } from "wagmi";
 import { TicketDetailsModal } from "../TicketDetailsModal";
 
@@ -27,6 +27,7 @@ interface MarketplaceSectionProps {
 
 export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [cancelConfirmListingId, setCancelConfirmListingId] = useState<number | null>(null);
 
   const { data, isLoading, error, refetch } = useReadContract({
     address: MARKETPLACE_ADDRESS as `0x${string}`,
@@ -38,8 +39,35 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
   const listings = useMemo(() => (data as Listing[] | undefined) || [], [data]);
 
   const { buyTicket } = useBuyTicket();
-  const { connectionStatus } = usePushWalletContext();
+  const { cancelListing, isPending: isCanceling } = useCancelListing();
+  const { connectionStatus, universalAccount } = usePushWalletContext();
+  const { PushChain } = usePushChain();
   const { address } = useAccount();
+
+  // Resolve UEA for current user
+  const [userUEA, setUserUEA] = useState<string | null>(null);
+
+  useEffect(() => {
+    const resolveUEA = async () => {
+      if (!universalAccount || !PushChain) {
+        setUserUEA(address?.toLowerCase() || null);
+        return;
+      }
+
+      try {
+        const executorInfo = await PushChain.utils.account.convertOriginToExecutor(
+          universalAccount,
+          { onlyCompute: true }
+        );
+        setUserUEA(executorInfo.address.toLowerCase());
+      } catch (error) {
+        console.error("Failed to resolve UEA:", error);
+        setUserUEA(address?.toLowerCase() || null);
+      }
+    };
+
+    resolveUEA();
+  }, [universalAccount, PushChain, address]);
 
   const eventListings = useMemo<SimpleFormattedListing[]>(() => {
     if (!listings.length) {
@@ -86,6 +114,16 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
       await refetch();
     } catch (buyError) {
       console.error("Failed to buy ticket:", buyError);
+    }
+  };
+
+  const handleCancelListing = async (listingId: number) => {
+    try {
+      await cancelListing(listingId);
+      await refetch();
+      setCancelConfirmListingId(null);
+    } catch (error) {
+      console.error("Failed to cancel listing:", error);
     }
   };
 
@@ -191,7 +229,7 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {eventListings.map((listing) => {
           const isCurrentUser =
-            listing.seller.toLowerCase() === address?.toLowerCase();
+            userUEA && listing.seller.toLowerCase() === userUEA;
 
           return (
             <div
@@ -240,10 +278,12 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
 
                 {isCurrentUser ? (
                   <button
-                    disabled
-                    className="rounded-full border border-border/60 bg-background/60 px-4 py-2 text-sm font-semibold text-muted-foreground"
+                    onClick={() => setCancelConfirmListingId(listing.listingId)}
+                    disabled={isCanceling}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-destructive/60 bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Listed by you
+                    <X className="h-4 w-4" />
+                    Cancel listing
                   </button>
                 ) : (
                   <button
@@ -264,6 +304,37 @@ export function MarketplaceSection({ eventId }: MarketplaceSectionProps) {
           tokenId={selectedTicketId}
           onClose={() => setSelectedTicketId(null)}
         />
+      )}
+
+      {/* Cancel Confirmation Dialog */}
+      {cancelConfirmListingId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="glass-card w-full max-w-md rounded-[1.75rem] border border-border bg-card p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-foreground">
+              Cancel this listing?
+            </h3>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Your ticket will be returned to your wallet and removed from the marketplace.
+              This action cannot be undone.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setCancelConfirmListingId(null)}
+                disabled={isCanceling}
+                className="flex-1 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Keep listing
+              </button>
+              <button
+                onClick={() => handleCancelListing(cancelConfirmListingId)}
+                disabled={isCanceling}
+                className="flex-1 rounded-full bg-destructive px-4 py-2.5 text-sm font-semibold text-destructive-foreground transition hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isCanceling ? "Canceling..." : "Yes, cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="border-t border-border/60 pt-4 text-center text-xs text-muted-foreground">

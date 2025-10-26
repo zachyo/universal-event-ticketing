@@ -682,8 +682,13 @@ export function useCancelListing() {
       throw new Error("Push Chain client not available");
     }
 
+    let toastId: string | undefined;
+
     try {
       setIsPending(true);
+
+      // Show loading toast
+      toastId = toastLoading("Canceling listing...");
 
       const tx = await pushChainClient.universal.sendTransaction({
         to: MARKETPLACE_ADDRESS,
@@ -698,13 +703,98 @@ export function useCancelListing() {
 
       localStorage.removeItem("ticketchain_cache");
 
+      // Dismiss loading and show success
+      if (toastId) toastDismiss(toastId);
+      toastSuccess("Listing canceled successfully! Your ticket has been returned.");
+
       return tx;
+    } catch (error) {
+      console.error("Failed to cancel listing:", error);
+
+      // Dismiss loading toast
+      if (toastId) toastDismiss(toastId);
+
+      // Show error toast if not user rejection
+      if (!isUserRejection(error)) {
+        toastError(getErrorMessage(error));
+      }
+
+      throw error;
     } finally {
       setIsPending(false);
     }
   };
 
   return { cancelListing, isPending };
+}
+
+// Hook for batch canceling marketplace listings
+export function useBatchCancelListings() {
+  const { pushChainClient } = usePushChainClient();
+  const { PushChain } = usePushChain();
+  const [isPending, setIsPending] = useState(false);
+
+  const batchCancelListings = async (listingIds: number[]) => {
+    if (!pushChainClient || !PushChain) {
+      throw new Error("Push Chain client not available");
+    }
+
+    if (listingIds.length === 0) {
+      throw new Error("No listings selected");
+    }
+
+    let toastId: string | undefined;
+
+    try {
+      setIsPending(true);
+
+      // Show loading toast
+      toastId = toastLoading(
+        listingIds.length > 1
+          ? `Canceling ${listingIds.length} listings...`
+          : "Canceling listing..."
+      );
+
+      const tx = await pushChainClient.universal.sendTransaction({
+        to: MARKETPLACE_ADDRESS,
+        data: PushChain.utils.helpers.encodeTxData({
+          abi: Array.from(TicketMarketplaceABI),
+          functionName: "batchCancelListings",
+          args: [listingIds.map((id) => BigInt(id))],
+        }),
+      });
+
+      await tx.wait();
+
+      localStorage.removeItem("ticketchain_cache");
+
+      // Dismiss loading and show success
+      if (toastId) toastDismiss(toastId);
+      toastSuccess(
+        listingIds.length > 1
+          ? `Successfully canceled ${listingIds.length} listings!`
+          : "Listing canceled successfully!"
+      );
+
+      return tx;
+    } catch (error) {
+      console.error("Failed to batch cancel listings:", error);
+
+      // Dismiss loading toast
+      if (toastId) toastDismiss(toastId);
+
+      // Show error toast if not user rejection
+      if (!isUserRejection(error)) {
+        toastError(getErrorMessage(error));
+      }
+
+      throw error;
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return { batchCancelListings, isPending };
 }
 
 // Hook for validating a ticket (marking as used)

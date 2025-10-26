@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ExternalLink, Image as ImageIcon } from "lucide-react";
+import { ExternalLink, Image as ImageIcon, XIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useReadContract } from "wagmi";
 import {
@@ -154,7 +154,7 @@ export function TicketDetailsModal({
             onClick={onClose}
             className="rounded-full border border-border/60 p-1 text-muted-foreground transition hover:border-primary/40 hover:text-primary"
           >
-            ×
+            <XIcon/>
           </button>
         </div>
 

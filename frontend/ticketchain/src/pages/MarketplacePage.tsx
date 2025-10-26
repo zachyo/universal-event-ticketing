@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -8,9 +8,10 @@ import {
   RefreshCw,
   Calendar,
   MapPin,
+  X,
 } from "lucide-react";
-import { useMarketplaceListings, useBuyTicket } from "../hooks/useContracts";
-import { usePushWalletContext, PushUI } from "@pushchain/ui-kit";
+import { useMarketplaceListings, useBuyTicket, useCancelListing } from "../hooks/useContracts";
+import { usePushWalletContext, PushUI, usePushChain } from "@pushchain/ui-kit";
 import { useAccount } from "wagmi";
 import { formatListing, formatPrice } from "../lib/formatters";
 import type { FormattedListing } from "../types";
@@ -23,16 +24,44 @@ type SortOption = "price-low" | "price-high" | "newest" | "oldest";
 type PriceFilter = "all" | "0-0.1" | "0.1-0.5" | "0.5+";
 
 export const MarketplacePage = () => {
-  const { connectionStatus, handleConnectToPushWallet } = usePushWalletContext();
+  const { connectionStatus, handleConnectToPushWallet, universalAccount } = usePushWalletContext();
+  const { PushChain } = usePushChain();
   const { address } = useAccount();
   const { listings, loading, error, refetch } = useMarketplaceListings();
   const { buyTicket } = useBuyTicket();
+  const { cancelListing, isPending: isCanceling } = useCancelListing();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [priceRange, setPriceRange] = useState<PriceFilter>("all");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [cancelConfirmListingId, setCancelConfirmListingId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Resolve UEA for current user
+  const [userUEA, setUserUEA] = useState<string | null>(null);
+
+  useEffect(() => {
+    const resolveUEA = async () => {
+      if (!universalAccount || !PushChain) {
+        setUserUEA(address?.toLowerCase() || null);
+        return;
+      }
+
+      try {
+        const executorInfo = await PushChain.utils.account.convertOriginToExecutor(
+          universalAccount,
+          { onlyCompute: true }
+        );
+        setUserUEA(executorInfo.address.toLowerCase());
+      } catch (error) {
+        console.error("Failed to resolve UEA:", error);
+        setUserUEA(address?.toLowerCase() || null);
+      }
+    };
+
+    resolveUEA();
+  }, [universalAccount, PushChain, address]);
 
   // Filter and sort listings
   const filteredListings = useMemo<FormattedListing[]>(() => {
@@ -134,6 +163,16 @@ export const MarketplacePage = () => {
     } catch (error) {
       console.error("Failed to buy ticket:", error);
       // alert("Failed to buy ticket. Please try again.");
+    }
+  };
+
+  const handleCancelListing = async (listingId: number) => {
+    try {
+      await cancelListing(listingId);
+      await refetch();
+      setCancelConfirmListingId(null);
+    } catch (error) {
+      console.error("Failed to cancel listing:", error);
     }
   };
 
@@ -292,7 +331,7 @@ export const MarketplacePage = () => {
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {filteredListings.map((listing) => {
                 const isCurrentUser =
-                  listing.seller.toLowerCase() === address?.toLowerCase();
+                  userUEA && listing.seller.toLowerCase() === userUEA;
 
                 return (
                   <div
@@ -384,10 +423,12 @@ export const MarketplacePage = () => {
                       </button>
                       {isCurrentUser ? (
                         <button
-                          disabled
-                          className="rounded-full border border-border/60 bg-background/60 px-4 py-2.5 text-sm font-semibold text-muted-foreground"
+                          onClick={() => setCancelConfirmListingId(listing.listingId)}
+                          disabled={isCanceling}
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-destructive/60 bg-destructive/10 px-4 py-2.5 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Your listing
+                          <X className="h-4 w-4" />
+                          Cancel listing
                         </button>
                       ) : (
                         <button
@@ -423,6 +464,37 @@ export const MarketplacePage = () => {
           tokenId={selectedTicketId}
           onClose={() => setSelectedTicketId(null)}
         />
+      )}
+
+      {/* Cancel Confirmation Dialog */}
+      {cancelConfirmListingId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="glass-card w-full max-w-md rounded-[1.75rem] border border-border bg-card p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-foreground">
+              Cancel this listing?
+            </h3>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Your ticket will be returned to your wallet and removed from the marketplace.
+              This action cannot be undone.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setCancelConfirmListingId(null)}
+                disabled={isCanceling}
+                className="flex-1 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Keep listing
+              </button>
+              <button
+                onClick={() => handleCancelListing(cancelConfirmListingId)}
+                disabled={isCanceling}
+                className="flex-1 rounded-full bg-destructive px-4 py-2.5 text-sm font-semibold text-destructive-foreground transition hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isCanceling ? "Canceling..." : "Yes, cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

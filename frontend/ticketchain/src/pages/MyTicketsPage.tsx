@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { parseUnits } from "viem";
-import { AlertCircle, Package } from "lucide-react";
+import { AlertCircle, Package, X } from "lucide-react";
 import {
   useUserTickets,
   useListTicket,
@@ -30,6 +30,7 @@ import {
   type TicketSortOption,
 } from "../components/TicketFilters";
 import { BulkListingModal } from "../components/marketplace/BulkListingModal";
+import { BulkCancelListingModal } from "../components/marketplace/BulkCancelListingModal";
 import { ErrorDisplay } from "../components/ErrorDisplay";
 import { SearchBar } from "../components/search/SearchBar";
 
@@ -231,6 +232,7 @@ const MyTicketsPage = () => {
   const [showListModal, setShowListModal] = useState(false);
   const [selectedTokenId, setSelectedTokenId] = useState<number | null>(null);
   const [showBulkListModal, setShowBulkListModal] = useState(false);
+  const [showBulkCancelModal, setShowBulkCancelModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [selectedTicketForQR, setSelectedTicketForQR] = useState<
     (typeof formattedTickets)[0] | null
@@ -264,6 +266,23 @@ const MyTicketsPage = () => {
     });
     return map;
   }, [listings]);
+
+  // Create a list of active listings for batch cancel
+  const activeListings = useMemo(() => {
+    return listings
+      .filter((listing) => listing.active)
+      .map((listing) => {
+        const ticket = formattedTickets.find(
+          (t) => t.tokenId === Number(listing.tokenId)
+        );
+        return {
+          listingId: Number(listing.listingId),
+          tokenId: Number(listing.tokenId),
+          eventName: ticket?.event?.name || `Event #${ticket?.eventId || "Unknown"}`,
+          price: listing.price,
+        };
+      });
+  }, [listings, formattedTickets]);
 
   const ticketStats = useMemo(() => {
     let valid = 0;
@@ -487,13 +506,24 @@ const MyTicketsPage = () => {
             </p>
           </div>
           {!isLoading && filteredTickets.length > 0 && (
-            <button
-              onClick={() => setShowBulkListModal(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
-            >
-              <Package className="h-5 w-5" />
-              Bulk list tickets
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => setShowBulkListModal(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+              >
+                <Package className="h-5 w-5" />
+                Bulk list tickets
+              </button>
+              {activeListings.length > 0 && (
+                <button
+                  onClick={() => setShowBulkCancelModal(true)}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-destructive/60 bg-destructive/10 px-5 py-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-destructive"
+                >
+                  <X className="h-5 w-5" />
+                  Bulk cancel listings
+                </button>
+              )}
+            </div>
           )}
         </div>
 
@@ -638,6 +668,17 @@ const MyTicketsPage = () => {
           }))}
         onSuccess={() => {
           setShowBulkListModal(false);
+          refetch();
+        }}
+      />
+
+      {/* Bulk Cancel Listing Modal */}
+      <BulkCancelListingModal
+        isOpen={showBulkCancelModal}
+        onClose={() => setShowBulkCancelModal(false)}
+        availableListings={activeListings}
+        onSuccess={() => {
+          setShowBulkCancelModal(false);
           refetch();
         }}
       />
