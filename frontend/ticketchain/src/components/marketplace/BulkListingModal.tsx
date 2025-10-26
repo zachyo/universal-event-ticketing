@@ -165,7 +165,7 @@ export function BulkListingModal({
 
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground">
-                          Price (ETH):
+                          Price (PC):
                         </span>
                         <input
                           type="number"
@@ -223,7 +223,7 @@ export function BulkListingModal({
           <div className="flex items-center justify-between mb-4">
             <span className="text-muted-foreground">Total Listing Value:</span>
             <span className="text-2xl font-bold text-primary">
-              {totalListingValue.toFixed(4)} ETH
+              {totalListingValue.toFixed(4)} PC
             </span>
           </div>
 

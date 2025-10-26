@@ -67,6 +67,26 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
     /// @dev eventId => total royalty amount collected in wei
     mapping(uint256 => uint256) public eventRoyaltiesCollected;
 
+    /// @notice Track seller statistics per event
+    /// @dev seller => eventId => SellerStats
+    mapping(address => mapping(uint256 => SellerStats)) public sellerStats;
+
+    /// @notice Track all listing IDs for a seller per event
+    /// @dev seller => eventId => array of listing IDs
+    mapping(address => mapping(uint256 => uint256[])) public sellerListings;
+
+    /// @notice Seller statistics structure
+    struct SellerStats {
+        uint256 totalListed;           // Total tickets ever listed
+        uint256 currentlyListed;       // Currently active listings
+        uint256 totalSold;             // Total tickets sold
+        uint256 totalRevenue;          // Total revenue from sales (before royalties)
+        uint256 totalRoyaltiesPaid;    // Total royalties paid to organizer
+        uint256 totalCanceled;         // Total listings canceled
+        uint256 firstListingTime;      // Timestamp of first listing
+        uint256 lastActivityTime;      // Timestamp of last activity (list/sell/cancel)
+    }
+
     // ========= Custom Errors =========
     error InvalidInput();
     error NotSeller();
@@ -139,6 +159,19 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
 
         tokenToListing[tokenId] = listingId;
 
+        // Get event ID and update seller stats
+        (uint256 eventId,,,,,,) = ticketNFT.ticketDetails(tokenId);
+        SellerStats storage stats = sellerStats[msg.sender][eventId];
+
+        if (stats.firstListingTime == 0) {
+            stats.firstListingTime = block.timestamp;
+        }
+        stats.totalListed += 1;
+        stats.currentlyListed += 1;
+        stats.lastActivityTime = block.timestamp;
+
+        sellerListings[msg.sender][eventId].push(listingId);
+
         emit TicketListed(listingId, tokenId, msg.sender, price);
     }
 
@@ -154,6 +187,13 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
 
         lst.active = false;
         tokenToListing[lst.tokenId] = 0;
+
+        // Update seller stats
+        (uint256 eventId,,,,,,) = ticketNFT.ticketDetails(lst.tokenId);
+        SellerStats storage stats = sellerStats[msg.sender][eventId];
+        stats.currentlyListed -= 1;
+        stats.totalCanceled += 1;
+        stats.lastActivityTime = block.timestamp;
 
         // Return NFT to seller
         ticketNFT.transferFrom(address(this), lst.seller, lst.tokenId);
@@ -218,6 +258,14 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
         // Track secondary sale for this event
         eventSecondarySales[eventId] += 1;
 
+        // Update seller stats
+        SellerStats storage stats = sellerStats[lst.seller][eventId];
+        stats.currentlyListed -= 1;
+        stats.totalSold += 1;
+        stats.totalRevenue += lst.price;
+        stats.totalRoyaltiesPaid += royaltyAmount;
+        stats.lastActivityTime = block.timestamp;
+
         // Close listing
         lst.active = false;
         tokenToListing[lst.tokenId] = 0;
@@ -274,11 +322,24 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
             tokenToListing[tokenId] = listingId;
             listingIds[i] = listingId;
 
+            // Update seller stats
+            (uint256 eventId,,,,,,) = ticketNFT.ticketDetails(tokenId);
+            SellerStats storage stats = sellerStats[msg.sender][eventId];
+
+            if (stats.firstListingTime == 0) {
+                stats.firstListingTime = block.timestamp;
+            }
+            stats.totalListed += 1;
+            stats.currentlyListed += 1;
+            stats.lastActivityTime = block.timestamp;
+
+            sellerListings[msg.sender][eventId].push(listingId);
+
             emit TicketListed(listingId, tokenId, msg.sender, price);
-            
+
             unchecked { ++i; }
         }
-        
+
         emit BatchListingCompleted(listingIds, tokenIds);
     }
 
@@ -301,14 +362,21 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
             lst.active = false;
             tokenToListing[lst.tokenId] = 0;
 
+            // Update seller stats
+            (uint256 eventId,,,,,,) = ticketNFT.ticketDetails(lst.tokenId);
+            SellerStats storage stats = sellerStats[msg.sender][eventId];
+            stats.currentlyListed -= 1;
+            stats.totalCanceled += 1;
+            stats.lastActivityTime = block.timestamp;
+
             // Return NFT to seller
             ticketNFT.transferFrom(address(this), lst.seller, lst.tokenId);
 
             emit ListingCanceled(listingId, lst.tokenId);
-            
+
             unchecked { ++i; }
         }
-        
+
         emit BatchDelistingCompleted(listingIds);
     }
 
@@ -409,6 +477,16 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
 
         // Track secondary sale for this event
         eventSecondarySales[eventId] += 1;
+
+        // Update seller stats (for offer acceptance)
+        SellerStats storage stats = sellerStats[msg.sender][eventId];
+        if (listingId != 0) {
+            stats.currentlyListed -= 1; // If was listed, decrease count
+        }
+        stats.totalSold += 1;
+        stats.totalRevenue += offer.offerAmount;
+        stats.totalRoyaltiesPaid += royaltyAmount;
+        stats.lastActivityTime = block.timestamp;
 
         // Close offer
         offer.active = false;
@@ -567,6 +645,92 @@ contract TicketMarketplace is Ownable, ReentrancyGuard {
         returns (uint256 salesCount, uint256 royaltiesCollected)
     {
         return (eventSecondarySales[eventId], eventRoyaltiesCollected[eventId]);
+    }
+
+    /**
+     * @notice Get reseller statistics for a specific seller and event
+     * @param seller Address of the seller
+     * @param eventId Event id to query
+     * @return stats SellerStats struct containing all seller statistics
+     */
+    function getResellerStats(address seller, uint256 eventId)
+        external
+        view
+        returns (SellerStats memory stats)
+    {
+        return sellerStats[seller][eventId];
+    }
+
+    /**
+     * @notice Get all listing IDs for a seller and event
+     * @param seller Address of the seller
+     * @param eventId Event id to query
+     * @return listingIds Array of listing IDs
+     */
+    function getSellerListingIds(address seller, uint256 eventId)
+        external
+        view
+        returns (uint256[] memory listingIds)
+    {
+        return sellerListings[seller][eventId];
+    }
+
+    /**
+     * @notice Get detailed listing information for a seller's listings
+     * @param seller Address of the seller
+     * @param eventId Event id to query
+     * @return activeListings Array of active Listing structs
+     * @return historicalListings Array of inactive Listing structs
+     */
+    function getSellerListings(address seller, uint256 eventId)
+        external
+        view
+        returns (Listing[] memory activeListings, Listing[] memory historicalListings)
+    {
+        uint256[] memory listingIds = sellerListings[seller][eventId];
+        uint256 activeCount = 0;
+        uint256 historicalCount = 0;
+
+        // Count active and historical
+        for (uint256 i = 0; i < listingIds.length; i++) {
+            if (listings[listingIds[i]].active) {
+                activeCount++;
+            } else {
+                historicalCount++;
+            }
+        }
+
+        // Populate arrays
+        activeListings = new Listing[](activeCount);
+        historicalListings = new Listing[](historicalCount);
+
+        uint256 activeIdx = 0;
+        uint256 historicalIdx = 0;
+
+        for (uint256 i = 0; i < listingIds.length; i++) {
+            Listing memory listing = listings[listingIds[i]];
+            if (listing.active) {
+                activeListings[activeIdx++] = listing;
+            } else {
+                historicalListings[historicalIdx++] = listing;
+            }
+        }
+
+        return (activeListings, historicalListings);
+    }
+
+    /**
+     * @notice Check if a seller has ever listed tickets for an event
+     * @param seller Address of the seller
+     * @param eventId Event id to query
+     * @return hasListed True if seller has listing history for this event
+     */
+    function hasSellerListedForEvent(address seller, uint256 eventId)
+        external
+        view
+        returns (bool hasListed)
+    {
+        return sellerStats[seller][eventId].totalListed > 0;
     }
 
     // ========= Fallbacks =========
