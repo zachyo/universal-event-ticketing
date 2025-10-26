@@ -36,7 +36,11 @@ export function convertPCToNative(
     PC_TOKEN.exchangeRates[
       targetCurrency as keyof typeof PC_TOKEN.exchangeRates
     ] || 1;
-  return BigInt(Math.floor(Number(pcAmount) * rate));
+  const converted = Number(pcAmount) * rate;
+  if (Number.isNaN(converted) || !Number.isFinite(converted)) {
+    return BigInt(0);
+  }
+  return BigInt(Math.floor(converted));
 }
 
 // Helper function to convert native currency to PC
@@ -48,5 +52,9 @@ export function convertNativeToPC(
     PC_TOKEN.exchangeRates[
       sourceCurrency as keyof typeof PC_TOKEN.exchangeRates
     ] || 1;
-  return BigInt(Math.floor(Number(nativeAmount) / rate));
+  const converted = Number(nativeAmount) / rate;
+  if (Number.isNaN(converted) || !Number.isFinite(converted)) {
+    return BigInt(0);
+  }
+  return BigInt(Math.floor(converted));
 }

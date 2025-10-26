@@ -8,8 +8,10 @@ import {
   ArrowLeft,
   Ticket,
   BarChart3,
+  TrendingUp,
 } from "lucide-react";
 import { useGetEvent, useTicketTypes } from "../hooks/useContracts";
+import { useHasResellerAccess } from "../hooks/useResellerAnalytics";
 import { uploadTicketMetadata } from "../hooks/useAutoMetadata";
 import {
   formatEvent,
@@ -134,12 +136,18 @@ const EventDetailPage = () => {
   // Check if current user is the organizer using UEA
   const isOrganizer = useMemo(() => {
     if (!event?.organizer || !ueaAddress) return false;
-    
+
     const organizerAddress = event.organizer.toLowerCase();
     const myUEA = ueaAddress.toLowerCase();
-    
+
     return organizerAddress === myUEA;
   }, [event?.organizer, ueaAddress]);
+
+  // Check if user has reseller access (has ever listed for this event)
+  const { hasAccess: hasResellerAccess } = useHasResellerAccess(
+    ueaAddress || undefined,
+    eventId
+  );
 
   const ticketTypeOptions = useMemo<TicketTypeOption[]>(() => {
     if (!ticketTypes) return [];
@@ -463,6 +471,15 @@ const EventDetailPage = () => {
                 >
                   <BarChart3 className="h-4 w-4" />
                   Event Analytics
+                </Link>
+              )}
+              {hasResellerAccess && (
+                <Link
+                  to={`/reseller-analytics/${eventId}`}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/60 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  Reseller Analytics
                 </Link>
               )}
               <div className="space-y-4 text-sm text-muted-foreground">

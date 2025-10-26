@@ -151,9 +151,18 @@ export function compareBigInt(
         return value;
       }
       if (typeof value === "number") {
+        // Handle NaN and invalid numbers
+        if (Number.isNaN(value) || !Number.isFinite(value)) {
+          return BigInt(0);
+        }
         return BigInt(Math.trunc(value));
       }
-      return BigInt(value);
+      try {
+        return BigInt(value);
+      } catch (error) {
+        console.warn("Unable to parse value to BigInt", { value, error });
+        return BigInt(0);
+      }
     };
 
     return normalize(a) === normalize(b);

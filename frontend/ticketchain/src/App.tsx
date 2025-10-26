@@ -10,6 +10,7 @@ import MyTicketsPage from "./pages/MyTicketsPage";
 import VerifyPage from "./pages/VerifyPage";
 import { OrganizerVerificationPage } from "./pages/OrganizerVerificationPage";
 import EventAnalyticsPage from "./pages/EventAnalyticsPage";
+import ResellerAnalyticsPage from "./pages/ResellerAnalyticsPage";
 
 const AppLayout = () => (
   <div className="relative flex min-h-screen flex-col font-sans">
@@ -31,6 +32,10 @@ function App() {
         <Route
           path="event-analytics/:eventId"
           element={<EventAnalyticsPage />}
+        />
+        <Route
+          path="reseller-analytics/:eventId"
+          element={<ResellerAnalyticsPage />}
         />
         <Route path="marketplace" element={<MarketplacePage />} />
         <Route path="create-event" element={<CreateEventPage />} />

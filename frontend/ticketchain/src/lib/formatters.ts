@@ -140,9 +140,19 @@ export function formatPrice(
   if (typeof priceWei === "bigint") {
     price = priceWei;
   } else if (typeof priceWei === "number") {
-    price = BigInt(Math.trunc(priceWei));
+    // Handle NaN and invalid numbers
+    if (Number.isNaN(priceWei) || !Number.isFinite(priceWei)) {
+      price = BigInt(0);
+    } else {
+      price = BigInt(Math.trunc(priceWei));
+    }
   } else if (typeof priceWei === "string") {
-    price = BigInt(priceWei);
+    try {
+      price = BigInt(priceWei);
+    } catch (error) {
+      console.warn("Unable to parse price string to BigInt", { priceWei, error });
+      price = BigInt(0);
+    }
   } else {
     price = BigInt(0);
   }
@@ -398,8 +408,13 @@ export function getPriceRange(ticketTypes: TicketType[]): {
 
 // Format price range
 export function formatPriceRange(min: number, max: number): string {
-  if (min === max) {
-    return formatPrice(BigInt(min));
+  // Handle NaN values
+  if (Number.isNaN(min) || Number.isNaN(max)) {
+    return "N/A";
   }
-  return `${formatPrice(BigInt(min))} - ${formatPrice(BigInt(max))}`;
+  
+  if (min === max) {
+    return formatPrice(min);
+  }
+  return `${formatPrice(min)} - ${formatPrice(max)}`;
 }

@@ -51,21 +51,21 @@ export function useResellerAnalytics(
       // 0: Seller stats
       {
         address: MARKETPLACE_ADDRESS as `0x${string}`,
-        abi: TicketMarketplaceABI.abi,
+        abi: TicketMarketplaceABI,
         functionName: "getResellerStats",
         args: sellerAddress ? [sellerAddress, BigInt(eventId)] : undefined,
       },
       // 1: Seller listings (active and historical)
       {
         address: MARKETPLACE_ADDRESS as `0x${string}`,
-        abi: TicketMarketplaceABI.abi,
+        abi: TicketMarketplaceABI,
         functionName: "getSellerListings",
         args: sellerAddress ? [sellerAddress, BigInt(eventId)] : undefined,
       },
       // 2: Event-wide secondary market stats
       {
         address: MARKETPLACE_ADDRESS as `0x${string}`,
-        abi: TicketMarketplaceABI.abi,
+        abi: TicketMarketplaceABI,
         functionName: "getEventSecondaryMarketStats",
         args: [BigInt(eventId)],
       },
@@ -186,7 +186,7 @@ export function useHasResellerAccess(
 ): { hasAccess: boolean; isLoading: boolean } {
   const { data, isLoading } = useReadContract({
     address: MARKETPLACE_ADDRESS as `0x${string}`,
-    abi: TicketMarketplaceABI.abi,
+    abi: TicketMarketplaceABI,
     functionName: "hasSellerListedForEvent",
     args: sellerAddress ? [sellerAddress, BigInt(eventId)] : undefined,
     query: {
