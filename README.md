@@ -1,32 +1,163 @@
-# Push Chain Ticketing — Deploy and Integrate Guide
+# TicketChain — Universal Cross‑Chain NFT Ticketing on Push Chain
 
-This README teaches you how to deploy the TicketChain contracts to Push Chain testnet and integrate the Push Chain UI Kit to build a universal, cross‑chain dApp. It assumes you know how to build EVM dApps with wagmi/viem/ethers and standard wallet modals.
+TicketChain is a full‑stack, production‑ready ticketing platform built on Push Chain testnet. It enables organizers to create events and sell NFT tickets, buyers to purchase and manage tickets, and communities to trade safely on a secondary marketplace — all with a single universal wallet session that works across EVM and Solana.
 
-Sections
-- Deploy Contracts on Push
-- Integrate the UI Kit
-- Send Universal Transactions
-- Cross‑Chain (Solana/EVM) Flows
-- UEA vs Origin Explained
-- Troubleshooting
-- Appendix: Env & RPC
+This README provides:
+- Product overview and the business problems TicketChain solves
+- Technical architecture and cross‑chain execution model
+- Smart contracts and frontend integration points
+- QR code verification system
+- Deployment, environment, and troubleshooting guidance
 
-Important Notes
-- Use only the network details and patterns in this repo.
-- UI kit and SDK versions are not pinned; install latest.
-- Contract addresses are dynamic; plug in your own deployments.
-- This guide intentionally skips IPFS specifics.
+---
 
-## Deploy Contracts on Push
+## TL;DR
+
+- One wallet session, many chains: Perform purchases and validations on Push while originating from Sepolia or Solana devnet.
+- Primary sales + secondary market: List, buy, make offers, and batch list with escrow and royalties.
+- Verifiable entry: QR generation, scanning, and on‑chain validation for venues.
+- Modern UX: Search, filters, analytics, and real‑time explorer links.
+
+---
+
+## Business Problems Solved
+
+- Fragmented wallet experience: Users typically must switch networks and juggle multiple wallets. TicketChain uses Push’s universal account to bridge and execute seamlessly on Push Chain.
+- Fraud and re‑use risk: Tickets are NFTs with on‑chain validation and organizer workflows to mark usage, reducing counterfeit and duplicate entry.
+- Opaque secondary sales: Marketplace with custody escrow, royalty enforcement, offers, and batch listing improves liquidity and fairness.
+- Operational friction: Organizer tools for event setup, tiers, pricing, royalties, and QR scanning streamline the end‑to‑end flow.
+- Discovery and conversions: Search and filter features reduce buyer friction and increase event visibility.
+
+Outcomes:
+- Higher conversion due to frictionless wallet onboarding
+- Lower fraud and improved entry experience
+- Better liquidity with transparent fees and enforced royalties
+- Reduced support overhead via deterministic executor addresses
+
+---
+
+## Capabilities & User Journeys
+
+Organizers:
+- Create events and ticket tiers, set prices and royalties
+- Validate tickets at entry with QR scanning and on‑chain checks
+- Analyze sales and secondary market performance (stats components included)
+
+Buyers:
+- Purchase primary tickets on Push (bridging from origin when needed)
+- Manage “My Tickets”, view QR codes, transfer or list for sale
+- Make and accept offers in the secondary market
+
+Power users:
+- Batch list multiple tickets in a single transaction
+- Use universal account for cross‑chain payments without network switching
+
+---
+
+## System Architecture
+
+Smart Contracts (Push Chain testnet):
+- [`contract TicketFactory`](contracts/TicketFactory.sol:17): event creation, ticket tiers, purchases, validation, batch functions
+- [`contract TicketMarketplace`](contracts/TicketMarketplace.sol:17): escrow listings, buys, offers, batch list/cancel, per‑event stats
+- [`contract TicketNFT`](contracts/TicketNFT.sol:16): ERC‑721 with metadata, “used” status, royalty via ERC2981
+
+Frontend (React + Vite + TypeScript):
+- Wallet & providers: [`PushChainProviders`](frontend/ticketchain/src/providers/PushChainProvider.tsx)
+- Universal transactions and explorer links via `@pushchain/ui-kit`
+- Reads via `wagmi` + `viem` + `ethers` with Push RPC
+- UI features: search, filters, marketplace modals, QR generator/scanner
+
+Docs & integration references:
+- Push integration: [`push-chain-integration-guide.md`](docs/push-chain-integration-guide.md)
+- Marketplace updates: [`enhanced-marketplace-implementation.md`](docs/enhanced-marketplace-implementation.md)
+- Search features: [`event-search-implementation.md`](docs/event-search-implementation.md)
+- QR system: [`qr-code-implementation.md`](docs/qr-code-implementation.md)
+
+---
+
+## Cross‑Chain Model: Origin vs UEA
+
+- Origin address: user wallet on source chain (e.g., Sepolia EOA or Solana pubkey)
+- UEA (Universal Executor Account): deterministic executor on Push; contracts see `msg.sender = UEA`
+- Always resolve UEA for user‑specific reads and organizer checks; compare executor addresses stored on Push to enforce permissions and show correct ticket ownership
+
+EVM origin (e.g., Sepolia):
+- Universal writes work without forcing a Push‑native wallet switch
+- Use `value` in PC for payments, or `funds` to bridge origin native within the call
+
+Solana origin (devnet):
+- Use the same `sendTransaction` API; the SDK handles fee‑locker and execution
+- Ensure CAIP mapping to devnet RPC and sufficient SOL balance
+
+---
+
+## Features Overview
+
+Primary sales:
+- Create events and tiers, price in PC
+- Purchase single or multiple tickets with universal transactions
+- On‑chain validation of tickets by organizer accounts
+
+Secondary market:
+- Escrow listings with fair transfer and royalty enforcement
+- Offers (make/cancel/accept) with optional expirations
+- Batch list/cancel to reduce gas and clicks
+
+Discovery & UX:
+- Full‑text search, filters (status, date, sort), and result counts
+- “My Tickets” management with QR codes and details
+- Explorer links for instant transaction verification
+
+Organizer tooling:
+- QR scanning page and verification result cards
+- Recommended workflows to prevent fraud and ensure smooth entry
+
+---
+
+## QR Code System
+
+- Generation: `useQRCode` produces signed payloads with tokenId, eventId, owner, contract, chainId, and timestamp
+- Display: `QRCodeDisplay` (size variants, download button, loading/error states)
+- Scan: `QRScanner` (html5‑qrcode, mobile‑friendly) with real‑time feedback
+- Verification: Organizer page confirms owner, usage status, and event match; highlight success/warn/error
+
+Security note:
+- Current implementation uses a simple hash; production should upgrade to cryptographic signing (ECDSA) and server‑side verification with rate limiting
+
+Details: [`qr-code-implementation.md`](docs/qr-code-implementation.md)
+
+---
+
+## Search & Discovery
+
+- Debounced search across names, descriptions, venues, organizers
+- Status filters (upcoming/live/ended), date range, sort options
+- Autocomplete and search history for better UX
+
+Details: [`event-search-implementation.md`](docs/event-search-implementation.md)
+
+---
+
+## Secondary Marketplace Enhancements
+
+- Offers: make, cancel, accept with expirations and refund paths
+- Batch operations: list/cancel multiple tickets in one transaction (~90% gas savings for 10 tickets)
+- Per‑event and per‑seller stats with view functions
+
+Details: [`enhanced-marketplace-implementation.md`](docs/enhanced-marketplace-implementation.md)
+
+---
+
+## Deployment & Integration (Push Testnet)
 
 Prerequisites
 - Node.js LTS and npm
 - Push Testnet wallet private key with PC for gas
 - `.env` at repo root with `PRIVATE_KEY=...` (never commit secrets)
 
-Network (from this repo)
+Network
 - Chain ID: `42101`
-- RPCs: `https://evm.rpc-testnet-donut-node1.push.org/` (primary), `https://evm.rpc-testnet-donut-node2.push.org/` (alt)
+- RPCs: `https://evm.rpc-testnet-donut-node1.push.org/`, `https://evm.rpc-testnet-donut-node2.push.org/`
 - Explorer: `https://donut.push.network/`
 
 Install & Compile
@@ -39,18 +170,14 @@ Deploy with Hardhat Script
 ```
 npx hardhat run scripts/deploy.js --network push_testnet
 ```
-This deploys:
-- `TicketNFT` then `TicketFactory` and `TicketMarketplace`
-- Calls `TicketNFT.setFactory(<TicketFactory>)`
+Order & setup:
+- Deploy `TicketNFT`, then `TicketFactory`, then `TicketMarketplace`
+- Call `TicketNFT.setFactory(<TicketFactory>)`
 
 Deploy with Ignition (alternative)
 ```
 npx hardhat ignition deploy ignition/modules/DeployTicketChain.ts --network push_testnet
 ```
-Latest example deployment in this repo (treat as example only):
-- `TicketNFT`: `0xb01EA7C00cCe6D8d481e4947c8dBd8589e5fD04c`
-- `TicketFactory`: `0xbaf600B3343a32Dfff5991D2c470D885B4D1E2Ea`
-- `TicketMarketplace`: `0x46132Ea822faA3aa9BdCdBa0693cf51E86703065`
 
 Verify on Push Scan (Blockscout)
 ```
@@ -59,243 +186,71 @@ npx hardhat verify --network push_testnet <TicketFactory> <TicketNFT>
 npx hardhat verify --network push_testnet <TicketMarketplace> <TicketNFT>
 ```
 
-## Integrate the UI Kit
-
-Install Dependencies (latest)
+Frontend Bootstrap
 ```
-npm i @pushchain/ui-kit @pushchain/core wagmi viem ethers @tanstack/react-query react react-dom
-```
-
-Provider Setup
-- Wrap your React tree with Push UI Kit, wagmi, and React Query.
-- Keep the same login surface, modal layouts, and RPC overrides used here.
-
-Example root setup (condensed)
-```tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { WagmiProvider, createConfig, http } from 'wagmi';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { PushUniversalWalletProvider, PushUI, type AppMetadata, type ProviderConfigProps } from '@pushchain/ui-kit';
-
-const pushTestnet = {
-  id: 42101,
-  name: 'Push Chain Testnet',
-  nativeCurrency: { name: 'Push Chain', symbol: 'PC', decimals: 18 },
-  rpcUrls: { default: { http: ['https://evm.rpc-testnet-donut-node1.push.org/'] } },
-  blockExplorers: { default: { name: 'Push Scan', url: 'https://donut.push.network' } },
-  testnet: true,
-} as const;
-
-const wagmiConfig = createConfig({
-  chains: [pushTestnet],
-  transports: { [pushTestnet.id]: http() },
-});
-
-const walletConfig: ProviderConfigProps = {
-  network: PushUI.CONSTANTS.PUSH_NETWORK.TESTNET,
-  login: { email: true, google: true, wallet: { enabled: true }, appPreview: true },
-  modal: {
-    loginLayout: PushUI.CONSTANTS.LOGIN.LAYOUT.SPLIT,
-    connectedLayout: PushUI.CONSTANTS.CONNECTED.LAYOUT.HOVER,
-    appPreview: true,
-    connectedInteraction: PushUI.CONSTANTS.CONNECTED.INTERACTION.BLUR,
-  },
-  chainConfig: {
-    rpcUrls: {
-      'eip155:11155111': ['https://rpc.sepolia.org'],
-      'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': ['https://api.devnet.solana.com'],
-    },
-  },
-};
-
-const appMetadata: AppMetadata = {
-  title: 'TicketChain',
-  description: 'Universal ticketing powered by Push Chain',
-  logoUrl: 'https://avatars.githubusercontent.com/u/64157541?v=4',
-};
-
-const queryClient = new QueryClient();
-
-function App() { return <div>…</div>; }
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <PushUniversalWalletProvider config={walletConfig} app={appMetadata}>
-          <App />
-        </PushUniversalWalletProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
-  </React.StrictMode>
-);
+cd frontend/ticketchain
+npm install
+npm run dev
 ```
 
-Wallet Button
-```tsx
-import { PushUniversalAccountButton, usePushWalletContext } from '@pushchain/ui-kit';
+Provider & Wallet
+- Wrap React tree with `PushUniversalWalletProvider`, `WagmiProvider`, `QueryClientProvider`
+- Keep login surface and modal layouts consistent with this repo
+- Register Sepolia and Solana devnet RPC overrides where needed
 
-function Header() {
-  const { connectionStatus } = usePushWalletContext();
-  return (
-    <div>
-      <PushUniversalAccountButton />
-      {connectionStatus !== 'connected' && <span>Connect to start</span>}
-    </div>
-  );
-}
-```
+Universal Transactions
+- Use `pushChainClient.universal.sendTransaction`
+- Encode calldata with `PushChain.utils.helpers.encodeTxData`
+- Deep‑link confirmations via `pushChainClient.explorer.getTransactionUrl(hash)`
 
-## Send Universal Transactions
+---
 
-Simple Native Transfer on Push (no bridging)
-```ts
-const tx = await pushChainClient.universal.sendTransaction({
-  to: '0xRecipient',
-  value: PushChain.utils.helpers.parseUnits('0.001', 18), // 0.001 PC
-});
-await tx.wait();
-```
-
-Contract Call on Push (no bridging)
-```ts
-const data = PushChain.utils.helpers.encodeTxData({
-  abi: TicketFactoryABI,
-  functionName: 'addTicketType',
-  args: [eventId, name, price, supply, imageHash],
-});
-const tx = await pushChainClient.universal.sendTransaction({ to: FACTORY, data });
-await tx.wait();
-```
-
-Bridged Funds + Contract Call (origin → Push)
-```ts
-const tx = await pushChainClient.universal.sendTransaction({
-  to: FACTORY,
-  data: PushChain.utils.helpers.encodeTxData({
-    abi: TicketFactoryABI,
-    functionName: 'purchaseTicket',
-    args: [eventId, ticketTypeId],
-  }),
-  value: priceInPC,
-  funds: { amount: PushChain.utils.helpers.parseUnits('0.1', 18) }, // move 0.1 native from origin
-});
-await tx.wait();
-```
-
-Explorer Link
-```ts
-pushChainClient.explorer.getTransactionUrl(tx.hash);
-```
-
-## Cross‑Chain (Solana/EVM) Flows
-
-EVM Origin (e.g., Sepolia)
-- Connect via Push modal; universal writes work without switching to a Push-native wallet.
-- Use `value` in PC for on‑Push payments, or `funds` to bridge origin native within the call.
-
-Solana Origin (devnet)
-- Set wallet to Solana devnet with a small SOL balance.
-- Keep CAIP mapping: `solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1` → `https://api.devnet.solana.com`.
-- Use the same `sendTransaction` API; the SDK handles fee‑locker and execution.
-
-## UEA vs Origin Explained
-
-Concepts
-- Origin address: user’s wallet on the source chain (e.g., Sepolia EOA or Solana pubkey).
-- UEA (Universal Executor Account): deterministic executor on Push; contracts see `msg.sender = UEA`.
-
-Always Compare UEAs
-```ts
-const { universalAccount } = usePushWalletContext();
-const { PushChain } = usePushChain();
-const executor = await PushChain.utils.account.convertOriginToExecutor(
-  universalAccount,
-  { onlyCompute: true }
-);
-const organizerUEA = executor.address; // compare this to addresses stored on Push
-```
-
-Important Nuance
-- UEAs are contracts on Push; ERC‑721 mints may use `_mint` (not `_safeMint`) for contract recipients.
-
-## Troubleshooting
-
-Solana purchase fails with `SimulateError`
-- Ensure Solana CAIP maps to devnet (`https://api.devnet.solana.com`) and wallet is on devnet with enough SOL.
-
-Empty “My Tickets” after cross‑chain purchase
-- Compare with UEA, not origin; resolve executor with `convertOriginToExecutor`.
-
-`IncorrectPayment` on purchases
-- Refresh price and ensure `value` equals ticket price in PC.
-
-Batch listing rejects with universal account
-- Current marketplace batch listing is EVM‑direct; connect a Push testnet EVM wallet or migrate to universal writes.
-
-Explorer/chain mismatch
-- Use chain ID `42101` across wagmi/Hardhat.
-
-## Appendix: Env & RPC
-
-Push Testnet
-- Chain ID: `42101`
-- RPCs: `https://evm.rpc-testnet-donut-node1.push.org/`, `https://evm.rpc-testnet-donut-node2.push.org/`
-- Explorer: `https://donut.push.network/`
+## Environment & RPC
 
 Frontend Env (dynamic)
-- `VITE_TICKET_FACTORY_ADDRESS`, `VITE_TICKET_NFT_ADDRESS`, `VITE_MARKETPLACE_ADDRESS`
-- Choose a single Push RPC var name (e.g., `VITE_PUSH_RPC_URL`) and use consistently in your code.
+- `VITE_TICKET_FACTORY_ADDRESS`
+- `VITE_TICKET_NFT_ADDRESS`
+- `VITE_MARKETPLACE_ADDRESS`
+- `VITE_PUSH_RPC_URL` (optional override; defaults to donut node1)
 
 CAIP Mappings
 - `eip155:11155111` → `https://rpc.sepolia.org`
 - `solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1` → `https://api.devnet.solana.com`
 
-Mini Demo Snippets
-```tsx
-// Send 0.001 PC and link to explorer
-import { useState } from 'react';
-import { usePushChain, usePushChainClient } from '@pushchain/ui-kit';
+---
 
-export function SendPcButton({ to }: { to: `0x${string}` }) {
-  const { pushChainClient } = usePushChainClient();
-  const { PushChain } = usePushChain();
-  const [hash, setHash] = useState<string | null>(null);
-  const send = async () => {
-    const tx = await pushChainClient!.universal.sendTransaction({
-      to,
-      value: PushChain.utils.helpers.parseUnits('0.001', 18),
-    });
-    setHash(tx.hash);
-    await tx.wait();
-  };
-  return hash ? (
-    <a href={pushChainClient!.explorer.getTransactionUrl(hash)} target="_blank" rel="noreferrer">View on Explorer</a>
-  ) : (
-    <button onClick={send}>Send 0.001 PC</button>
-  );
-}
-```
+## Troubleshooting
 
-```ts
-// Resolve UEA for user-specific reads
-import { useAccount } from 'wagmi';
-import { useEffect, useState } from 'react';
-import { usePushWalletContext, usePushChain } from '@pushchain/ui-kit';
+- Solana `SimulateError`: ensure devnet RPC mapping and sufficient SOL; reconnect wallet
+- Empty “My Tickets”: resolve executor with `convertOriginToExecutor`; compare UEA, not origin
+- `IncorrectPayment`: refresh price; ensure `value` equals ticket price in PC
+- Batch listing rejected: current batch path may be EVM‑direct; connect Push testnet EVM wallet or migrate to universal writes
+- Explorer/chain mismatch: use chain ID `42101` consistently across wagmi/Hardhat
 
-export function useExecutorAddress() {
-  const { address: origin } = useAccount();
-  const { universalAccount } = usePushWalletContext();
-  const { PushChain } = usePushChain();
-  const [executor, setExecutor] = useState<string | null>(null);
-  useEffect(() => {
-    (async () => {
-      if (!universalAccount || !PushChain) { setExecutor(origin ?? null); return; }
-      const info = await PushChain.utils.account.convertOriginToExecutor(universalAccount, { onlyCompute: true });
-      setExecutor(info.address);
-    })();
-  }, [origin, universalAccount, PushChain]);
-  return executor;
-}
-```
+---
+
+## Roadmap & Notes
+
+Near‑term
+- Replace wagmi‑only batch listing with universal transactions
+- Add “mark ticket as used” organizer flow
+- Global banner when origin chain diverges from required payment chain
+
+Production hardening
+- ECDSA signing and backend verification for QR payloads
+- Rate limiting and audit trail for scans
+- Offline verification modes with sync
+
+---
+
+## References
+
+- Integration: [`docs/push-chain-integration-guide.md`](docs/push-chain-integration-guide.md)
+- Marketplace: [`docs/enhanced-marketplace-implementation.md`](docs/enhanced-marketplace-implementation.md)
+- Search: [`docs/event-search-implementation.md`](docs/event-search-implementation.md)
+- QR code system: [`docs/qr-code-implementation.md`](docs/qr-code-implementation.md)
+- Contracts: [`contracts/TicketFactory.sol`](contracts/TicketFactory.sol), [`contracts/TicketMarketplace.sol`](contracts/TicketMarketplace.sol), [`contracts/TicketNFT.sol`](contracts/TicketNFT.sol)
+- Frontend provider: [`frontend/ticketchain/src/providers/PushChainProvider.tsx`](frontend/ticketchain/src/providers/PushChainProvider.tsx)
+
+---
+

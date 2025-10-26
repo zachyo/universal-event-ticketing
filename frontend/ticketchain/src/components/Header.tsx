@@ -29,7 +29,7 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
       <div className="container px-1.5 lg:px-4 py-4">
-        <div className="flex items-center gap-3 rounded-full border border-border bg-card px-4 py-3 shadow-sm transition-colors duration-300">
+        <div className="flex items-center gap-3 rounded-full border border-border bg-card px-2 lg:px-4 py-3 shadow-sm transition-colors duration-300">
           <div className="flex items-center gap-2">
             <Link
               to="/"
