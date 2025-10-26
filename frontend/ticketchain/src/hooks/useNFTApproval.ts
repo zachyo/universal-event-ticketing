@@ -81,6 +81,7 @@ export function useNFTApproval(tokenId?: bigint) {
     query: {
       enabled: !!tokenId,
       // Add refresh key to force refetch after approval
+      // @ts-expect-error
       queryKey: ["nft-approval", tokenId?.toString(), approvalRefreshKey],
     },
   });

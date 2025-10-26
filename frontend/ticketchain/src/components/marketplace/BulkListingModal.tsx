@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { formatEther } from "viem";
 import { X, Plus, Trash2, DollarSign } from "lucide-react";
 import {

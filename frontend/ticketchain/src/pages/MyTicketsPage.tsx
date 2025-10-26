@@ -416,6 +416,7 @@ const MyTicketsPage = () => {
     return map;
   }, [listings]);
 
+  console.log({listings})
   // Create a list of active listings for batch cancel
   const activeListings = useMemo(() => {
     return listings
@@ -431,9 +432,10 @@ const MyTicketsPage = () => {
           eventName = ticket.event.name;
         } else if (ticket?.eventId) {
           eventName = `Event #${ticket.eventId}`;
-        } else if (listing.eventId) {
-          eventName = `Event #${listing.eventId}`;
-        }
+        } 
+        // else if (listing.eventId) {
+        //   eventName = `Event #${listing.eventId}`;
+        // }
 
         return {
           listingId: Number(listing.listingId),
