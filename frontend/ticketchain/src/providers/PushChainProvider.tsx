@@ -4,6 +4,7 @@ import {
   type AppMetadata,
   type ProviderConfigProps,
 } from "@pushchain/ui-kit";
+import { TICKETCHAIN_LOGO_BASE64 } from "../lib/logoData";
 
 /**
  * PushChainProviders Component
@@ -74,8 +75,8 @@ const PushChainProviders = ({ children }: { children: React.ReactNode }) => {
 
   // App metadata - customize with your app's branding
   const appMetadata: AppMetadata = {
-    // Your app's logo URL (can be a URL or base64 data URI)
-    logoUrl: "https://avatars.githubusercontent.com/u/64157541?v=4",
+    // Your app's logo URL (using base64 for better compatibility)
+    logoUrl: TICKETCHAIN_LOGO_BASE64,
 
     // Your app's display name
     title: "TicketChain",
@@ -86,7 +87,40 @@ const PushChainProviders = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <PushUniversalWalletProvider config={walletConfig} app={appMetadata}>
+    <PushUniversalWalletProvider 
+      config={walletConfig} 
+      app={appMetadata}
+      themeOverrides={{
+        // Black theme overrides
+        '--pw-core-bg-primary-color': '#0A0A0A',
+        '--pw-core-bg-secondary-color': '#1A1A1A',
+        '--pw-core-bg-tertiary-color': '#2D2D2D',
+        '--pw-core-text-primary-color': '#FFFFFF',
+        '--pw-core-text-secondary-color': '#A3A3A3',
+        '--pw-core-text-tertiary-color': '#737373',
+        '--pw-core-border-primary-color': '#404040',
+        '--pw-core-border-secondary-color': '#262626',
+        '--pw-core-btn-primary-bg-color': '#8B5CF6',
+        '--pw-core-btn-primary-text-color': '#FFFFFF',
+        '--pw-core-btn-secondary-bg-color': '#374151',
+        '--pw-core-btn-secondary-text-color': '#FFFFFF',
+        '--pw-core-btn-border-radius': '12px',
+        '--pw-core-font-family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+        '--pw-core-shadow-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.5)',
+        '--pw-core-shadow-md': '0 4px 6px -1px rgba(0, 0, 0, 0.6)',
+        '--pw-core-shadow-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.7)',
+        '--pw-core-modal-bg-color': 'rgba(0, 0, 0, 0.8)',
+        '--pw-core-card-bg-color': '#1A1A1A',
+        '--pw-core-card-border-color': '#404040',
+        '--pw-core-input-bg-color': '#2D2D2D',
+        '--pw-core-input-border-color': '#404040',
+        '--pw-core-input-text-color': '#FFFFFF',
+        '--pw-core-success-color': '#10B981',
+        '--pw-core-error-color': '#EF4444',
+        '--pw-core-warning-color': '#F59E0B',
+        '--pw-core-info-color': '#3B82F6',
+      }}
+    >
       {children}
     </PushUniversalWalletProvider>
   );

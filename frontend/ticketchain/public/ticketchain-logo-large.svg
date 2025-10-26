@@ -1,0 +1,50 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0A0A0A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1A1A1A;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="ticketGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F8FAFC;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="chainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="64" fill="url(#bgGradient)"/>
+  
+  <!-- Main ticket shape with enhanced contrast -->
+  <path d="M32 36C32 33.7909 33.7909 32 36 32H92C94.2091 32 96 33.7909 96 36V52C96 54.2091 94.2091 56 92 56H36C33.7909 56 32 54.2091 32 52V36Z" fill="url(#ticketGradient)" stroke="#E2E8F0" stroke-width="2"/>
+  
+  <!-- Ticket perforations with better visibility -->
+  <circle cx="64" cy="36" r="4" fill="#0A0A0A"/>
+  <circle cx="64" cy="52" r="4" fill="#0A0A0A"/>
+  
+  <!-- Chain links with enhanced visibility -->
+  <path d="M40 60C40 58.8954 40.8954 58 42 58H50C51.1046 58 52 58.8954 52 60V68C52 69.1046 51.1046 70 50 70H42C40.8954 70 40 69.1046 40 68V60Z" fill="url(#chainGradient)" stroke="#6D28D9" stroke-width="2"/>
+  <path d="M76 60C76 58.8954 76.8954 58 78 58H86C87.1046 58 88 58.8954 88 60V68C88 69.1046 87.1046 70 86 70H78C76.8954 70 76 69.1046 76 68V60Z" fill="url(#chainGradient)" stroke="#6D28D9" stroke-width="2"/>
+  
+  <!-- Connecting chain with glow effect -->
+  <path d="M52 64H76" stroke="#8B5CF6" stroke-width="6" stroke-linecap="round" filter="url(#glow)"/>
+  
+  <!-- Event details section with better contrast -->
+  <rect x="40" y="80" width="48" height="20" rx="4" fill="#374151" stroke="#6B7280" stroke-width="2"/>
+  
+  <!-- Event text with better visibility -->
+  <text x="64" y="94" text-anchor="middle" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="12" font-weight="700" letter-spacing="1px">EVENT</text>
+  
+  <!-- Subtle border for definition -->
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#404040" stroke-width="2" opacity="0.5"/>
+</svg>

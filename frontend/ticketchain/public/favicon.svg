@@ -1,0 +1,24 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="16" fill="#0A0A0A"/>
+  
+  <!-- Main ticket shape -->
+  <path d="M8 9C8 8.44772 8.44772 8 9 8H23C23.5523 8 24 8.44772 24 9V13C24 13.5523 23.5523 14 23 14H9C8.44772 14 8 13.5523 8 13V9Z" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="0.5"/>
+  
+  <!-- Ticket perforations -->
+  <circle cx="16" cy="9" r="1" fill="#0A0A0A"/>
+  <circle cx="16" cy="13" r="1" fill="#0A0A0A"/>
+  
+  <!-- Chain links -->
+  <path d="M10 15C10 14.4477 10.4477 14 11 14H13C13.5523 14 14 14.4477 14 15V17C14 17.5523 13.5523 18 13 18H11C10.4477 18 10 17.5523 10 17V15Z" fill="#8B5CF6"/>
+  <path d="M18 15C18 14.4477 18.4477 14 19 14H21C21.5523 14 22 14.4477 22 15V17C22 17.5523 21.5523 18 21 18H19C18.4477 18 18 17.5523 18 17V15Z" fill="#8B5CF6"/>
+  
+  <!-- Connecting chain -->
+  <path d="M14 16H18" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Event details section -->
+  <rect x="10" y="20" width="12" height="5" rx="1" fill="#374151"/>
+  
+  <!-- Event text -->
+  <text x="16" y="23.5" text-anchor="middle" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="3" font-weight="700">EVENT</text>
+</svg>
