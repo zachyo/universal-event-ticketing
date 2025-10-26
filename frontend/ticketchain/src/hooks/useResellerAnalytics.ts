@@ -102,28 +102,38 @@ export function useResellerAnalytics(
       };
     }
 
-    // Parse seller stats
-    const statsData = data[0].result as [bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint];
+    // Parse seller stats with proper null/undefined handling
+    const statsData = data[0].result as {
+      totalListed: bigint;
+      currentlyListed: bigint;
+      totalSold: bigint;
+      totalRevenue: bigint;
+      totalRoyaltiesPaid: bigint;
+      totalCanceled: bigint;
+      firstListingTime: bigint;
+      lastActivityTime: bigint;
+    };
+    
     const stats: SellerStats = {
-      totalListed: statsData[0],
-      currentlyListed: statsData[1],
-      totalSold: statsData[2],
-      totalRevenue: statsData[3],
-      totalRoyaltiesPaid: statsData[4],
-      totalCanceled: statsData[5],
-      firstListingTime: statsData[6],
-      lastActivityTime: statsData[7],
+      totalListed: statsData?.totalListed ?? 0n,
+      currentlyListed: statsData?.currentlyListed ?? 0n,
+      totalSold: statsData?.totalSold ?? 0n,
+      totalRevenue: statsData?.totalRevenue ?? 0n,
+      totalRoyaltiesPaid: statsData?.totalRoyaltiesPaid ?? 0n,
+      totalCanceled: statsData?.totalCanceled ?? 0n,
+      firstListingTime: statsData?.firstListingTime ?? 0n,
+      lastActivityTime: statsData?.lastActivityTime ?? 0n,
     };
 
-    // Parse listings
+    // Parse listings with proper null/undefined handling
     const listingsData = data[1].result as [any[], any[]];
-    const activeListings = listingsData[0];
-    const historicalListings = listingsData[1];
+    const activeListings = listingsData?.[0] ?? [];
+    const historicalListings = listingsData?.[1] ?? [];
 
-    // Parse event stats
+    // Parse event stats with proper null/undefined handling
     const eventStatsData = data[2].result as [bigint, bigint];
-    const eventSecondarySales = Number(eventStatsData[0]);
-    const eventRoyaltiesCollected = eventStatsData[1];
+    const eventSecondarySales = Number(eventStatsData?.[0] ?? 0n);
+    const eventRoyaltiesCollected = eventStatsData?.[1] ?? 0n;
 
     // Compute derived metrics
     const averageSalePrice =
@@ -149,11 +159,14 @@ export function useResellerAnalytics(
       // Check if listing was sold (not active and has a buyer)
       // We can infer this if it's not active and not in canceled stats
       // For now, we'll use a simple approximation
-      if (!listing.active) {
+      if (!listing.active && listing.createdAt) {
         soldCount++;
         // Assuming we store timestamps, calculate difference
         // This is a placeholder - adjust based on actual data structure
-        totalTimeToSell += Number(stats.lastActivityTime - listing.createdAt);
+        const timeDiff = Number(stats.lastActivityTime - BigInt(listing.createdAt));
+        if (!Number.isNaN(timeDiff) && Number.isFinite(timeDiff)) {
+          totalTimeToSell += timeDiff;
+        }
       }
     }
 

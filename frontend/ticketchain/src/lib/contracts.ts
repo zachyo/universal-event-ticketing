@@ -3,10 +3,10 @@ import TicketFactoryArtifact from "./abi/TicketFactory.json";
 import TicketNFTArtifact from "./abi/TicketNFT.json";
 import TicketMarketplaceArtifact from "./abi/TicketMarketplace.json";
 
-export const TICKET_FACTORY_ADDRESS = import.meta.env
-  .VITE_TICKET_FACTORY_ADDRESS;
-export const TICKET_NFT_ADDRESS = import.meta.env.VITE_TICKET_NFT_ADDRESS;
-export const MARKETPLACE_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
+// Contract addresses with fallbacks to deployed addresses
+export const TICKET_FACTORY_ADDRESS = import.meta.env.VITE_TICKET_FACTORY_ADDRESS || "0xFe075db35b9016613802e2c097d1d30E49E39A0E";
+export const TICKET_NFT_ADDRESS = import.meta.env.VITE_TICKET_NFT_ADDRESS || "0xFF96E24A6A0ef996C1F1509C1Ef619483e8B38c9";
+export const MARKETPLACE_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS || "0xc8f92Dd57F1109dF023d9961C8878e1a83585347";
 
 export const TicketFactoryABI = TicketFactoryArtifact.abi as Abi;
 export const TicketNFTABI = TicketNFTArtifact.abi as Abi;
