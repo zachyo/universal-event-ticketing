@@ -48,7 +48,6 @@ import {
 import { MarketplaceSection } from "../components/event/MarketplaceSection";
 import { cn } from "../utils/cn";
 
-
 type TicketTypeOption = {
   id: string;
   ticketTypeId: bigint;
@@ -116,10 +115,11 @@ const EventDetailPage = () => {
 
       try {
         // Convert origin address to UEA
-        const executorInfo = await PushChain.utils.account.convertOriginToExecutor(
-          universalAccount,
-          { onlyCompute: true }
-        );
+        const executorInfo =
+          await PushChain.utils.account.convertOriginToExecutor(
+            universalAccount,
+            { onlyCompute: true }
+          );
 
         const executorAddress = executorInfo.address;
         setUeaAddress(executorAddress);
@@ -464,48 +464,51 @@ const EventDetailPage = () => {
             </div>
 
             <div className="relative flex flex-col justify-between gap-6 border-t border-t-border/30 bg-card/85 px-6 py-6 lg:border-l lg:border-t-0 lg:rounded-r-[2.5rem]">
-              {isOrganizer && (
-                <Link
-                  to={`/event-analytics/${eventId}`}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                >
-                  <BarChart3 className="h-4 w-4" />
-                  Event Analytics
-                </Link>
-              )}
-              {hasResellerAccess && (
-                <Link
-                  to={`/reseller-analytics/${eventId}`}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/60 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                >
-                  <TrendingUp className="h-4 w-4" />
-                  Reseller Analytics
-                </Link>
-              )}
-              <div className="space-y-4 text-sm text-muted-foreground">
-                <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
-                  <span className="text-xs uppercase tracking-wider text-primary">
-                    Price Range
-                  </span>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">
-                    {priceText}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
-                  <span className="text-xs uppercase tracking-wider text-primary">
-                    Time Until Event
-                  </span>
-                  <p className="mt-2 text-base text-foreground">
-                    {status === "upcoming"
-                      ? timeUntil
-                      : status === "live"
-                      ? "Happening now"
-                      : status === "ended"
-                      ? "Event ended"
-                      : "Inactive"}
-                  </p>
+              <div className="flex flex-col gap-3">
+                {isOrganizer && (
+                  <Link
+                    to={`/event-analytics/${eventId}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    Event Analytics
+                  </Link>
+                )}
+                {hasResellerAccess && (
+                  <Link
+                    to={`/reseller-analytics/${eventId}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/60 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                    Reseller Analytics
+                  </Link>
+                )}
+                <div className="space-y-4 text-sm text-muted-foreground">
+                  <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+                    <span className="text-xs uppercase tracking-wider text-primary">
+                      Price Range
+                    </span>
+                    <p className="mt-2 text-2xl font-semibold text-foreground">
+                      {priceText}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+                    <span className="text-xs uppercase tracking-wider text-primary">
+                      Time Until Event
+                    </span>
+                    <p className="mt-2 text-base text-foreground">
+                      {status === "upcoming"
+                        ? timeUntil
+                        : status === "live"
+                        ? "Happening now"
+                        : status === "ended"
+                        ? "Event ended"
+                        : "Inactive"}
+                    </p>
+                  </div>
                 </div>
               </div>
+
               <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">
                 Organized by{" "}
                 <span className="font-mono text-sm text-foreground">
@@ -793,9 +796,7 @@ const EventDetailPage = () => {
                 </>
               ) : (
                 <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-6 text-center text-sm font-semibold text-muted-foreground">
-                  {isSoldOut && (
-                    <p className="text-destructive">Sold Out</p>
-                  )}
+                  {isSoldOut && <p className="text-destructive">Sold Out</p>}
                   {status === "ended" && (
                     <p className="text-muted-foreground">Event Ended</p>
                   )}
@@ -920,7 +921,6 @@ const EventDetailPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
     </div>
   );
 };
