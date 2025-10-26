@@ -361,7 +361,7 @@ export function OrganizerVerificationPage() {
           details={verificationResult?.details}
         />
 
-        <div className="glass-card mt-6 rounded-[2rem] border border-primary/30 bg-primary/10 p-6 text-primary-foreground">
+        <div className="glass-card mt-6 rounded-[2rem] border border-primary/30 bg-primary/10 p-6 text-foreground">
           <h3 className="text-sm font-semibold uppercase tracking-wider">
             How to verify tickets
           </h3>
