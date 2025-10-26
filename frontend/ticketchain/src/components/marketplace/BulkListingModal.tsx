@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { formatEther } from "viem";
 import { X, Plus, Trash2, DollarSign } from "lucide-react";
 import {
   useBatchListing,
   type BatchListingItem,
 } from "../../hooks/useBatchListing";
+import { useBulkNFTApproval } from "../../hooks/useNFTApproval";
 
 interface TicketOption {
   tokenId: bigint;
@@ -35,6 +36,22 @@ export function BulkListingModal({
     isConfirmed,
     error,
   } = useBatchListing();
+
+  // Get token IDs from selected items for approval checking
+  const selectedTokenIds = useMemo(
+    () => selectedItems.map((item) => item.tokenId),
+    [selectedItems]
+  );
+
+  // Use bulk approval hook
+  const {
+    allApproved,
+    approvedCount,
+    isCheckingApprovals,
+    isApproving,
+    error: approvalError,
+    approveAll,
+  } = useBulkNFTApproval(selectedTokenIds);
 
   const addItem = () => {
     if (availableTickets.length > 0) {
@@ -70,7 +87,17 @@ export function BulkListingModal({
     }, 0);
   }, [selectedItems]);
 
-  const handleSubmit = async () => {
+  const handleApprove = async () => {
+    if (selectedItems.length === 0) return;
+
+    try {
+      await approveAll();
+    } catch (err) {
+      console.error("Bulk approval error:", err);
+    }
+  };
+
+  const handleList = async () => {
     if (selectedItems.length === 0) return;
 
     try {
@@ -81,7 +108,7 @@ export function BulkListingModal({
   };
 
   const handleClose = () => {
-    if (!isWritePending && !isConfirming) {
+    if (!isWritePending && !isConfirming && !isApproving) {
       setSelectedItems([]);
       onClose();
     }
@@ -209,10 +236,32 @@ export function BulkListingModal({
             Add Ticket
           </button>
 
-          {error && (
+          {/* Approval Status */}
+          {selectedItems.length > 0 && !isCheckingApprovals && (
+            <div
+              className={`mt-4 p-4 rounded-lg border ${
+                allApproved
+                  ? "bg-green-500/10 border-green-500/30"
+                  : "bg-primary/10 border-primary/30"
+              }`}
+            >
+              <p className="text-sm font-semibold mb-1">
+                {allApproved
+                  ? "✓ All tickets approved"
+                  : `Approval Status: ${approvedCount}/${selectedItems.length} approved`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {allApproved
+                  ? "Ready to list tickets on marketplace"
+                  : "You need to approve tickets before listing"}
+              </p>
+            </div>
+          )}
+
+          {(error || approvalError) && (
             <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
               <p className="text-sm text-red-500">
-                Error: {error.message || "Failed to list tickets"}
+                Error: {error?.message || approvalError || "Failed to process"}
               </p>
             </div>
           )}
@@ -230,31 +279,62 @@ export function BulkListingModal({
           <div className="flex gap-3">
             <button
               onClick={handleClose}
-              disabled={isWritePending || isConfirming}
+              disabled={isWritePending || isConfirming || isApproving}
               className="flex-1 px-6 py-3 bg-muted text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50"
             >
               Cancel
             </button>
-            <button
-              onClick={handleSubmit}
-              disabled={
-                selectedItems.length === 0 ||
-                isPreparing ||
-                isWritePending ||
-                isConfirming
-              }
-              className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPreparing
-                ? "Preparing..."
-                : isWritePending
-                ? "Confirm in Wallet..."
-                : isConfirming
-                ? "Confirming..."
-                : `List ${selectedItems.length} Ticket${
-                    selectedItems.length !== 1 ? "s" : ""
-                  }`}
-            </button>
+
+            {/* Show Approve button if not all approved */}
+            {!allApproved && (
+              <button
+                onClick={handleApprove}
+                disabled={
+                  selectedItems.length === 0 ||
+                  isApproving ||
+                  isCheckingApprovals
+                }
+                className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {(isApproving || isCheckingApprovals) && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent"></div>
+                )}
+                {isApproving
+                  ? `Approving ${approvedCount + 1}/${selectedItems.length}...`
+                  : isCheckingApprovals
+                  ? "Checking..."
+                  : `Approve ${selectedItems.length - approvedCount} Ticket${
+                      selectedItems.length - approvedCount !== 1 ? "s" : ""
+                    }`}
+              </button>
+            )}
+
+            {/* Show List button if all approved */}
+            {allApproved && (
+              <button
+                onClick={handleList}
+                disabled={
+                  selectedItems.length === 0 ||
+                  isPreparing ||
+                  isWritePending ||
+                  isConfirming
+                }
+                className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {(isPreparing || isWritePending || isConfirming) && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent"></div>
+                )}
+                {isPreparing
+                  ? "Preparing..."
+                  : isWritePending
+                  ? "Confirm in Wallet..."
+                  : isConfirming
+                  ? "Confirming..."
+                  : `List ${selectedItems.length} Ticket${
+                      selectedItems.length !== 1 ? "s" : ""
+                    }`}
+              </button>
+            )}
           </div>
         </div>
       </div>

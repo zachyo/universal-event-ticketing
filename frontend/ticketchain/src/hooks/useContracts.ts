@@ -561,18 +561,8 @@ export function useListTicket() {
       // Show loading toast
       toastId = toastLoading("Listing ticket for sale...");
 
-      // Ensure marketplace can transfer the NFT into escrow
-      const approvalTx = await pushChainClient.universal.sendTransaction({
-        to: TICKET_NFT_ADDRESS,
-        data: PushChain.utils.helpers.encodeTxData({
-          abi: Array.from(TicketNFTABI),
-          functionName: "approve",
-          args: [MARKETPLACE_ADDRESS, params.tokenId],
-        }),
-      });
-      await approvalTx.wait();
-
       // Create listing on marketplace (escrow transfer happens inside)
+      // NOTE: Approval should be done separately before calling this function
       const listTx = await pushChainClient.universal.sendTransaction({
         to: MARKETPLACE_ADDRESS,
         data: PushChain.utils.helpers.encodeTxData({
