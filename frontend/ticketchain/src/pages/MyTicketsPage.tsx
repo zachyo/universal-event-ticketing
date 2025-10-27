@@ -416,7 +416,6 @@ const MyTicketsPage = () => {
     return map;
   }, [listings]);
 
-  console.log({listings})
   // Create a list of active listings for batch cancel
   const activeListings = useMemo(() => {
     return listings
